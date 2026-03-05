@@ -1,0 +1,29 @@
+.idea
+
+# Terraform state files
+terraform.tfstate
+terraform.tfstate.backup
+
+# Local .terraform directories
+.terraform/
+
+# Crash logs
+crash.log
+
+# Override files (can contain sensitive info)
+override.tf
+override.tf.json
+
+# Variable files containing secrets
+*.tfvars
+*.tfvars.json
+
+# Optional lock file (ignore if you want fixed provider versions in repo)
+# .terraform.lock.hcl
+
+service.json
+vpn-key
+openvpn
+ssh
+
+node_modules/
