@@ -4,6 +4,9 @@
 terraform.tfstate
 terraform.tfstate.backup
 
+# Terraform lock
+.terraform.lock.hcl
+
 # Local .terraform directories
 .terraform/
 
@@ -13,10 +16,6 @@ crash.log
 # Override files (can contain sensitive info)
 override.tf
 override.tf.json
-
-# Variable files containing secrets
-*.tfvars
-*.tfvars.json
 
 # Optional lock file (ignore if you want fixed provider versions in repo)
 # .terraform.lock.hcl
