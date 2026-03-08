@@ -248,4 +248,151 @@ preparing the initial infrastructure required for the main Terraform project
 
 Once the bootstrap infrastructure is created, the main Terraform project can safely use the remote backend.
 
+# Container Registry and Secrets
 
+Once the remote Terraform state and state locking are successfully configured, the next step is to provision several
+core infrastructure components required by the application.
+
+Two important services should be created at this stage:
+
+- **Amazon ECR (Elastic Container Registry)** — for storing Docker images of the application
+- **AWS Secrets Manager** — for securely storing sensitive configuration values
+
+## Amazon ECR
+
+ECR will be used as the central registry for container images built by the CI/CD pipeline.
+
+All application images will be pushed to this registry and later pulled by the runtime environment (for example ECS,
+EKS, or other compute services).
+
+## AWS Secrets Manager
+
+Sensitive configuration values such as:
+
+- API keys
+- database credentials
+- third-party service tokens
+- application secrets
+
+should never be stored in the repository or Terraform variables.
+
+Instead, they should be stored in **AWS Secrets Manager**, which provides secure storage, access control, and auditing.
+
+If any secrets are already known at this stage of the project, they can be added to **Secrets Manager immediately** so
+that they are available for the infrastructure and application during deployment.
+
+# The "Chicken and Egg" Problem
+
+In many organizations, the DevOps and backend teams work independently and often in parallel. This can create a common
+problem during the early stages of a project:
+
+How can infrastructure be configured if the backend service is not yet ready for deployment?
+
+To reduce the dependency between these teams, we introduce a simple solution: a temporary bootstrap application.
+
+## Initial Application Image
+
+Inside the repository there is a folder called:
+
+```shell
+initial-image
+```
+
+This directory contains a minimal backend application used solely for bootstrapping the infrastructure.
+
+The application should:
+
+- use the same runtime as the real service
+- be simple enough to build immediately
+- be deployable to the infrastructure
+
+For example, since the production backend uses Node.js, the bootstrap service uses Express as a minimal framework.
+
+The goal of this service is not to implement business logic, but simply to provide a deployable container image that
+allows infrastructure components to be tested.
+
+## Required Endpoints
+
+The bootstrap service exposes a small set of endpoints.
+
+- **/health** - This endpoint is required. When deploying services to AWS ECS, a health check must be configured. ECS
+  periodically calls this endpoint to verify that the container is running correctly. The endpoint simply returns:
+
+```shell
+200 OK
+```
+
+This indicates that the service is alive and healthy.
+
+- **/version** - This endpoint is optional but highly recommended. It returns the version of the currently running
+  container. This makes it easy to:
+
+  - verify which version is deployed
+  - confirm that a deployment succeeded
+  - detect situations where old containers are still running during rolling updates
+
+## Docker Image
+
+The bootstrap application includes a properly configured Dockerfile and is ready to be built and pushed to Amazon ECR.
+
+To build and push the image manually, run:
+
+```shell
+docker buildx build \
+  --platform linux/amd64 \
+  -t <ECR_URL>:<version> \
+  --push .
+```
+
+! Be sure to specify the platform
+
+### Verifying Images in ECR
+
+You can verify that the image was successfully pushed using the AWS CLI:
+
+```shell
+aws ecr describe-images \
+  --repository-name todolist-backend \
+  --region eu-central-1
+```
+
+This command will list all images currently stored in the repository.
+
+### Running the Image Locally
+
+To test the container locally, follow these steps.
+
+1. Authenticate Docker with ECR
+
+First, authenticate your Docker client with Amazon ECR:
+
+```shell
+aws ecr get-login-password --region eu-central-1 \
+| docker login \
+  --username AWS \
+  --password-stdin <USER_ID>.dkr.ecr.eu-central-1.amazonaws.com
+```
+
+2. Run the Container with Docker Compose
+
+Create a minimal docker-compose.yml:
+
+```shell
+services:
+  aws-image:
+    image: <USER_ID>.dkr.ecr.eu-central-1.amazonaws.com/todolist-backend:0.0.3
+    ports:
+      - 3000:3000
+```
+
+Then run:
+
+```shell
+docker compose up
+```
+
+The service will be available locally on:
+
+```shell
+http://localhost:3000
+```
