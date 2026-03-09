@@ -396,3 +396,68 @@ The service will be available locally on:
 ```shell
 http://localhost:3000
 ```
+
+# GitHub Integration for CI/CD
+
+Once Secrets Manager and ECR are configured, the next step is to connect the GitHub repository to the CI/CD pipeline.
+
+This allows the pipeline to:
+
+- build Docker images
+- push images to ECR
+- trigger deployment processes automatically
+
+## Approaches
+
+There are two main ways to grant the CI/CD pipeline access to AWS:
+
+### 1. Dedicated AWS User
+
+Create a dedicated IAM user specifically for CI/CD tasks.
+
+Then configure:
+
+- ACCESS_KEY_ID
+- SECRET_ACCESS_KEY
+
+as GitHub Secrets in the repository settings.
+
+All actions in the CI/CD pipeline will run under this user’s permissions.
+
+⚠️ This approach works but requires careful management of IAM keys. Rotating secrets and enforcing least-privilege
+policies can be cumbersome.
+
+### 2. OpenID Connect (OIDC) — Recommended
+
+A more secure and modern approach is to configure OIDC between GitHub and AWS.
+
+- The repository itself is trusted to assume roles in AWS
+- No IAM user or long-lived keys are needed
+- Permissions are granted per repository, making the workflow cleaner and safer
+
+With this setup, the GitHub Actions workflow can assume a role that has privileges such as pushing images to ECR and
+deploying infrastructure.
+
+Terraform Setup
+
+To create the OIDC provider via Terraform, run:
+
+```shell
+terraform apply --target=module.github_oidc.aws_iam_openid_connect_provider.github
+```
+
+Terraform will output the ARN of the created resource, which must then be added to your GitHub Actions workflow for the
+backend repository.
+
+This step ensures that:
+
+- GitHub Actions can authenticate to AWS securely
+- Only authorized workflows can perform deployments
+- The CI/CD workflow is fully automated and auditable
+
+Why OIDC is Recommended
+
+- No hard-coded credentials in GitHub secrets
+- Least privilege — only the repository can assume the role
+- Improved security — reduces risk of compromised keys
+- Cleaner workflow — easier to manage and audit access
