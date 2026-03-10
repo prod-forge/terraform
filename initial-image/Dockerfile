@@ -5,7 +5,7 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 # -------- Stage 2: Runtime --------
 FROM node:20-alpine AS production
 
