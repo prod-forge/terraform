@@ -53,6 +53,8 @@ This project is split into multiple repositories:
 
 ## Overview
 
+![Architecture](https://github.com/prod-forge/terraform/blob/main/assets/architecture_diagram.png)
+
 This repository contains the infrastructure required to run the backend system in a production-like environment.
 
 The infrastructure is defined using **Terraform** and deployed on **AWS**.
@@ -248,15 +250,19 @@ preparing the initial infrastructure required for the main Terraform project
 
 Once the bootstrap infrastructure is created, the main Terraform project can safely use the remote backend.
 
-# Container Registry and Secrets
+## Workflow
 
-Once the remote Terraform state and state locking are successfully configured, the next step is to provision several
-core infrastructure components required by the application.
+After the above preparation, we can begin setting up the infrastructure.
 
-Two important services should be created at this stage:
+It is recommended to create the infrastructure in stages:
 
-- **Amazon ECR (Elastic Container Registry)** — for storing Docker images of the application
-- **AWS Secrets Manager** — for securely storing sensitive configuration values
+- ECR
+- StateManager
+- Github OCID
+- ECS Cluster
+- ALB
+- ECS Service
+- Task Definition
 
 ## Amazon ECR
 
@@ -264,6 +270,80 @@ ECR will be used as the central registry for container images built by the CI/CD
 
 All application images will be pushed to this registry and later pulled by the runtime environment (for example ECS,
 EKS, or other compute services).
+
+You can initialize ECR first:
+
+```shell
+terraform apply -target='module.ecr.aws_ecr_repository.prod_forge_repo'
+```
+
+### The "Chicken and Egg" Problem
+
+![Architecture](https://github.com/prod-forge/terraform/blob/main/assets/chicken-egg-problem.png)
+
+In many organizations, the DevOps and backend teams work independently and often in parallel. This can create a common
+problem during the early stages of a project:
+
+How can infrastructure be configured if the backend service is not yet ready for deployment?
+
+To reduce the dependency between these teams, we introduce a simple solution: a temporary bootstrap application.
+
+#### Initial Application Image
+
+Inside the repository there is a folder called:
+
+```shell
+initial-image
+```
+
+This directory contains a minimal backend application used solely for bootstrapping the infrastructure.
+
+The application should:
+
+- use the same runtime as the real service
+- be simple enough to build immediately
+- be deployable to the infrastructure
+
+For example, since the production backend uses Node.js, the bootstrap service uses Express as a minimal framework.
+
+The goal of this service is not to implement business logic, but simply to provide a deployable container image that
+allows infrastructure components to be tested.
+
+We can build an initial image locally for initial work and upload it to ECR:
+
+```shell
+aws ecr get-login-password --region eu-central-1 \
+| docker login \
+--username AWS \
+--password-stdin <USER_ID>.dkr.ecr.eu-central-1.amazonaws.com
+```
+
+```shell
+docker buildx build \
+--platform linux/amd64 \
+-t <ECR_URL>:<version> \
+--push .
+```
+
+##### Required Endpoints
+
+The bootstrap service exposes a small set of endpoints.
+
+- **/health** - This endpoint is required. When deploying services to AWS ECS, a health check must be configured. ECS
+  periodically calls this endpoint to verify that the container is running correctly. The endpoint simply returns:
+
+```shell
+200 OK
+```
+
+This indicates that the service is alive and healthy.
+
+- **/version** - This endpoint is optional but highly recommended. It returns the version of the currently running
+  container. This makes it easy to:
+
+  - verify which version is deployed
+  - confirm that a deployment succeeded
+  - detect situations where old containers are still running during rolling updates
 
 ## AWS Secrets Manager
 
@@ -309,71 +389,6 @@ aws secretsmanager get-secret-value \
   --output text | jq -r '.SOME_SECRET'
 ```
 
-# The "Chicken and Egg" Problem
-
-In many organizations, the DevOps and backend teams work independently and often in parallel. This can create a common
-problem during the early stages of a project:
-
-How can infrastructure be configured if the backend service is not yet ready for deployment?
-
-To reduce the dependency between these teams, we introduce a simple solution: a temporary bootstrap application.
-
-## Initial Application Image
-
-Inside the repository there is a folder called:
-
-```shell
-initial-image
-```
-
-This directory contains a minimal backend application used solely for bootstrapping the infrastructure.
-
-The application should:
-
-- use the same runtime as the real service
-- be simple enough to build immediately
-- be deployable to the infrastructure
-
-For example, since the production backend uses Node.js, the bootstrap service uses Express as a minimal framework.
-
-The goal of this service is not to implement business logic, but simply to provide a deployable container image that
-allows infrastructure components to be tested.
-
-We can build an initial image locally for initial work and upload it to ECR:
-
-```shell
-aws ecr get-login-password --region eu-central-1 \
-| docker login \
---username AWS \
---password-stdin <USER_ID>.dkr.ecr.eu-central-1.amazonaws.com
-```
-
-```shell
-docker buildx build \
---platform linux/amd64 \
--t <ECR_URL>:<version> \
---push .
-```
-
-## Required Endpoints
-
-The bootstrap service exposes a small set of endpoints.
-
-- **/health** - This endpoint is required. When deploying services to AWS ECS, a health check must be configured. ECS
-  periodically calls this endpoint to verify that the container is running correctly. The endpoint simply returns:
-
-```shell
-200 OK
-```
-
-This indicates that the service is alive and healthy.
-
-- **/version** - This endpoint is optional but highly recommended. It returns the version of the currently running
-  container. This makes it easy to:
-
-  - verify which version is deployed
-  - confirm that a deployment succeeded
-  - detect situations where old containers are still running during rolling updates
 
 # GitHub Integration for CI/CD
 
@@ -444,3 +459,86 @@ Why OIDC is Recommended
 - Least privilege — only the repository can assume the role
 - Improved security — reduces risk of compromised keys
 - Cleaner workflow — easier to manage and audit access
+
+## ECS Cluster
+
+After applying the Terraform configuration, a new ECS Cluster should appear in the AWS Console.
+
+You can verify this by navigating to:
+
+```shell
+AWS Console → ECS → Clusters
+```
+
+The cluster will be used to run our backend services using AWS Fargate.
+
+## Application Load Balancer (ALB)
+
+Once the Application Load Balancer is created, you can verify it using the AWS CLI:
+
+```shell
+aws elbv2 describe-load-balancers --region eu-central-1
+```
+
+The output should contain a DNS name for the load balancer.
+
+Example:
+
+```shell
+DNSName: xyz123.eu-central-1.elb.amazonaws.com
+```
+
+At this stage, if you open the DNS address in your browser, the response will likely be:
+
+```shell
+503 Service Unavailable
+```
+
+This is expected because the ECS service may not yet have a healthy running task attached to the load balancer.
+
+## ECS Service
+
+The ECS service is responsible for running and maintaining the desired number of application tasks.
+
+You can inspect the service using the following commands.
+
+List services in the cluster:
+
+```shell
+aws ecs list-services \
+  --cluster <CLUSTER_NAME> \
+  --region eu-central-1
+```
+
+Describe the service in detail:
+
+```shell
+aws ecs describe-services \
+  --cluster <CLUSTER_NAME> \
+  --services <SERVICE_NAME> \
+  --region eu-central-1
+```
+
+This will show information such as:
+
+- running tasks
+- desired task count
+- deployment status
+- load balancer configuration
+
+## Task Definition
+
+A Task Definition describes how our backend application should run inside ECS.
+
+When using AWS Fargate, we define the compute resources allocated to the container.
+
+Example configuration:
+
+```shell
+cpu    = "256"
+memory = "512"
+```
+
+This defines the virtual machine resources that will be allocated to the containerized service.
+
+The task definition also specifies the Docker image that will be deployed.

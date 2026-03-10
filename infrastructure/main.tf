@@ -5,6 +5,15 @@
 data "aws_caller_identity" "current" {}
 
 ############################
+# ECR
+############################
+
+module "ecr" {
+  source          = "./modules/ecr"
+  repository_name = var.project
+}
+
+############################
 # Github OIDC
 ############################
 
@@ -22,15 +31,6 @@ module "github_oidc" {
 module "secrets_manager" {
   secrets_manager_name = "prod_forge/backend/config-v1"
   source               = "./modules/secrets_manager"
-}
-
-############################
-# ECR
-############################
-
-module "ecr" {
-  source          = "./modules/ecr"
-  repository_name = var.project
 }
 
 ############################
