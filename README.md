@@ -281,6 +281,34 @@ Instead, they should be stored in **AWS Secrets Manager**, which provides secure
 If any secrets are already known at this stage of the project, they can be added to **Secrets Manager immediately** so
 that they are available for the infrastructure and application during deployment.
 
+```shell
+terraform apply -target='module.secrets_manager.aws_secretsmanager_secret.app_secret'
+```
+
+You can put some secrets:
+
+```shell
+aws secretsmanager put-secret-value \
+  --secret-id prod/app/config \
+  --secret-string '{"SOME_SECRET":"secret"}'
+```
+
+Now, you can get secrets:
+
+```shell
+aws secretsmanager get-secret-value \
+  --secret-id prod/app/config \
+  --query SecretString \
+  --output text
+```
+
+```shell
+aws secretsmanager get-secret-value \
+  --secret-id prod/app/config \
+  --query SecretString \
+  --output text | jq -r '.SOME_SECRET'
+```
+
 # The "Chicken and Egg" Problem
 
 In many organizations, the DevOps and backend teams work independently and often in parallel. This can create a common
@@ -311,6 +339,22 @@ For example, since the production backend uses Node.js, the bootstrap service us
 The goal of this service is not to implement business logic, but simply to provide a deployable container image that
 allows infrastructure components to be tested.
 
+We can build an initial image locally for initial work and upload it to ECR:
+
+```shell
+aws ecr get-login-password --region eu-central-1 \
+| docker login \
+--username AWS \
+--password-stdin <USER_ID>.dkr.ecr.eu-central-1.amazonaws.com
+```
+
+```shell
+docker buildx build \
+--platform linux/amd64 \
+-t <ECR_URL>:<version> \
+--push .
+```
+
 ## Required Endpoints
 
 The bootstrap service exposes a small set of endpoints.
@@ -330,72 +374,6 @@ This indicates that the service is alive and healthy.
   - verify which version is deployed
   - confirm that a deployment succeeded
   - detect situations where old containers are still running during rolling updates
-
-## Docker Image
-
-The bootstrap application includes a properly configured Dockerfile and is ready to be built and pushed to Amazon ECR.
-
-To build and push the image manually, run:
-
-```shell
-docker buildx build \
-  --platform linux/amd64 \
-  -t <ECR_URL>:<version> \
-  --push .
-```
-
-! Be sure to specify the platform
-
-### Verifying Images in ECR
-
-You can verify that the image was successfully pushed using the AWS CLI:
-
-```shell
-aws ecr describe-images \
-  --repository-name todolist-backend \
-  --region eu-central-1
-```
-
-This command will list all images currently stored in the repository.
-
-### Running the Image Locally
-
-To test the container locally, follow these steps.
-
-1. Authenticate Docker with ECR
-
-First, authenticate your Docker client with Amazon ECR:
-
-```shell
-aws ecr get-login-password --region eu-central-1 \
-| docker login \
-  --username AWS \
-  --password-stdin <USER_ID>.dkr.ecr.eu-central-1.amazonaws.com
-```
-
-2. Run the Container with Docker Compose
-
-Create a minimal docker-compose.yml:
-
-```shell
-services:
-  aws-image:
-    image: <USER_ID>.dkr.ecr.eu-central-1.amazonaws.com/todolist-backend:0.0.3
-    ports:
-      - 3000:3000
-```
-
-Then run:
-
-```shell
-docker compose up
-```
-
-The service will be available locally on:
-
-```shell
-http://localhost:3000
-```
 
 # GitHub Integration for CI/CD
 
@@ -448,6 +426,11 @@ terraform apply --target=module.github_oidc.aws_iam_openid_connect_provider.gith
 
 Terraform will output the ARN of the created resource, which must then be added to your GitHub Actions workflow for the
 backend repository.
+
+```yaml
+env:
+  GITHUB_ARN: <ARN>
+```
 
 This step ensures that:
 
