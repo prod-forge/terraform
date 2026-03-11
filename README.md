@@ -1,4 +1,6 @@
-# Prod Forge
+<p align="center">
+  <img alt="Logo" src="https://github.com/prod-forge/terraform/blob/main/assets/prod-forge-logo.png" width="264px" height="243px">
+</p>
 
 **Prod Forge** is an open-source guide to building production-ready software systems.
 
@@ -53,7 +55,9 @@ This project is split into multiple repositories:
 
 ## Overview
 
-![Architecture](https://github.com/prod-forge/terraform/blob/main/assets/architecture_diagram.png)
+<p align="center">
+  <img alt="Architecture" src="https://github.com/prod-forge/terraform/blob/main/assets/architecture_diagram.png">
+</p>
 
 This repository contains the infrastructure required to run the backend system in a production-like environment.
 
@@ -78,6 +82,10 @@ The infrastructure includes:
 ----
 
 # Development Setup
+
+<p align="center">
+  <img alt="Development Setup" src="https://github.com/prod-forge/terraform/blob/main/assets/setting-up-project.png" width="512px" height="768px">
+</p>
 
 Before working with the Terraform infrastructure in this repository, several initial steps are required.
 
@@ -252,6 +260,10 @@ Once the bootstrap infrastructure is created, the main Terraform project can saf
 
 ## Workflow
 
+<p align="center">
+  <img alt="Development Setup" src="https://github.com/prod-forge/terraform/blob/main/assets/workflow.png" width="512px" height="768px">
+</p>
+
 After the above preparation, we can begin setting up the infrastructure.
 
 It is recommended to create the infrastructure in stages:
@@ -279,7 +291,9 @@ terraform apply -target='module.ecr.aws_ecr_repository.prod_forge_repo'
 
 ### The "Chicken and Egg" Problem
 
-![Architecture](https://github.com/prod-forge/terraform/blob/main/assets/chicken-egg-problem.png)
+<p align="center">
+  <img alt="The Chicken and Egg Problem" src="https://github.com/prod-forge/terraform/blob/main/assets/chicken-egg-problem.png" width="512px" height="768px">
+</p>
 
 In many organizations, the DevOps and backend teams work independently and often in parallel. This can create a common
 problem during the early stages of a project:
@@ -557,6 +571,10 @@ aws logs tail <LOG_GROUP> --since 10h
 
 # Debugging and Troubleshooting
 
+<p align="center">
+  <img alt="The Debugging and Troubleshooting Problem" src="https://github.com/prod-forge/terraform/blob/main/assets/debugging.png" width="512px" height="768px">
+</p>
+
 Debugging is one of the most critical aspects of operating production infrastructure.
 
 When something goes wrong in production, engineers must be able to quickly diagnose the problem and identify the root
@@ -564,8 +582,6 @@ cause.
 
 This project demonstrates several common debugging practices used when working with AWS infrastructure and containerized
 applications.
-
-![Debugging](https://github.com/prod-forge/terraform/blob/main/assets/debugging.png)
 
 ## ECS / Fargate Debugging
 
@@ -660,7 +676,9 @@ openssl x509 -req \
 
 As a result, you should have this list of files in the **vpn-key** folder:
 
-![Certificate](https://github.com/prod-forge/terraform/blob/main/assets/certificate.png)
+<p align="center">
+  <img alt="Certificate" src="https://github.com/prod-forge/terraform/blob/main/assets/certificate.png" width="307px" height="406px">
+</p>
 
 Verify:
 
@@ -743,6 +761,14 @@ Expected output:
 Name: my-postgres-db.chg8augcmdse.eu-central-1.rds.amazonaws.com
 Address: 10.0.2.27
 ```
+
+#### Connect to RDS or Redis
+
+As a result, we can connect to RDS or Redis through VPN:
+
+<p align="center">
+  <img alt="RDS Connection" src="https://github.com/prod-forge/terraform/blob/main/assets/datagrip-connection.png" width="794px" height="669px">
+</p>
 
 ## EC2 SSH Connection
 
