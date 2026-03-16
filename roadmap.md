@@ -1,0 +1,5 @@
+- Blue/Green Deployment
+- EKS
+- Observability setup
+  - Prometheus
+  - Grafana endpoint
