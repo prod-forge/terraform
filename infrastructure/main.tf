@@ -14,7 +14,7 @@ module "ecr" {
 }
 
 ############################
-# Github OIDC
+# GitHub OIDC
 ############################
 
 module "github_oidc" {

@@ -10,7 +10,7 @@ It is recommended to create the infrastructure in stages:
 
 - ECR
 - StateManager
-- Github OCID
+- GitHub OIDC
 - ECS Cluster
 - ALB
 - ECS Service
@@ -42,7 +42,7 @@ How can infrastructure be configured if the backend service is not yet ready for
 
 To reduce the dependency between these teams, we introduce a simple solution: a temporary bootstrap application.
 
-#### Initial Application Image
+### Initial Application Image
 
 Inside the repository there is a folder called:
 
@@ -79,7 +79,7 @@ docker buildx build \
 --push .
 ```
 
-##### Required Endpoints
+#### Required Endpoints
 
 The bootstrap service exposes a small set of endpoints.
 
@@ -119,7 +119,7 @@ that they are available for the infrastructure and application during deployment
 terraform apply -target='module.secrets_manager.aws_secretsmanager_secret.app_secret'
 ```
 
-You can put some secrets:
+Store secrets using the following command:
 
 ```shell
 aws secretsmanager put-secret-value \
@@ -127,7 +127,7 @@ aws secretsmanager put-secret-value \
   --secret-string '{"SOME_SECRET":"secret"}'
 ```
 
-Now, you can get secrets:
+Retrieve a secret value:
 
 ```shell
 aws secretsmanager get-secret-value \
@@ -170,10 +170,10 @@ as GitHub Secrets in the repository settings.
 
 All actions in the CI/CD pipeline will run under this user’s permissions.
 
-⚠️ This approach works but requires careful management of IAM keys. Rotating secrets and enforcing least-privilege
+This approach works but requires careful management of IAM keys. Rotating secrets and enforcing least-privilege
 policies can be cumbersome.
 
-#### 2. OpenID Connect (OIDC) — Recommended
+#### 2. OpenID Connect (OIDC) - Recommended
 
 A more secure and modern approach is to configure OIDC between GitHub and AWS.
 
@@ -184,7 +184,7 @@ A more secure and modern approach is to configure OIDC between GitHub and AWS.
 With this setup, the GitHub Actions workflow can assume a role that has privileges such as pushing images to ECR and
 deploying infrastructure.
 
-Terraform Setup
+### Terraform Setup
 
 To create the OIDC provider via Terraform, run:
 
@@ -206,12 +206,12 @@ This step ensures that:
 - Only authorized workflows can perform deployments
 - The CI/CD workflow is fully automated and auditable
 
-Why OIDC is Recommended
+### Why OIDC is Recommended
 
 - No hard-coded credentials in GitHub secrets
-- Least privilege — only the repository can assume the role
-- Improved security — reduces risk of compromised keys
-- Cleaner workflow — easier to manage and audit access
+- Least privilege - only the repository can assume the role
+- Improved security - reduces risk of compromised keys
+- Cleaner workflow - easier to manage and audit access
 
 ## ECS Cluster
 

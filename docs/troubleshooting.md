@@ -1,8 +1,23 @@
 # Troubleshooting
 
+Production systems fail in unexpected ways.
+
+When they do, the ability to diagnose problems quickly is what separates a minor incident from an extended outage.
+
+This document covers common infrastructure issues encountered when running this stack in AWS — network
+connectivity problems, routing failures, and service communication errors that are not always obvious from
+logs alone.
+
+These are not edge cases. They are the kinds of problems that appear during initial setup, after infrastructure
+changes, and occasionally in stable production environments without warning.
+
+Before reaching for this guide, make sure you have reviewed the [Debugging](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md) document first.
+Debugging covers how to connect to running services and inspect their state. This document assumes that
+access is already established and focuses on diagnosing specific failure patterns.
+
 ## EC2/ECS + RDS Network Routing Connection
 
-Checking whether there is access from ECS / EC2 to the database
+This section verifies whether network routing and security groups allow ECS or EC2 instances to reach the RDS database.
 
 1. You need to connect to ECS or EC2 (see steps above)
 2. Obtain the RDS hostname from the AWS Console:

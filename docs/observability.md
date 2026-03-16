@@ -8,10 +8,10 @@ the running infrastructure.
 
 The stack consists of the following components:
 
-- Prometheus — metrics collection
-- Grafana — visualization and dashboards
-- Loki — log storage
-- Promtail — log collector
+- Prometheus - metrics collection
+- Grafana - visualization and dashboards
+- Loki - log storage
+- Promtail - log collector
 
 ## Deployment Model
 

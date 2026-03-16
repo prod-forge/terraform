@@ -53,9 +53,9 @@ Before running Terraform, we need to create a dedicated **AWS IAM user** that wi
 
 Using a separate user is important for several reasons:
 
-1. **Security** — the root account should never be used for infrastructure management.
-2. **Auditability** — changes can be tracked per user.
-3. **Access control** — permissions can be limited or revoked when needed.
+1. **Security** - the root account should never be used for infrastructure management.
+2. **Auditability** - changes can be tracked per user.
+3. **Access control** - permissions can be limited or revoked when needed.
 
 ### Creating the IAM user
 
@@ -138,9 +138,7 @@ If multiple engineers work on the infrastructure, local state can easily lead to
 
 Instead, Terraform state should be stored in a remote backend.
 
-The most common solution in AWS environments is:
-
-S3 bucket for storing Terraform state
+The most common solution in AWS environments is an S3 bucket for storing Terraform state.
 
 This allows all team members to work with the same infrastructure state.
 
@@ -154,9 +152,8 @@ To prevent this, Terraform supports state locking.
 
 In AWS environments, this is typically implemented using:
 
-S3 — for storing state
-
-DynamoDB — for state locking
+- **S3** - for storing state
+- **DynamoDB** - for state locking
 
 State locking ensures that only one Terraform operation can run at a time.
 
@@ -167,10 +164,8 @@ small bootstrap Terraform project.
 
 This bootstrap configuration is responsible for:
 
-creating the S3 bucket for Terraform state
-
-creating the DynamoDB table for state locking
-
-preparing the initial infrastructure required for the main Terraform project
+- creating the S3 bucket for Terraform state
+- creating the DynamoDB table for state locking
+- preparing the initial infrastructure required for the main Terraform project
 
 Once the bootstrap infrastructure is created, the main Terraform project can safely use the remote backend.

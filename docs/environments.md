@@ -54,8 +54,7 @@ It serves real users and therefore must prioritize:
 - stability
 - reliability
 - observability
-
-safe deployment practices
+- safe deployment practices
 
 All production deployments are executed through the automated CI/CD pipeline.
 
