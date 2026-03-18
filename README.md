@@ -2,12 +2,12 @@
   <img alt="Logo" src="https://github.com/prod-forge/backend/blob/main/assets/prod-forge-logo.png" width="264px" height="243px">
 </p>
 
-Most tutorials teach you how to write an app. Almost none of them teach you how to **run it in production.**
+AI made writing backend code easy but running it in production is still hard.
 
-**Prod Forge** is an open-source guide that covers everything around the code - the part most projects skip:
-repository strategy, team workflows, CI/CD, observability, security, release management, and rollback.
+**Prod Forge** is an open-source reference that focuses on everything beyond the code:
+CI/CD, infrastructure, observability, deployment, migrations, and rollback.
 
-To make it concrete, we build a simple Todo List API and treat it **as if real users depend on it.**
+A simple Todo API, built as if it were a real production system.
 
 ---
 
@@ -44,12 +44,18 @@ To make it concrete, we build a simple Todo List API and treat it **as if real u
   - [Global Terraform State](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md#global-terraform-state)
   - [State Locking](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md#state-locking)
   - [Bootstrap Infrastructure](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md#bootstrap-infrastructure)
+
+<!-- -->
+
 - [2. Environments](https://github.com/prod-forge/terraform/blob/main/docs/environments.md)
   - [Environment Strategy](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#environment-strategy)
     - [Development Environment (dev)](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#development-environment-dev)
     - [Production Environment (prod)](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#production-environment-prod)
     - [Why Not Use Pre-Production?](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#why-not-use-pre-production)
   - [Key Principle](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#key-principle)
+
+<!-- -->
+
 - [3. Workflow](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md)
   - [Amazon ECR](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#amazon-ecr)
     - [The "Chicken-and-Egg" Dilemma](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#the-chicken-and-egg-dilemma)
@@ -67,6 +73,9 @@ To make it concrete, we build a simple Todo List API and treat it **as if real u
   - [ECS Service](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#ecs-service)
   - [Task Definition](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#task-definition)
   - [One-Run ECS Tasks](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#one-run-ecs-tasks)
+
+<!-- -->
+
 - [4. Observability](https://github.com/prod-forge/terraform/blob/main/docs/observability.md)
   - [Deployment Model](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#deployment-model)
   - [Why EC2?](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#why-ec2)
@@ -81,6 +90,9 @@ To make it concrete, we build a simple Todo List API and treat it **as if real u
     - [Scaling Limitations](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#scaling-limitations)
     - [Operational Maintenance](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#operational-maintenance)
   - [When to Use Managed Observability](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#when-to-use-managed-observability)
+
+<!-- -->
+
 - [5. Debugging](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md)
   - [ECS / Fargate Debugging](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#ecs--fargate-debugging)
     - [Inspect ECS Tasks](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#inspect-ecs-tasks)
@@ -95,6 +107,9 @@ To make it concrete, we build a simple Todo List API and treat it **as if real u
   - [EC2 SSH Connection](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#ec2-ssh-connection)
     - [SSH Setup](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#ssh-setup)
     - [Debugging bootstrap.sh](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#debugging-bootstrapsh)
+
+<!-- -->
+
 - [6. Troubleshooting](https://github.com/prod-forge/terraform/blob/main/docs/troubleshooting.md)
   - [EC2/ECS + RDS Network Routing Connection](https://github.com/prod-forge/terraform/blob/main/docs/troubleshooting.md#ec2ecs--rds-network-routing-connection)
 
