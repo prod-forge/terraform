@@ -192,14 +192,6 @@ To create the OIDC provider via Terraform, run:
 terraform apply -target=module.github_oidc
 ```
 
-Terraform will output the ARN of the created resource, which must then be added to your GitHub Actions workflow for the
-backend repository.
-
-```yaml
-env:
-  GITHUB_ARN: <ARN>
-```
-
 This step ensures that:
 
 - GitHub Actions can authenticate to AWS securely

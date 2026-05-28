@@ -9,8 +9,9 @@ data "aws_caller_identity" "current" {}
 ############################
 
 module "ecr" {
-  source          = "./modules/ecr"
-  repository_name = var.project
+  source                   = "./modules/ecr"
+  repository_name          = var.project
+  github_actions_role_name = module.github_oidc.github_actions_role_name
 }
 
 ############################
@@ -18,10 +19,9 @@ module "ecr" {
 ############################
 
 module "github_oidc" {
-  source         = "./modules/github-oidc"
-  github_owner   = "prod-forge"
-  github_repos   = ["backend", "frontend"]
-  aws_account_id = data.aws_caller_identity.current.account_id
+  source       = "./modules/github-oidc"
+  github_owner = "prod-forge"
+  github_repos = ["backend", "frontend"]
 }
 
 ############################
@@ -86,14 +86,16 @@ module "ecs_cluster" {
 ############################
 
 module "ecs_service" {
-  source                  = "./modules/ecs-service"
-  ecs_cluster_id          = module.ecs_cluster.ecs_cluster_id
-  ecs_task_definition_arn = module.task_definition.ecs_task_definition_arn
-  public_subnet_ids       = module.vpc.public_subnet_ids
-  sg_ecs_id               = module.security_groups.sg_ecs_id
-  lb_target_group_arn     = module.load_balancer.lb_target_group_arn
-  depends_on              = [module.load_balancer.lb_listener]
-  project                 = var.project
+  source                   = "./modules/ecs-service"
+  ecs_cluster_id           = module.ecs_cluster.ecs_cluster_id
+  ecs_task_definition_arn  = module.task_definition.ecs_task_definition_arn
+  public_subnet_ids        = module.vpc.public_subnet_ids
+  sg_ecs_id                = module.security_groups.sg_ecs_id
+  lb_target_group_arn      = module.load_balancer.lb_target_group_arn
+  depends_on               = [module.load_balancer.lb_listener]
+  project                  = var.project
+  github_actions_role_name = module.github_oidc.github_actions_role_name
+  aws_account_id           = data.aws_caller_identity.current.account_id
 }
 
 ############################
@@ -227,4 +229,17 @@ module "monitoring_ec2" {
   repository_url                       = module.ecr.repository_url
   secret_id                            = module.secrets_manager.secret_arn
   region                               = var.region
+}
+
+############################
+# Frontend (Web Client)
+############################
+
+module "frontend" {
+  source                   = "./modules/frontend"
+  project                  = var.project
+  environment              = var.environment
+  web_client_bucket_name   = "${var.project}-web-client"
+  assets_bucket_name       = "${var.project}-assets"
+  github_actions_role_name = module.github_oidc.github_actions_role_name
 }

@@ -27,3 +27,13 @@ variable "project" {
   description = "Project Name"
   type        = string
 }
+
+variable "github_actions_role_name" {
+  description = "IAM role name for GitHub Actions to attach ECS deploy policy"
+  type        = string
+}
+
+variable "aws_account_id" {
+  description = "AWS Account ID"
+  type        = string
+}
