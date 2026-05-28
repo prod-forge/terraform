@@ -9,8 +9,8 @@ resource "aws_instance" "monitoring" {
 
   user_data = templatefile("templates/bootstrap.sh.tpl", {
     repository_url = var.repository_url
-    secret_id      = "prod/app/config-v2"
-    region         = "eu-central-1"
+    secret_id      = var.secret_id
+    region         = var.region
   })
   user_data_replace_on_change = true
   key_name                    = var.key_pair_key_name

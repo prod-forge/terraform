@@ -22,3 +22,13 @@ variable "public_subnet_id" {
   description = "Public Subnet ID"
   type        = string
 }
+
+variable "secret_id" {
+  description = "Secrets Manager secret ARN or name for the monitoring EC2"
+  type        = string
+}
+
+variable "region" {
+  description = "AWS region"
+  type        = string
+}

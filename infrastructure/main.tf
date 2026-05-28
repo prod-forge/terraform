@@ -225,4 +225,6 @@ module "monitoring_ec2" {
   sg_monitoring_id                     = module.monitoring_sg.sg_monitoring_id
   public_subnet_id                     = module.vpc.public_subnet_ids[0]
   repository_url                       = module.ecr.repository_url
+  secret_id                            = module.secrets_manager.secret_arn
+  region                               = var.region
 }

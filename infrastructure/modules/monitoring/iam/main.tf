@@ -54,8 +54,3 @@ resource "aws_iam_role_policy_attachment" "attach" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = aws_iam_policy.secrets_access.arn
 }
-
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "ec2-secrets-profile"
-  role = aws_iam_role.ec2_role.name
-}
