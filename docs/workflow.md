@@ -189,7 +189,7 @@ deploying infrastructure.
 To create the OIDC provider via Terraform, run:
 
 ```shell
-terraform apply --target=module.github_oidc.aws_iam_openid_connect_provider.github
+terraform apply -target=module.github_oidc
 ```
 
 Terraform will output the ARN of the created resource, which must then be added to your GitHub Actions workflow for the

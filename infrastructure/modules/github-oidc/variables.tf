@@ -3,9 +3,9 @@ variable "github_owner" {
   type        = string
 }
 
-variable "github_repo" {
-  description = "GitHub repository name"
-  type        = string
+variable "github_repos" {
+  description = "List of GitHub repository names"
+  type        = list(string)
 }
 
 variable "aws_account_id" {

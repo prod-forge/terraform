@@ -104,6 +104,20 @@ Enter:
 - Default region
 - Output format
 
+If you need to set the profile as default:
+
+```bash
+export AWS_PROFILE=<profile_name>
+```
+
+or global:
+- edit `~/.zshrc`
+- add:
+
+```bash
+export AWS_PROFILE=<profile_name>
+```
+
 You can verify the configuration:
 
 ```shell

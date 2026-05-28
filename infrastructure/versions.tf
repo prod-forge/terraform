@@ -9,11 +9,11 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "prod-forge-todolist-terraform-state-prod"
-    key            = "infrastructure/terraform.tfstate"
-    region         = "eu-central-1"
-    dynamodb_table = "prod-forge-todolist-terraform-locks-prod"
-    encrypt        = true
+    bucket       = "prod-forge-todolist-terraform-state-prod"
+    key          = "infrastructure/terraform.tfstate"
+    region       = "eu-central-1"
+    use_lockfile = true
+    encrypt      = true
   }
 }
 

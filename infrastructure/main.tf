@@ -20,7 +20,7 @@ module "ecr" {
 module "github_oidc" {
   source         = "./modules/github-oidc"
   github_owner   = "prod-forge"
-  github_repo    = "backend"
+  github_repos   = ["backend", "frontend"]
   aws_account_id = data.aws_caller_identity.current.account_id
 }
 
