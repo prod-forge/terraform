@@ -1,7 +1,7 @@
 # Workflow
 
 <p align="center">
-  <img alt="Development Setup" src="https://github.com/prod-forge/terraform/blob/main/assets/workflow.png" width="512px" height="768px">
+  <img alt="Development Setup" src="https://github.com/prod-forge/terraform/blob/main/docs/assets/workflow.png" width="512px" height="768px">
 </p>
 
 After the above preparation, we can begin setting up the infrastructure.
@@ -32,7 +32,7 @@ terraform apply -target='module.ecr.aws_ecr_repository.prod_forge_repo'
 ### The "Chicken-and-Egg" Dilemma
 
 <p align="center">
-  <img alt="The Chicken and Egg Problem" src="https://github.com/prod-forge/terraform/blob/main/assets/chicken-egg-problem.png" width="512px" height="768px">
+  <img alt="The Chicken and Egg Problem" src="https://github.com/prod-forge/terraform/blob/main/docs/assets/chicken-egg-problem.png" width="512px" height="768px">
 </p>
 
 In many organizations, the DevOps and backend teams work independently and often in parallel. This can create a common

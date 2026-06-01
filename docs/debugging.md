@@ -1,7 +1,7 @@
 # Debugging and Troubleshooting
 
 <p align="center">
-  <img alt="The Debugging and Troubleshooting Problem" src="https://github.com/prod-forge/terraform/blob/main/assets/debugging.png" width="512px" height="768px">
+  <img alt="The Debugging and Troubleshooting Problem" src="https://github.com/prod-forge/terraform/blob/main/docs/assets/debugging.png" width="512px" height="768px">
 </p>
 
 Debugging is one of the most critical aspects of operating production infrastructure.
@@ -106,7 +106,7 @@ openssl x509 -req \
 As a result, you should have this list of files in the **vpn-key** folder:
 
 <p align="center">
-  <img alt="Certificate" src="https://github.com/prod-forge/terraform/blob/main/assets/certificate.png" width="307px" height="406px">
+  <img alt="Certificate" src="https://github.com/prod-forge/terraform/blob/main/docs/assets/certificate.png" width="307px" height="406px">
 </p>
 
 Verify:
@@ -197,7 +197,7 @@ Address: 10.0.2.27
 As a result, we can connect to RDS or Redis through VPN:
 
 <p align="center">
-  <img alt="RDS Connection" src="https://github.com/prod-forge/terraform/blob/main/assets/datagrip-connection.png" width="794px" height="669px">
+  <img alt="RDS Connection" src="https://github.com/prod-forge/terraform/blob/main/docs/assets/datagrip-connection.png" width="794px" height="669px">
 </p>
 
 ## EC2 SSH Connection

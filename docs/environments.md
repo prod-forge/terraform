@@ -1,7 +1,7 @@
 # Environments
 
 <p align="center">
-  <img alt="Environments" src="https://github.com/prod-forge/terraform/blob/main/assets/environments.png" width="512px" height="550px">
+  <img alt="Environments" src="https://github.com/prod-forge/terraform/blob/main/docs/assets/environments.png" width="512px" height="550px">
 </p>
 
 Many projects introduce multiple environments such as:

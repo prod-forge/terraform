@@ -1,7 +1,7 @@
 # Development Setup
 
 <p align="center">
-  <img alt="Development Setup" src="https://github.com/prod-forge/terraform/blob/main/assets/setting-up-project.png" width="512px" height="768px">
+  <img alt="Development Setup" src="https://github.com/prod-forge/terraform/blob/main/docs/assets/setting-up-project.png" width="512px" height="768px">
 </p>
 
 Before working with the Terraform infrastructure in this repository, several initial steps are required.
@@ -94,55 +94,28 @@ Once credentials are created, configure a local AWS profile.
 Run:
 
 ```bash
-aws configure --profile <profile_name>
+aws configure
 ```
 
-Enter:
-
-- Access Key
-- Secret Key
-- Default region
-- Output format
-
-If you need to set the profile as default:
-
 ```bash
-export AWS_PROFILE=<profile_name>
+AWS Access Key ID [None]: AKIA...
+AWS Secret Access Key [None]: xxxxxxxxx
+Default region name [None]: eu-central-1
+Default output format [None]: json
 ```
 
-or global:
-- edit `~/.zshrc`
-- add:
+After that, configuration files will appear:
 
-```bash
-export AWS_PROFILE=<profile_name>
+```shell
+~/.aws/credentials
+~/.aws/config
 ```
 
 You can verify the configuration:
 
 ```shell
-aws configure list --profile <profile_name>
+aws sts get-caller-identity
 ```
-
-## Verify AWS Connection
-
-Before running Terraform, verify that the AWS CLI works correctly.
-
-Example commands:
-
-List S3 buckets:
-
-```shell
-aws s3 ls --profile <profile_name>
-```
-
-Check current identity:
-
-```shell
-aws sts get-caller-identity --profile <profile_name>
-```
-
-If both commands work successfully, your AWS credentials are correctly configured.
 
 ## Global Terraform State
 

@@ -17,3 +17,7 @@ output "cloudfront_distribution_id" {
 output "cloudfront_url" {
   value = module.frontend.cloudfront_url
 }
+
+output "assets_bucket_name" {
+  value = module.frontend.assets_bucket_name
+}

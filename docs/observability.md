@@ -1,7 +1,7 @@
 # Observability
 
 <p align="center">
-  <img alt="Observability" src="https://github.com/prod-forge/terraform/blob/main/assets/observability.png" width="512px" height="688px">
+  <img alt="Observability" src="https://github.com/prod-forge/terraform/blob/main/docs/assets/observability.png" width="512px" height="688px">
 </p>
 
 Observability is a critical component of any production infrastructure.

@@ -13,23 +13,26 @@ Built around a simple Todo API, but designed as a real-world production system.
 
 ## Project structure
 
-| Repository                                                | Description                 |
-| --------------------------------------------------------- | --------------------------- |
-| [Backend](https://github.com/prod-forge/backend)          | NestJS API - the main guide |
-| [Infrastructure](https://github.com/prod-forge/terraform) | Terraform on AWS            |
+| Repository                                         | Description                                     |
+|----------------------------------------------------|-------------------------------------------------|
+| [Frontend](https://github.com/prod-forge/frontend) | React Web and React Mobile apps + Design System |
+| [Backend](https://github.com/prod-forge/backend)   | NestJS API - the main guide                     |
+| [Infrastructure](https://github.com/prod-forge/terraform)                              | Terraform on AWS                                |
 
 ## Stack
 
 <p align="center">
-  <img alt="Architecture" src="https://github.com/prod-forge/backend/blob/main/assets/architecture_diagram.png">
+  <img alt="Architecture" src="https://github.com/prod-forge/backend/blob/main/docs/assets/architecture_diagram.png">
 </p>
 
-| Layer          | Tools                                          |
-| -------------- |------------------------------------------------|
-| Backend        | NestJS · Prisma · PostgreSQL · Redis · Docker  |
-| Infrastructure | AWS · ECR · ECS · RDS · ElasticCache           |
-| Observability  | Prometheus · Grafana · Loki · Promtail         |
-| Quality        | ESLint · Prettier · Husky · Commitlint · CI/CD |
+| Layer          | Tools                                                              |
+| -------------- | ------------------------------------------------------------------ |
+| web-client     | React · Vite · Redux Toolkit · Tailwind CSS · NX                  |
+| Deploy         | AWS S3 · CloudFront · ECR · ECS                                   |
+| Backend        | NestJS · Prisma · PostgreSQL · Redis · Docker                     |
+| Infrastructure | AWS · RDS · ElasticCache                                          |
+| Observability  | Prometheus · Grafana · Loki · Promtail                            |
+| Quality        | ESLint · Prettier · Husky · Commitlint · CI/CD                    |
 
 # Table of contents
 
@@ -76,7 +79,20 @@ Built around a simple Todo API, but designed as a real-world production system.
 
 <!-- -->
 
-- [4. Observability](https://github.com/prod-forge/terraform/blob/main/docs/observability.md)
+- [4. Frontend Deployment](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md)
+  - [Architecture](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#architecture)
+  - [SPA Routing](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#spa-routing)
+  - [Cache Strategy](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#cache-strategy)
+  - [Deployment](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#deployment)
+  - [Rollback](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#rollback)
+  - [Terraform Setup](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#terraform-setup)
+  - [GitHub Actions Integration](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#github-actions-integration)
+  - [Advantages](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#advantages)
+  - [Limitations](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#limitations)
+
+<!-- -->
+
+- [5. Observability](https://github.com/prod-forge/terraform/blob/main/docs/observability.md)
   - [Deployment Model](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#deployment-model)
   - [Why EC2?](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#why-ec2)
   - [Observability Data Flow](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#observability-data-flow)
@@ -112,6 +128,14 @@ Built around a simple Todo API, but designed as a real-world production system.
 
 - [6. Troubleshooting](https://github.com/prod-forge/terraform/blob/main/docs/troubleshooting.md)
   - [EC2/ECS + RDS Network Routing Connection](https://github.com/prod-forge/terraform/blob/main/docs/troubleshooting.md#ec2ecs--rds-network-routing-connection)
+
+<!-- -->
+
+- [7. Destroying the Infrastructure](https://github.com/prod-forge/terraform/blob/main/docs/destroy.md)
+  - [Why Order Matters](https://github.com/prod-forge/terraform/blob/main/docs/destroy.md#why-order-matters)
+  - [Step 1 — Destroy Infrastructure](https://github.com/prod-forge/terraform/blob/main/docs/destroy.md#step-1--destroy-infrastructure)
+  - [Step 2 — Unlock the Bootstrap](https://github.com/prod-forge/terraform/blob/main/docs/destroy.md#step-2--unlock-the-bootstrap)
+  - [Step 3 — Delete the IAM User](https://github.com/prod-forge/terraform/blob/main/docs/destroy.md#step-3--delete-the-iam-user)
 
 # Conclusion
 
