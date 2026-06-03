@@ -1,7 +1,7 @@
 # Development Setup
 
 <p align="center">
-  <img alt="Development Setup" src="https://github.com/prod-forge/terraform/blob/main/docs/assets/setting-up-project.png" width="512px" height="768px">
+  <img alt="Development Setup" src="assets/setting-up-project.png" width="512px" height="768px">
 </p>
 
 Before working with the Terraform infrastructure in this repository, several initial steps are required.

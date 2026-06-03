@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="Logo" src="https://github.com/prod-forge/backend/blob/main/assets/prod-forge-logo.png" width="264px" height="243px">
+  <img alt="Logo" src="docs/assets/prod-forge-logo.png" width="264px" height="243px">
 </p>
 
 AI made writing backend code easy - running it in production is still hard.
@@ -22,7 +22,7 @@ Built around a simple Todo API, but designed as a real-world production system.
 ## Stack
 
 <p align="center">
-  <img alt="Architecture" src="https://github.com/prod-forge/backend/blob/main/docs/assets/architecture_diagram.png">
+  <img alt="Architecture" src="docs/assets/architecture_diagram.png">
 </p>
 
 | Layer          | Tools                                                              |
