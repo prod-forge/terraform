@@ -35,7 +35,7 @@ Modules that did not exist on `main` (WAF, logs bucket, certificates, DNS, alarm
 
 A `moved` block fixes an address, not a name. Every resource whose name, identifier or a force-new argument changed is destroyed and created again. Grouped in the order the rollout below handles them:
 
-| Order | Resource (new address under `module.stack`) | Why | Data impact |
+| Order | Resource (address relative to `module.stack`, so `module.ecr` is `module.stack.module.ecr`) | Why | Data impact |
 | --- | --- | --- | --- |
 | 1 | `module.vpc`: NAT gateways, EIPs, private route tables 1, routes, S3 and interface endpoints, flow logs | New (private networking) | none |
 | 2 | `module.ecr.aws_ecr_repository.prod_forge_repo` and its lifecycle policy | KMS encryption and the name `<project>` -> `<project>-prod` | images: copied by hand (step 5) |
@@ -44,7 +44,7 @@ A `moved` block fixes an address, not a name. Every resource whose name, identif
 | 3 | `module.monitoring_sg.aws_security_group.monitoring` | `monitoring-sg` -> `<project>-prod-monitoring-sg-*`. `create_before_destroy` | none |
 | 3 | `module.vpc.aws_security_group.vpc_endpoints` | New, `name_prefix` | none |
 | 4 | `module.iam`: `ecs-task-execution-role`, `ecs-task-role`, `allow-rds-secret-access` and attachments | Names `<project>-prod-ecs-task-execution-role`, `<project>-prod-ecs-task-role`, `<project>-prod-ecs-secrets-read` | none |
-| 4 | `module.monitoring_iam`: `ec2-ecr-role`, `ec2-secrets-access`, `ec2-instance-profile`; `aws_iam_policy_attachment.ec2_ecr_policy` -> `aws_iam_role_policy_attachment.ecr_read` | Names `<project>-prod-monitoring-*`. The old exclusive attachment would detach the managed policy from other environments' roles | none |
+| 4 | `module.monitoring_iam`: `ec2-ecr-role`, `ec2-secrets-access`, `ec2-instance-profile`; `aws_iam_policy_attachment.ec2_ecr_policy` | Names `<project>-prod-monitoring-*`. The ECR attachment is destroyed and not recreated: the host no longer pulls from ECR, and the old exclusive attachment would detach the managed policy from other roles | none |
 | 4 | `module.github_oidc.aws_iam_role.github_actions` -> `aws_iam_role.github["backend"]`, `["frontend"]`; `github-actions-*` policies in `ecr`, `ecs_service`, `frontend` | One role per repository; names `<project>-prod-github-*` | CD must use the new role names |
 | 5 | `module.rds.aws_db_instance.postgres` (`prod-forge-database` -> `prod-forge-todolist-prod-postgres`), `module.vpc.aws_db_subnet_group.main` (`main-db-subnet-group` -> `<project>-prod-db-subnet-group`) | Identifier, storage encryption, KMS key (all force new) | restored from an encrypted snapshot (steps 4 and 6) |
 | 5 | `module.redis`: `aws_elasticache_cluster.redis` -> `aws_elasticache_replication_group.redis`, subnet group | Replication group with failover, TLS, AUTH, KMS; names `<project>-prod-redis*` | cache content lost |
@@ -57,8 +57,6 @@ A `moved` block fixes an address, not a name. Every resource whose name, identif
 | 7 | `module.security_baseline`: CloudTrail trail, its bucket, KMS key and SNS topic, GuardDuty detector, IAM Access Analyzer | New. If the account already has a GuardDuty detector in the region, import it first: `terraform import 'module.stack.module.security_baseline.aws_guardduty_detector.this[0]' <detector-id>`. If an account analyzer already exists, import it too: `terraform import 'module.stack.module.security_baseline.aws_accessanalyzer_analyzer.this[0]' <analyzer-name>` | none |
 
 Updated in place: the VPC and subnets (`Name` tags, the AZs stay `eu-central-1a`/`eu-central-1b`), the internet gateway, the public route table, the OIDC provider (thumbprints dropped), the secrets KMS key (rotation on, description), `prod_forge/backend/config-v1` (recovery window), the Client VPN endpoint (description, security group), its certificates (tags) and association, the CloudFront distribution (new origins, WAF, logging), the OACs (names), and the tags of every resource that gains `CostCenter` and `Repository` from `default_tags`.
-
-The notes from earlier tasks about the ECS security group moving from inline to standalone rules and about `service_registries` being an in-place update no longer apply: the ECS service and its security group are replaced by the rename, so both are created fresh.
 
 Without `-target`, Terraform would destroy the old RDS instance with the `skip_final_snapshot = true` stored in the state (no final snapshot), fail on the non-empty ECR repository and buckets, and start the new service while NAT routes are still being created. The steps below avoid all three.
 

@@ -215,7 +215,7 @@ The monitoring instance has no SSH key and no port 22. Connect through SSM Sessi
 Find the instance and open a shell:
 
 ```shell
-aws ec2 describe-instances --filters Name=tag:Name,Values=Monitoring Name=instance-state-name,Values=running \
+aws ec2 describe-instances --filters Name=tag:Name,Values=<project>-<environment>-monitoring Name=instance-state-name,Values=running \
   --query 'Reservations[].Instances[].InstanceId' --output text
 aws ssm start-session --target <instance-id>
 ```
