@@ -3,7 +3,17 @@
 ############################################################
 
 resource "aws_ecr_repository" "prod_forge_repo" {
-  name = var.repository_name
+  name                 = var.repository_name
+  image_tag_mutability = "IMMUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  # Changing the encryption type forces a new repository; see docs/workflow.md.
+  encryption_configuration {
+    encryption_type = "KMS"
+  }
 }
 
 ############################################################
@@ -53,15 +63,22 @@ resource "aws_ecr_lifecycle_policy" "prod_forge_repo_policy" {
 ############################################################
 
 resource "aws_iam_policy" "ecr_deploy" {
-  name = "github-actions-ecr-policy"
+  name = "${var.repository_name}-github-ecr-policy"
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
+        # GetAuthorizationToken does not support resource-level permissions.
+        Sid      = "AuthToken"
+        Effect   = "Allow"
+        Action   = ["ecr:GetAuthorizationToken"]
+        Resource = "*"
+      },
+      {
+        Sid    = "PushImage"
         Effect = "Allow"
         Action = [
-          "ecr:GetAuthorizationToken",
           "ecr:BatchCheckLayerAvailability",
           "ecr:PutImage",
           "ecr:BatchGetImage",
@@ -70,13 +87,13 @@ resource "aws_iam_policy" "ecr_deploy" {
           "ecr:CompleteLayerUpload",
           "ecr:DescribeRepositories",
         ]
-        Resource = "*"
+        Resource = aws_ecr_repository.prod_forge_repo.arn
       }
     ]
   })
 }
 
 resource "aws_iam_role_policy_attachment" "ecr_deploy" {
-  role       = var.github_actions_role_name
+  role       = var.backend_role_name
   policy_arn = aws_iam_policy.ecr_deploy.arn
 }

@@ -14,8 +14,8 @@ variable "assets_bucket_name" {
   type = string
 }
 
-variable "github_actions_role_name" {
-  description = "IAM role name for GitHub Actions to attach deploy policy"
+variable "frontend_role_name" {
+  description = "Frontend GitHub Actions role that receives the deploy policy"
   type        = string
 }
 

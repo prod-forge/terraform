@@ -14,9 +14,9 @@ locals {
 ############################
 
 module "ecr" {
-  source                   = "./modules/ecr"
-  repository_name          = var.project
-  github_actions_role_name = module.github_oidc.github_actions_role_name
+  source            = "./modules/ecr"
+  repository_name   = var.project
+  backend_role_name = module.github_oidc.backend_role_name
 }
 
 ############################
@@ -25,8 +25,9 @@ module "ecr" {
 
 module "github_oidc" {
   source       = "./modules/github-oidc"
+  project      = var.project
+  environment  = var.environment
   github_owner = "prod-forge"
-  github_repos = ["backend", "frontend"]
 }
 
 ############################
@@ -175,17 +176,17 @@ module "ecs_cluster" {
 ############################
 
 module "ecs_service" {
-  source                   = "./modules/ecs-service"
-  ecs_cluster_id           = module.ecs_cluster.ecs_cluster_id
-  ecs_cluster_name         = module.ecs_cluster.ecs_cluster_name
-  ecs_task_definition_arn  = module.task_definition.ecs_task_definition_arn
-  private_subnet_ids       = module.vpc.private_subnet_ids
-  sg_ecs_id                = module.security_groups.sg_ecs_id
-  lb_target_group_arn      = module.load_balancer.lb_target_group_arn
-  depends_on               = [module.load_balancer.lb_listener]
-  project                  = var.project
-  github_actions_role_name = module.github_oidc.github_actions_role_name
-  aws_account_id           = data.aws_caller_identity.current.account_id
+  source                  = "./modules/ecs-service"
+  ecs_cluster_id          = module.ecs_cluster.ecs_cluster_id
+  ecs_cluster_name        = module.ecs_cluster.ecs_cluster_name
+  ecs_task_definition_arn = module.task_definition.ecs_task_definition_arn
+  private_subnet_ids      = module.vpc.private_subnet_ids
+  sg_ecs_id               = module.security_groups.sg_ecs_id
+  lb_target_group_arn     = module.load_balancer.lb_target_group_arn
+  depends_on              = [module.load_balancer.lb_listener]
+  project                 = var.project
+  backend_role_name       = module.github_oidc.backend_role_name
+  aws_account_id          = data.aws_caller_identity.current.account_id
 
   task_definition_family           = module.task_definition.task_definition_family
   migration_task_definition_family = "${var.project}-migration-task"
@@ -405,12 +406,12 @@ module "alarms" {
 ############################
 
 module "frontend" {
-  source                   = "./modules/frontend"
-  project                  = var.project
-  environment              = var.environment
-  web_client_bucket_name   = "${var.project}-web-client"
-  assets_bucket_name       = "${var.project}-assets"
-  github_actions_role_name = module.github_oidc.github_actions_role_name
+  source                 = "./modules/frontend"
+  project                = var.project
+  environment            = var.environment
+  web_client_bucket_name = "${var.project}-web-client"
+  assets_bucket_name     = "${var.project}-assets"
+  frontend_role_name     = module.github_oidc.frontend_role_name
 
   domain_name             = var.domain_name
   acm_certificate_arn     = module.cloudfront_certificate.certificate_arn

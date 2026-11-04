@@ -207,6 +207,26 @@ This step ensures that:
 - Only authorized workflows can perform deployments
 - The CI/CD workflow is fully automated and auditable
 
+### Roles and trust conditions
+
+The `github-oidc` module creates one role per repository, so a compromised repository cannot use the other one's permissions:
+
+| Role | Trusted subjects (`sub`) | Permissions |
+| --- | --- | --- |
+| `<project>-<environment>-github-backend-role` | `repo:prod-forge/backend:environment:prod`, `repo:prod-forge/backend:ref:refs/tags/v*` | ECR push to the application repository, ECS deploy, migration task, rollback |
+| `<project>-<environment>-github-frontend-role` | `repo:prod-forge/frontend:environment:prod`, `repo:prod-forge/frontend:ref:refs/tags/v*` | S3 sync on the web client and assets buckets, CloudFront invalidation |
+
+Both roles also require `aud = sts.amazonaws.com`. `StringLike` is used for `sub` only because of the tag wildcard.
+
+A job that declares `environment: prod` receives the `...:environment:prod` subject instead of the ref-based one. That is why deploy jobs must run in the `prod` GitHub environment: its protection rules (required reviewers, branch and tag restrictions) are then enforced before AWS hands out credentials. The tag subject is kept for jobs that do not use an environment.
+
+### Rollout notes
+
+- **Role names change.** Replace `role/github-actions-ecs-ecr-role` in `role-to-assume` with `role/<project>-<environment>-github-backend-role` in the backend `cd.yml` and `rollback.yml`, and with `role/<project>-<environment>-github-frontend-role` in the frontend `cd.yml`. Until then the workflows fail with `Not authorized to perform sts:AssumeRoleWithWebIdentity`.
+- **ECR tags are immutable.** The backend `cd.yml` pushes only the version tag (`<version>` from the `v*` tag), so a normal release works. Re-running a release for the same tag, or pushing `latest`, is rejected; cut a new tag instead.
+- **ECR is replaced.** Enabling KMS encryption forces a new repository, which deletes the images in the old one. Push the current image again (or the `initial` image, see above) before the next `terraform apply` is used by ECS, and keep the old repository's images if a rollback target is needed.
+- **Old IAM resources are replaced.** The `github-actions-ecs-ecr-role` role and the `github-actions-*` policies are removed and recreated under the new names.
+
 ### Why OIDC is Recommended
 
 - No hard-coded credentials in GitHub secrets
@@ -307,7 +327,7 @@ Service behavior:
 
 - The **task execution role** (used by the ECS agent) has `AmazonECSTaskExecutionRolePolicy` plus read access to the RDS, Redis AUTH and JWT secrets and `kms:Decrypt` on the project key.
 - The **task role** (used by the application) only allows the `ssmmessages` channel actions needed by ECS Exec.
-- The **GitHub Actions** deploy policy is scoped to the cluster, the service, the application and migration task definition families and the cluster's tasks. Only the task definition actions that do not support resource-level permissions (`Register`, `Deregister`, `Describe`, `ListTaskDefinitions`) use `*`.
+- The **GitHub Actions** (backend role) deploy policy is scoped to the cluster, the service, the application and migration task definition families and the cluster's tasks. Only the task definition actions that do not support resource-level permissions (`Register`, `Deregister`, `Describe`, `ListTaskDefinitions`) use `*`. `iam:PassRole` is limited to the task and execution roles and to `ecs-tasks.amazonaws.com` (`iam:PassedToService`).
 
 ## Task Definition
 

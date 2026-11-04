@@ -49,66 +49,59 @@ This ensures that Terraform files are automatically formatted on save.
 
 ## Preparing AWS Access
 
-Before running Terraform, we need to create a dedicated **AWS IAM user** that will be used to manage infrastructure.
+Terraform is run with short-lived credentials from **IAM Identity Center (AWS SSO)**. No long-lived access keys are created, so there is nothing to leak or rotate.
 
-Using a separate user is important for several reasons:
+Using SSO instead of a shared admin user:
 
-1. **Security** - the root account should never be used for infrastructure management.
-2. **Auditability** - changes can be tracked per user.
-3. **Access control** - permissions can be limited or revoked when needed.
+1. **Security** - credentials expire after a few hours and MFA is enforced by the identity provider.
+2. **Auditability** - every API call is attributed to a named person and permission set.
+3. **Access control** - access is granted and revoked centrally, per account and per permission set.
 
-### Creating the IAM user
+### Setting up IAM Identity Center
 
-Steps:
+Steps (once per AWS organization, in the management account):
 
-1. Open **AWS Console**
-2. Navigate to **IAM**
-3. Go to **Users**
-4. Click **Create User**
+1. Open **IAM Identity Center** in the AWS Console and enable it in `eu-central-1`.
+2. Create a user (or connect an external identity provider) and require MFA.
+3. Create a **permission set** (see below) and assign the user and the AWS account to it.
 
-Then:
+Do not attach `AdministratorAccess`. Create a permission set named `TerraformOperator` with a customer-managed policy that allows only the services this repository manages:
 
-- Enable **programmatic access**
-- Attach permissions
+| Service | Why |
+| --- | --- |
+| `ec2:*`, `elasticloadbalancing:*` | VPC, subnets, NAT, security groups, endpoints, ALB, the monitoring host |
+| `ecs:*`, `application-autoscaling:*`, `servicediscovery:*` | Cluster, service, task definitions, autoscaling, Cloud Map |
+| `ecr:*` | Repository and lifecycle policy |
+| `rds:*`, `elasticache:*` | PostgreSQL and Redis |
+| `s3:*`, `cloudfront:*`, `wafv2:*`, `acm:*`, `route53:*` | Frontend buckets, distribution, WAF, certificates, DNS |
+| `kms:*`, `secretsmanager:*` | Encryption keys and application secrets |
+| `logs:*`, `cloudwatch:*`, `sns:*`, `budgets:*` | Log groups, alarms, notifications, budget |
+| `ssm:*` | Monitoring host access (Session Manager) and AMI parameters |
+| `iam:*` limited to `arn:aws:iam::<account-id>:role/<project>-*`, the ECS task roles and the GitHub OIDC provider | Roles and policies created by the modules; deny `iam:*User*` and `iam:*AccessKey*` |
+| `sts:GetCallerIdentity` | Account lookups |
 
-For initial setup you may attach:
+Narrow `Resource` to the project prefix wherever the service supports it. The one-off bootstrap (state bucket) can use a separate, short-lived permission set.
 
-```shell
-AdministratorAccess
-```
+### Configure Local AWS Profile
 
-In production environments it is recommended to replace this with a **restricted policy**.
-
-After creating the user:
-
-- Generate **Access Key**
-- Generate **Secret Access Key**
-- Copy the **User ARN**
-
----
-
-## Configure Local AWS Profile
-
-Once credentials are created, configure a local AWS profile.
-
-Run:
+Configure the profile:
 
 ```bash
-aws configure
+aws configure sso
 ```
 
 ```bash
-AWS Access Key ID [None]: AKIA...
-AWS Secret Access Key [None]: xxxxxxxxx
-Default region name [None]: eu-central-1
-Default output format [None]: json
+SSO session name (Recommended): prod-forge
+SSO start URL [None]: https://<your-directory>.awsapps.com/start
+SSO region [None]: eu-central-1
+SSO registration scopes [sso:account:access]:
 ```
 
-After that, configuration files will appear:
+Pick the account and the `TerraformOperator` permission set, then name the profile (for example `prod-forge`). Log in whenever the session expires and export the profile:
 
-```shell
-~/.aws/credentials
-~/.aws/config
+```bash
+aws sso login --profile prod-forge
+export AWS_PROFILE=prod-forge
 ```
 
 You can verify the configuration:
@@ -116,6 +109,19 @@ You can verify the configuration:
 ```shell
 aws sts get-caller-identity
 ```
+
+> **If you must use an IAM user**
+>
+> Only when Identity Center is not available. Create a user with the same restricted policy (never `AdministratorAccess`), enable **MFA**, and do not store its access keys in `~/.aws/credentials`. Keep the keys only to call STS and work with the temporary credentials:
+>
+> ```shell
+> aws sts get-session-token \
+>   --serial-number arn:aws:iam::<account-id>:mfa/<user> \
+>   --token-code <6-digit-code> \
+>   --duration-seconds 3600
+> ```
+>
+> Export the returned `AccessKeyId`, `SecretAccessKey` and `SessionToken` as `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN`. Rotate the user keys at least every 90 days and delete the user when it is no longer needed.
 
 ## Global Terraform State
 

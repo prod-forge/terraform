@@ -63,18 +63,13 @@ A plan needs to read real state and refresh live resources, so the job needs AWS
 - `terraform_required_providers` (21): modules do not declare the `aws` (and, in `secrets_manager`, `random`) provider constraint. New modules (`acm-certificate`, `alarms`, `dns`, `logs-bucket`, `waf`) and `frontend` have a `versions.tf`.
 - `terraform_typed_variables`: fixed (`vpc` `cidr`).
 
-### Checkov: 13 failed, 264 passed, 17 skipped inline
+### Checkov: 8 failed, 279 passed, 17 skipped inline
 
 | ID | Check | Resources |
 | --- | --- | --- |
-| CKV_AWS_136 | Ensure that ECR repositories are encrypted using KMS | module.ecr.aws_ecr_repository.prod_forge_repo |
-| CKV_AWS_163 | Ensure ECR image scanning on push is enabled | module.ecr.aws_ecr_repository.prod_forge_repo |
 | CKV_AWS_23 | Ensure every security group and rule has a description | module.monitoring_sg.aws_security_group.monitoring |
 | CKV_AWS_233 | Ensure Create before destroy for ACM certificates | module.client_vpn_certificate.aws_acm_certificate.vpn_client, module.server_vpn_certificate.aws_acm_certificate.vpn_server |
-| CKV_AWS_290 | Ensure IAM policies does not allow write access without constraints | module.ecr.aws_iam_policy.ecr_deploy |
-| CKV_AWS_355 | Ensure no IAM policies documents allow "*" as a statement's resource for restrictable actions | module.ecr.aws_iam_policy.ecr_deploy |
 | CKV_AWS_382 | Ensure no security groups allow egress from 0.0.0.0:0 to port -1 | module.security_groups.aws_security_group.alb_sg, module.security_groups.aws_security_group.rds_sg, module.security_groups.aws_security_group.redis_sg, module.security_groups.aws_security_group.vpn_sg |
-| CKV_AWS_51 | Ensure ECR Image Tags are immutable | module.ecr.aws_ecr_repository.prod_forge_repo |
 | CKV_AWS_7 | Ensure rotation for customer created CMKs is enabled | module.secrets_manager.aws_kms_key.this |
 
 ### Inline skips

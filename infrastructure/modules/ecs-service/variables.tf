@@ -53,8 +53,8 @@ variable "project" {
   type        = string
 }
 
-variable "github_actions_role_name" {
-  description = "IAM role name for GitHub Actions to attach ECS deploy policy"
+variable "backend_role_name" {
+  description = "Backend GitHub Actions role that receives the ECS deploy policy"
   type        = string
 }
 

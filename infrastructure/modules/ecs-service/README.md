@@ -32,12 +32,12 @@ No modules.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_aws_account_id"></a> [aws\_account\_id](#input\_aws\_account\_id) | AWS Account ID | `string` | n/a | yes |
+| <a name="input_backend_role_name"></a> [backend\_role\_name](#input\_backend\_role\_name) | Backend GitHub Actions role that receives the ECS deploy policy | `string` | n/a | yes |
 | <a name="input_cpu_target_value"></a> [cpu\_target\_value](#input\_cpu\_target\_value) | Target average CPU utilization (percent) for the service | `number` | `60` | no |
 | <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count) | Initial number of tasks; afterwards Application Auto Scaling owns it | `number` | `1` | no |
 | <a name="input_ecs_cluster_id"></a> [ecs\_cluster\_id](#input\_ecs\_cluster\_id) | ECS Cluster ID | `string` | n/a | yes |
 | <a name="input_ecs_cluster_name"></a> [ecs\_cluster\_name](#input\_ecs\_cluster\_name) | ECS Cluster name | `string` | n/a | yes |
 | <a name="input_ecs_task_definition_arn"></a> [ecs\_task\_definition\_arn](#input\_ecs\_task\_definition\_arn) | ECS Task Definition ARN | `string` | n/a | yes |
-| <a name="input_github_actions_role_name"></a> [github\_actions\_role\_name](#input\_github\_actions\_role\_name) | IAM role name for GitHub Actions to attach ECS deploy policy | `string` | n/a | yes |
 | <a name="input_lb_arn_suffix"></a> [lb\_arn\_suffix](#input\_lb\_arn\_suffix) | ALB ARN suffix, used by the ALBRequestCountPerTarget scaling metric | `string` | n/a | yes |
 | <a name="input_lb_target_group_arn"></a> [lb\_target\_group\_arn](#input\_lb\_target\_group\_arn) | Load Balancer Target Group ARN | `string` | n/a | yes |
 | <a name="input_lb_target_group_arn_suffix"></a> [lb\_target\_group\_arn\_suffix](#input\_lb\_target\_group\_arn\_suffix) | Target group ARN suffix, used by the ALBRequestCountPerTarget scaling metric | `string` | n/a | yes |

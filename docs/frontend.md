@@ -126,7 +126,7 @@ Set these as variables or secrets in the frontend GitHub repository.
 
 ## GitHub Actions Integration
 
-The frontend CI/CD reuses the same OIDC role configured for the backend. No separate IAM user or additional credentials are needed.
+The frontend CI/CD assumes its own OIDC role (`<project>-<environment>-github-frontend-role`), which only allows the S3 sync and the CloudFront invalidation. No IAM user or long-lived credentials are needed.
 
 The GitHub OIDC module already trusts the `frontend` repository:
 

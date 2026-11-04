@@ -14,17 +14,11 @@ locals {
 }
 
 resource "aws_iam_policy" "ecs_deploy" {
-  name = "github-actions-ecs-policy"
+  name = "${var.project}-github-ecs-policy"
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      {
-        Sid      = "Cluster"
-        Effect   = "Allow"
-        Action   = ["ecs:DescribeClusters"]
-        Resource = var.ecs_cluster_id
-      },
       {
         Sid      = "Service"
         Effect   = "Allow"
@@ -69,7 +63,7 @@ resource "aws_iam_policy" "ecs_deploy" {
 }
 
 resource "aws_iam_policy" "ecs_passrole" {
-  name = "github-actions-ecs-passrole-policy"
+  name = "${var.project}-github-ecs-passrole-policy"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -81,18 +75,21 @@ resource "aws_iam_policy" "ecs_passrole" {
           "arn:aws:iam::${var.aws_account_id}:role/ecs-task-role",
           "arn:aws:iam::${var.aws_account_id}:role/ecs-task-execution-role",
         ]
+        Condition = {
+          StringEquals = { "iam:PassedToService" = "ecs-tasks.amazonaws.com" }
+        }
       }
     ]
   })
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_deploy" {
-  role       = var.github_actions_role_name
+  role       = var.backend_role_name
   policy_arn = aws_iam_policy.ecs_deploy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_passrole" {
-  role       = var.github_actions_role_name
+  role       = var.backend_role_name
   policy_arn = aws_iam_policy.ecs_passrole.arn
 }
 

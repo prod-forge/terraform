@@ -26,7 +26,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_github_actions_role_name"></a> [github\_actions\_role\_name](#input\_github\_actions\_role\_name) | IAM role name for GitHub Actions to attach ECR deploy policy | `string` | n/a | yes |
+| <a name="input_backend_role_name"></a> [backend\_role\_name](#input\_backend\_role\_name) | Backend GitHub Actions role that receives the ECR push policy | `string` | n/a | yes |
 | <a name="input_repository_name"></a> [repository\_name](#input\_repository\_name) | ECR Name | `string` | n/a | yes |
 
 ## Outputs

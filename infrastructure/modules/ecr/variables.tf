@@ -3,7 +3,7 @@ variable "repository_name" {
   type        = string
 }
 
-variable "github_actions_role_name" {
-  description = "IAM role name for GitHub Actions to attach ECR deploy policy"
+variable "backend_role_name" {
+  description = "Backend GitHub Actions role that receives the ECR push policy"
   type        = string
 }

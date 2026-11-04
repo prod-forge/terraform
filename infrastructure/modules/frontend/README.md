@@ -43,7 +43,7 @@ No modules.
 | <a name="input_assets_bucket_name"></a> [assets\_bucket\_name](#input\_assets\_bucket\_name) | n/a | `string` | n/a | yes |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Custom domain for the distribution. Empty keeps the default *.cloudfront.net certificate | `string` | `""` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | n/a | `string` | n/a | yes |
-| <a name="input_github_actions_role_name"></a> [github\_actions\_role\_name](#input\_github\_actions\_role\_name) | IAM role name for GitHub Actions to attach deploy policy | `string` | n/a | yes |
+| <a name="input_frontend_role_name"></a> [frontend\_role\_name](#input\_frontend\_role\_name) | Frontend GitHub Actions role that receives the deploy policy | `string` | n/a | yes |
 | <a name="input_logs_bucket_domain_name"></a> [logs\_bucket\_domain\_name](#input\_logs\_bucket\_domain\_name) | Domain name of the S3 bucket for CloudFront standard logs | `string` | n/a | yes |
 | <a name="input_logs_prefix"></a> [logs\_prefix](#input\_logs\_prefix) | Key prefix for CloudFront standard logs | `string` | `"cloudfront"` | no |
 | <a name="input_noncurrent_version_expiration_days"></a> [noncurrent\_version\_expiration\_days](#input\_noncurrent\_version\_expiration\_days) | Days to keep previous web client builds | `number` | `30` | no |

@@ -2,8 +2,12 @@ output "ecr_repository_url" {
   value = module.ecr.repository_url
 }
 
-output "github_actions_role_arn" {
-  value = module.github_oidc.github_actions_role_arn
+output "github_backend_role_arn" {
+  value = module.github_oidc.backend_role_arn
+}
+
+output "github_frontend_role_arn" {
+  value = module.github_oidc.frontend_role_arn
 }
 
 output "web_client_bucket_name" {

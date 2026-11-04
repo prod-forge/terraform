@@ -19,11 +19,11 @@ variables {
   public_subnet_ids  = ["subnet-0123456789abcdef0", "subnet-0123456789abcdef1"]
   access_logs_bucket = "prod-forge-test-access-logs"
 
-  web_client_bucket_name   = "prod-forge-test-web-client"
-  assets_bucket_name       = "prod-forge-test-assets"
-  github_actions_role_name = "github-actions"
-  web_acl_arn              = "arn:aws:wafv2:us-east-1:123456789012:global/webacl/test/00000000-0000-0000-0000-000000000000"
-  logs_bucket_domain_name  = "prod-forge-test-access-logs.s3.amazonaws.com"
+  web_client_bucket_name  = "prod-forge-test-web-client"
+  assets_bucket_name      = "prod-forge-test-assets"
+  frontend_role_name      = "github-frontend"
+  web_acl_arn             = "arn:aws:wafv2:us-east-1:123456789012:global/webacl/test/00000000-0000-0000-0000-000000000000"
+  logs_bucket_domain_name = "prod-forge-test-access-logs.s3.amazonaws.com"
 
   alb_dns_name           = "test-alb-123456789.eu-central-1.elb.amazonaws.com"
   alb_zone_id            = "Z215JYRZR1TBD5"

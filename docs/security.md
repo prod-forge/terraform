@@ -77,7 +77,7 @@ The ALB is the only public entry point for the API. ECS tasks run in private sub
 
 ## IAM
 
-- GitHub Actions authenticate through OIDC (no static keys) and get separate, resource-scoped policies for ECR push, ECS deploy and the web client deploy (S3 sync and `cloudfront:CreateInvalidation` on the one distribution).
+- GitHub Actions authenticate through OIDC (no static keys) and use one role per repository: the backend role gets ECR push and ECS deploy, the frontend role gets the web client deploy (S3 sync and `cloudfront:CreateInvalidation` on the one distribution). Trust is limited to the repository, the `prod` environment and release tags. The ECR repository has immutable tags, scan on push and KMS encryption.
 - The ECS execution role reads only the secrets the task needs (RDS, Redis AUTH, JWT) and decrypts them with the project KMS key.
 - The monitoring EC2 role reads the backend secret, uses SSM Session Manager (`AmazonSSMManagedInstanceCore`) and can optionally read the observability config bucket and the Grafana admin secret.
 
@@ -90,4 +90,4 @@ The ALB is the only public entry point for the API. ECS tasks run in private sub
 
 ## Known gaps
 
-Tracked in the checkov baseline in [CI](ci.md#baseline-to-be-driven-to-zero): the ECR repository is not KMS-encrypted and has mutable tags, and the KMS key has no rotation.
+Tracked in the checkov baseline in [CI](ci.md#baseline-to-be-driven-to-zero): the KMS key has no rotation.

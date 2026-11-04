@@ -283,7 +283,7 @@ resource "aws_s3_bucket_policy" "assets" {
 ############################################################
 
 resource "aws_iam_policy" "web_client_deploy" {
-  name = "github-actions-web-client-deploy-policy"
+  name = "${var.project}-github-web-client-deploy-policy"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -324,6 +324,6 @@ resource "aws_iam_policy" "web_client_deploy" {
 }
 
 resource "aws_iam_role_policy_attachment" "web_client_deploy" {
-  role       = var.github_actions_role_name
+  role       = var.frontend_role_name
   policy_arn = aws_iam_policy.web_client_deploy.arn
 }
