@@ -319,7 +319,7 @@ This defines the virtual machine resources that will be allocated to the contain
 
 Container settings worth knowing:
 
-- `NODE_ENV=production` and `APP_VERSION` (the image tag of the revision) are set in the environment. TLS certificate verification is never disabled.
+- `NODE_ENV=production` is set in the environment. The reported app version comes from the image's `package.json`, not from the task definition, because CD only swaps the image when it registers a new revision. TLS certificate verification is never disabled.
 - `stopTimeout = 60`: the backend drains for 10 s and waits up to 20 s for in-flight requests on SIGTERM, so 60 s leaves headroom before SIGKILL. Keep it above the sum of the backend timeouts.
 - `linuxParameters.initProcessEnabled = true`: runs an init process as PID 1, which ECS Exec needs and which reaps zombie processes.
 - `readonlyRootFilesystem = false`: NestJS and Prisma write to the container filesystem at runtime.

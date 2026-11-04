@@ -30,7 +30,7 @@ No modules.
 | <a name="input_db_name"></a> [db\_name](#input\_db\_name) | DB Table Name | `string` | n/a | yes |
 | <a name="input_db_port"></a> [db\_port](#input\_db\_port) | DB Port | `string` | n/a | yes |
 | <a name="input_db_username"></a> [db\_username](#input\_db\_username) | DB Username | `string` | n/a | yes |
-| <a name="input_image_tag"></a> [image\_tag](#input\_image\_tag) | Image tag of the initial task definition revision; also exposed as APP\_VERSION | `string` | `"initial"` | no |
+| <a name="input_image_tag"></a> [image\_tag](#input\_image\_tag) | Image tag of the initial task definition revision; CD replaces the image afterwards | `string` | `"initial"` | no |
 | <a name="input_jwt_secret_arn"></a> [jwt\_secret\_arn](#input\_jwt\_secret\_arn) | JWT signing secret ARN | `string` | n/a | yes |
 | <a name="input_log_retention_days"></a> [log\_retention\_days](#input\_log\_retention\_days) | CloudWatch retention for application and migration logs | `number` | `7` | no |
 | <a name="input_memory"></a> [memory](#input\_memory) | Task memory (MiB) | `number` | `512` | no |

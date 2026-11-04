@@ -69,7 +69,7 @@ variable "region" {
 }
 
 variable "image_tag" {
-  description = "Image tag of the initial task definition revision; also exposed as APP_VERSION"
+  description = "Image tag of the initial task definition revision; CD replaces the image afterwards"
   type        = string
   default     = "initial"
 }

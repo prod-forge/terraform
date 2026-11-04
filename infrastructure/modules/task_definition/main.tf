@@ -37,10 +37,6 @@ resource "aws_ecs_task_definition" "app" {
           value = "production"
         },
         {
-          name  = "APP_VERSION"
-          value = var.image_tag
-        },
-        {
           name  = "DATABASE_USER"
           value = var.db_username
         },
