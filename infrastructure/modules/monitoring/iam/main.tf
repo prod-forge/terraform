@@ -26,7 +26,7 @@ resource "aws_iam_policy" "secrets_access" {
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
         ]
-        Resource = var.secret_arn
+        Resource = compact([var.secret_arn, var.grafana_admin_secret_arn])
       },
       {
         Effect = "Allow"
@@ -37,6 +37,34 @@ resource "aws_iam_policy" "secrets_access" {
       }
     ]
   })
+}
+
+resource "aws_iam_role_policy" "observability_config" {
+  count = var.observability_config_bucket_arn == "" ? 0 : 1
+
+  name = "ec2-observability-config-read"
+  role = aws_iam_role.ec2_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:GetObject"]
+        Resource = "${var.observability_config_bucket_arn}/*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket"]
+        Resource = var.observability_config_bucket_arn
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ssm" {
+  role       = aws_iam_role.ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_policy_attachment" "ec2_ecr_policy" {

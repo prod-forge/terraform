@@ -1,11 +1,20 @@
+# Latest Canonical Ubuntu 24.04 LTS AMI, resolved at plan time.
+data "aws_ssm_parameter" "ubuntu" {
+  name = "/aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id"
+}
+
 resource "aws_instance" "monitoring" {
-  ami           = "ami-03250b0e01c28d196"
-  instance_type = "t2.micro"
+  #checkov:skip=CKV_AWS_88: Grafana is reached by IP from var.admin_cidr_blocks; the host has no other inbound path and no SSH
+
+  ami           = data.aws_ssm_parameter.ubuntu.value
+  instance_type = var.instance_type
   tags = {
     Name = "Monitoring"
   }
   subnet_id                   = var.public_subnet_id
   associate_public_ip_address = true
+  monitoring                  = true
+  ebs_optimized               = true
 
   user_data = templatefile("templates/bootstrap.sh.tpl", {
     repository_url = var.repository_url
@@ -13,9 +22,21 @@ resource "aws_instance" "monitoring" {
     region         = var.region
   })
   user_data_replace_on_change = true
-  key_name                    = var.key_pair_key_name
-  # Очень важно установить Security Group чтобы открыть порты в instance для SSH, и для того чтобы зайти на сервер по IP
+
+  # No key pair: the host is reached only through SSM Session Manager.
+  # The security group controls which ports (Grafana) are reachable by IP.
   vpc_security_group_ids = [var.sg_monitoring_id]
-  # Connect EC2 to ECR, Secret Manager
+  # Connect EC2 to ECR, Secrets Manager and SSM
   iam_instance_profile = var.monitoring_ec2_instance_profile_name
+
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
+  root_block_device {
+    encrypted   = true
+    volume_type = "gp3"
+    volume_size = 30
+  }
 }

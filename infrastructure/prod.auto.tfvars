@@ -27,3 +27,13 @@ ecs_log_retention_days = 30
 domain_name      = ""
 hosted_zone_name = ""
 api_subdomain    = "api"
+
+# Replace with the real on-call mailbox: alarms and budget notifications go here (the subscription must be confirmed).
+alert_email        = "alerts@example.com"
+monthly_budget_usd = 400
+
+monitoring_instance_type = "t3.small"
+# Grafana is reachable only from these CIDRs. Empty keeps it closed; use SSM port forwarding.
+admin_cidr_blocks = []
+# About 80% of max_connections for db.t4g.medium.
+rds_max_connections_alarm = 320

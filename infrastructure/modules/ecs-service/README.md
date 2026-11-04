@@ -53,5 +53,7 @@ No modules.
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_service_name"></a> [service\_name](#output\_service\_name) | ECS service name |
 <!-- END_TF_DOCS -->

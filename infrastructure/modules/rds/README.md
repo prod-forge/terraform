@@ -51,6 +51,7 @@ No modules.
 | ---- | ----------- |
 | <a name="output_db_name"></a> [db\_name](#output\_db\_name) | n/a |
 | <a name="output_host"></a> [host](#output\_host) | n/a |
+| <a name="output_identifier"></a> [identifier](#output\_identifier) | DB instance identifier (CloudWatch DBInstanceIdentifier) |
 | <a name="output_kms_key_arn"></a> [kms\_key\_arn](#output\_kms\_key\_arn) | n/a |
 | <a name="output_port"></a> [port](#output\_port) | n/a |
 | <a name="output_secrets_arn"></a> [secrets\_arn](#output\_secrets\_arn) | n/a |

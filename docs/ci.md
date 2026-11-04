@@ -40,6 +40,8 @@ Local tool versions: Terraform 1.11.2, TFLint 0.65.0 (AWS ruleset 0.38.0), terra
 
 ## Tests
 
+`infrastructure/tests/alarms.tftest.hcl` targets the `alarms` module: the alarm count (2 ECS, 3 ALB, 3 RDS, 2 per Redis node, 1 per NAT gateway), the SNS email subscription and the budget, with negative cases (negative budget, empty `alert_email`, zero budget amount) first.
+
 `infrastructure/tests/edge.tftest.hcl` covers the conditional edge logic with `mock_provider "aws"` and `command = plan`, so it needs no AWS credentials and creates nothing. Each run targets one module (`acm-certificate`, `load_balancer`, `dns`, `frontend`, `waf`) and asserts, for `domain_name = ""` and for a dummy domain:
 
 - no certificate, 443 listener, validation or alias record exists without a domain, and port 80 forwards;
@@ -55,31 +57,25 @@ A plan needs to read real state and refresh live resources, so the job needs AWS
 
 ## Baseline (to be driven to zero)
 
-### TFLint (43 warnings)
+### TFLint (41 warnings)
 
-- `terraform_required_version` (21): modules have no `required_version`.
-- `terraform_required_providers` (22): modules do not declare the `aws` (and, in `secrets_manager`, `random`) provider constraint. New modules (`acm-certificate`, `dns`, `logs-bucket`, `waf`) and `frontend` have a `versions.tf`.
+- `terraform_required_version` (20): modules have no `required_version`.
+- `terraform_required_providers` (21): modules do not declare the `aws` (and, in `secrets_manager`, `random`) provider constraint. New modules (`acm-certificate`, `alarms`, `dns`, `logs-bucket`, `waf`) and `frontend` have a `versions.tf`.
 - `terraform_typed_variables`: fixed (`vpc` `cidr`).
 
-### Checkov: 19 failed, 215 passed, 16 skipped inline
+### Checkov: 13 failed, 246 passed, 17 skipped inline
 
 | ID | Check | Resources |
 | --- | --- | --- |
-| CKV_AWS_126 | Ensure that detailed monitoring is enabled for EC2 instances | module.monitoring_ec2.aws_instance.monitoring |
-| CKV_AWS_135 | Ensure that EC2 is EBS optimized | module.monitoring_ec2.aws_instance.monitoring |
 | CKV_AWS_136 | Ensure that ECR repositories are encrypted using KMS | module.ecr.aws_ecr_repository.prod_forge_repo |
 | CKV_AWS_163 | Ensure ECR image scanning on push is enabled | module.ecr.aws_ecr_repository.prod_forge_repo |
 | CKV_AWS_23 | Ensure every security group and rule has a description | module.monitoring_sg.aws_security_group.monitoring |
 | CKV_AWS_233 | Ensure Create before destroy for ACM certificates | module.client_vpn_certificate.aws_acm_certificate.vpn_client, module.server_vpn_certificate.aws_acm_certificate.vpn_server |
-| CKV_AWS_24 | Ensure no security groups allow ingress from 0.0.0.0:0 to port 22 | module.monitoring_sg.aws_security_group.monitoring |
 | CKV_AWS_290 | Ensure IAM policies does not allow write access without constraints | module.ecr.aws_iam_policy.ecr_deploy |
 | CKV_AWS_355 | Ensure no IAM policies documents allow "*" as a statement's resource for restrictable actions | module.ecr.aws_iam_policy.ecr_deploy |
 | CKV_AWS_382 | Ensure no security groups allow egress from 0.0.0.0:0 to port -1 | module.security_groups.aws_security_group.alb_sg, module.security_groups.aws_security_group.rds_sg, module.security_groups.aws_security_group.redis_sg, module.security_groups.aws_security_group.vpn_sg |
 | CKV_AWS_51 | Ensure ECR Image Tags are immutable | module.ecr.aws_ecr_repository.prod_forge_repo |
 | CKV_AWS_7 | Ensure rotation for customer created CMKs is enabled | module.secrets_manager.aws_kms_key.this |
-| CKV_AWS_79 | Ensure Instance Metadata Service Version 1 is not enabled | module.monitoring_ec2.aws_instance.monitoring |
-| CKV_AWS_8 | Ensure all data stored in the Launch configuration or instance Elastic Blocks Store is securely encrypted | module.monitoring_ec2.aws_instance.monitoring |
-| CKV_AWS_88 | EC2 instance should not have public IP. | module.monitoring_ec2.aws_instance.monitoring |
 
 ### Inline skips
 
@@ -95,6 +91,7 @@ A plan needs to read real state and refresh live resources, so the job needs AWS
 | CKV_AWS_174 | module.frontend.aws_cloudfront_distribution.web_client | `TLSv1.2_2021` is enforced with a custom domain; the default `*.cloudfront.net` certificate only allows `TLSv1` |
 | CKV_AWS_310 | module.frontend.aws_cloudfront_distribution.web_client | Both origins are single-region buckets; failover needs a replicated bucket that is not provisioned |
 | CKV_AWS_374 | module.frontend.aws_cloudfront_distribution.web_client | The web client is public worldwide; no geo-blocking requirement |
+| CKV_AWS_88 | module.monitoring_ec2.aws_instance.monitoring | Grafana is reached by IP from `admin_cidr_blocks`; SSH is gone and the host is otherwise managed through SSM |
 | CKV_AWS_259 | module.frontend.aws_cloudfront_response_headers_policy.security | HSTS `preload` is a hard-to-revert commitment; off until the owner opts in |
 
 Each following task must remove IDs from this list by fixing the resource, or by adding an inline `#checkov:skip=<ID>: <reason>` with a real reason. `.checkov.yaml` keeps `skip-check` empty. Until the list is zero the `checkov` job fails by design.

@@ -95,3 +95,33 @@ variable "api_subdomain" {
   type        = string
   default     = "api"
 }
+
+variable "admin_cidr_blocks" {
+  description = "CIDR blocks allowed to reach Grafana (port 3000). Empty exposes nothing; use SSM port forwarding instead"
+  type        = list(string)
+  default     = []
+}
+
+variable "monitoring_instance_type" {
+  description = "EC2 instance type of the monitoring host"
+  type        = string
+  default     = "t3.small"
+}
+
+variable "alert_email" {
+  description = "Email that receives CloudWatch alarm and budget notifications; empty disables the subscription and the budget"
+  type        = string
+  default     = ""
+}
+
+variable "monthly_budget_usd" {
+  description = "Monthly cost budget in USD; 0 disables the budget"
+  type        = number
+  default     = 0
+}
+
+variable "rds_max_connections_alarm" {
+  description = "DatabaseConnections alarm threshold; about 80% of max_connections for the RDS instance class"
+  type        = number
+  default     = 320
+}

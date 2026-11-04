@@ -13,21 +13,21 @@ variable "monitoring_ingress_rules" {
 }
 
 variable "monitoring_egress_from_port" {
-  description = "Начальный порт для исходящего трафика"
+  description = "Start port for egress traffic"
   type        = number
 }
 
 variable "monitoring_egress_to_port" {
-  description = "Конечный порт для исходящего трафика"
+  description = "End port for egress traffic"
   type        = number
 }
 
 variable "monitoring_egress_protocol" {
-  description = "Протокол для исходящего трафика"
+  description = "Protocol for egress traffic"
   type        = string
 }
 
 variable "monitoring_egress_cidr_blocks" {
-  description = "Список CIDR блоков для исходящего трафика"
+  description = "CIDR blocks for egress traffic"
   type        = list(string)
 }

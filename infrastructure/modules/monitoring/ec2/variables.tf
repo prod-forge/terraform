@@ -3,9 +3,10 @@ variable "repository_url" {
   type        = string
 }
 
-variable "key_pair_key_name" {
-  description = "Key Pair Key Name"
+variable "instance_type" {
+  description = "EC2 instance type of the monitoring host"
   type        = string
+  default     = "t3.small"
 }
 
 variable "sg_monitoring_id" {

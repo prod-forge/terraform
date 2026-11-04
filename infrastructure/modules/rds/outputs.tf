@@ -21,3 +21,8 @@ output "host" {
 output "kms_key_arn" {
   value = var.kms_key_arn
 }
+
+output "identifier" {
+  description = "DB instance identifier (CloudWatch DBInstanceIdentifier)"
+  value       = aws_db_instance.postgres.identifier
+}

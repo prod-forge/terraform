@@ -79,8 +79,15 @@ The ALB is the only public entry point for the API. ECS tasks run in private sub
 
 - GitHub Actions authenticate through OIDC (no static keys) and get separate, resource-scoped policies for ECR push, ECS deploy and the web client deploy (S3 sync and `cloudfront:CreateInvalidation` on the one distribution).
 - The ECS execution role reads only the secrets the task needs (RDS, Redis AUTH, JWT) and decrypts them with the project KMS key.
-- The monitoring EC2 role reads one secret.
+- The monitoring EC2 role reads the backend secret, uses SSM Session Manager (`AmazonSSMManagedInstanceCore`) and can optionally read the observability config bucket and the Grafana admin secret.
+
+## Monitoring host
+
+- No SSH key pair and no port 22; access is through SSM Session Manager only.
+- Ingress is Grafana (3000) from `admin_cidr_blocks` only; an empty list creates no rule. Prometheus (9090) is not exposed.
+- IMDSv2 required, encrypted gp3 root volume, detailed monitoring, EBS optimized, AMI resolved from the Canonical SSM parameter.
+- Alarm notifications go through a KMS-encrypted SNS topic (see [observability](observability.md#alarms)).
 
 ## Known gaps
 
-Tracked in the checkov baseline in [CI](ci.md#baseline-to-be-driven-to-zero): the monitoring EC2 still exposes SSH and Grafana to the internet, the ECR repository is not KMS-encrypted and has mutable tags, and the KMS key has no rotation.
+Tracked in the checkov baseline in [CI](ci.md#baseline-to-be-driven-to-zero): the ECR repository is not KMS-encrypted and has mutable tags, and the KMS key has no rotation.

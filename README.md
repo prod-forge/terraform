@@ -125,8 +125,7 @@ Built around a simple Todo API, but designed as a real-world production system.
     - [Generate VPN Client Configuration](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#generate-vpn-client-configuration)
     - [Verify VPN Connection](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#verify-vpn-connection)
     - [Connect to RDS or Redis](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#connect-to-rds-or-redis)
-  - [EC2 SSH Connection](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#ec2-ssh-connection)
-    - [SSH Setup](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#ssh-setup)
+  - [Monitoring host access (SSM Session Manager)](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#monitoring-host-access-ssm-session-manager)
     - [Debugging bootstrap.sh](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#debugging-bootstrapsh)
 
 <!-- -->

@@ -200,47 +200,27 @@ As a result, we can connect to RDS or Redis through VPN:
   <img alt="RDS Connection" src="assets/datagrip-connection.png" width="794px" height="669px">
 </p>
 
-## EC2 SSH Connection
+## Monitoring host access (SSM Session Manager)
 
-The first debugging step should always be attempting to connect to the instance using SSH.
+The monitoring instance has no SSH key and no port 22. Connect through SSM Session Manager, which needs the AWS CLI with the [Session Manager plugin](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html) and IAM permission for `ssm:StartSession`.
 
-If the connection fails:
-
-1. Open AWS Console
-2. Navigate to EC2 → Instances
-3. Select the instance
-4. Open the Connect tab
-
-AWS often shows helpful diagnostics. For example:
+Find the instance and open a shell:
 
 ```shell
-Associated subnet subnet-0626737c9c9d00050 (main-subnet) is not a public subnet.
-To use EC2 Instance Connect, your instance must be in a public subnet.
+aws ec2 describe-instances --filters Name=tag:Name,Values=Monitoring Name=instance-state-name,Values=running \
+  --query 'Reservations[].Instances[].InstanceId' --output text
+aws ssm start-session --target <instance-id>
 ```
 
-This message indicates that the instance is located in a private subnet, which means it cannot be accessed directly from
-the internet.
-
-### SSH Setup
-
-You need to generate ssh key in the **infrastructure/ssh** folder:
+Reach Grafana without opening port 3000:
 
 ```shell
-ssh-keygen -t rsa -b 4096 -f my-key.pem
-chmod 400 my-key.pem
+aws ssm start-session --target <instance-id> \
+  --document-name AWS-StartPortForwardingSession \
+  --parameters '{"portNumber":["3000"],"localPortNumber":["3000"]}'
 ```
 
-If the instance is in a public subnet and port 22 is open in the Security Group, you can connect via SSH.
-
-```shell
-ssh -i "ssh/my-key.pem" ubuntu@3.121.226.33
-```
-
-The default user for Ubuntu-based EC2 images is:
-
-```text
-ubuntu
-```
+If the session does not start, check in EC2 -> Instances that the instance is running and in the SSM console (Fleet Manager) that it is listed as managed. The instance needs outbound HTTPS and the `AmazonSSMManagedInstanceCore` policy on its role. Executing commands in ECS tasks is unchanged (see Execute Commands Inside Container).
 
 Once connected, useful diagnostic commands include:
 

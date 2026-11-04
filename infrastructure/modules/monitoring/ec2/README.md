@@ -18,12 +18,13 @@ No modules.
 | Name | Type |
 | ---- | ---- |
 | [aws_instance.monitoring](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
+| [aws_ssm_parameter.ubuntu](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_key_pair_key_name"></a> [key\_pair\_key\_name](#input\_key\_pair\_key\_name) | Key Pair Key Name | `string` | n/a | yes |
+| <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instance type of the monitoring host | `string` | `"t3.small"` | no |
 | <a name="input_monitoring_ec2_instance_profile_name"></a> [monitoring\_ec2\_instance\_profile\_name](#input\_monitoring\_ec2\_instance\_profile\_name) | IAM Monitoring Instance Profile Name | `string` | n/a | yes |
 | <a name="input_public_subnet_id"></a> [public\_subnet\_id](#input\_public\_subnet\_id) | Public Subnet ID | `string` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | AWS region | `string` | n/a | yes |

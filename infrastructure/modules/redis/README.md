@@ -40,6 +40,8 @@ No modules.
 
 | Name | Description |
 | ---- | ----------- |
+| <a name="output_num_cache_clusters"></a> [num\_cache\_clusters](#output\_num\_cache\_clusters) | Number of nodes (primary plus replicas) |
 | <a name="output_redis_host"></a> [redis\_host](#output\_redis\_host) | Primary endpoint address |
 | <a name="output_redis_port"></a> [redis\_port](#output\_redis\_port) | Redis port |
+| <a name="output_replication_group_id"></a> [replication\_group\_id](#output\_replication\_group\_id) | Replication group ID |
 <!-- END_TF_DOCS -->

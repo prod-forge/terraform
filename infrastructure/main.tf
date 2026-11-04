@@ -309,28 +309,18 @@ module "monitoring_iam" {
   kms_key_arn = module.secrets_manager.kms_arn
 }
 
-module "monitoring_ssh" {
-  source          = "./modules/monitoring/ssh-module"
-  key_name        = "my-key"
-  public_key_path = "ssh/my-key.pub"
-}
-
 module "monitoring_sg" {
   source = "./modules/monitoring/security_group"
   vpc_id = module.vpc.vpc_id
 
-  monitoring_ingress_rules = [
+  # Grafana only from the admin CIDRs (empty list: no rule). Prometheus (9090)
+  # and SSH (22) are never exposed; the host is reached through SSM.
+  monitoring_ingress_rules = length(var.admin_cidr_blocks) == 0 ? [] : [
     {
       from_port   = 3000
       to_port     = 3000
       protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    },
-    {
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
+      cidr_blocks = var.admin_cidr_blocks
     }
   ]
 
@@ -343,12 +333,35 @@ module "monitoring_sg" {
 module "monitoring_ec2" {
   source                               = "./modules/monitoring/ec2"
   monitoring_ec2_instance_profile_name = module.monitoring_iam.monitoring_ec2_instance_profile_name
-  key_pair_key_name                    = module.monitoring_ssh.key_name
+  instance_type                        = var.monitoring_instance_type
   sg_monitoring_id                     = module.monitoring_sg.sg_monitoring_id
   public_subnet_id                     = module.vpc.public_subnet_ids[0]
   repository_url                       = module.ecr.repository_url
   secret_id                            = module.secrets_manager.secret_arn
   region                               = var.region
+}
+
+############################
+# Alarms and budget
+############################
+
+module "alarms" {
+  source      = "./modules/alarms"
+  project     = var.project
+  environment = var.environment
+
+  alert_email        = var.alert_email
+  monthly_budget_usd = var.monthly_budget_usd
+
+  ecs_cluster_name           = module.ecs_cluster.ecs_cluster_name
+  ecs_service_name           = module.ecs_service.service_name
+  lb_arn_suffix              = module.load_balancer.lb_arn_suffix
+  lb_target_group_arn_suffix = module.load_balancer.lb_target_group_arn_suffix
+  rds_identifier             = module.rds.identifier
+  rds_max_connections_alarm  = var.rds_max_connections_alarm
+  redis_replication_group_id = module.redis.replication_group_id
+  redis_num_cache_clusters   = module.redis.num_cache_clusters
+  nat_gateway_ids            = module.vpc.nat_gateway_ids
 }
 
 ############################
