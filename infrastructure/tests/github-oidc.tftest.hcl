@@ -25,19 +25,13 @@ run "backend_role_trusts_only_backend_repo" {
   }
 
   assert {
-    condition = alltrue([
-      for sub in jsondecode(aws_iam_role.github["backend"].assume_role_policy).Statement[0].Condition.StringLike["token.actions.githubusercontent.com:sub"] :
-      startswith(sub, "repo:prod-forge/backend:")
-    ])
-    error_message = "Backend role must only trust repo:prod-forge/backend"
+    condition     = jsondecode(aws_iam_role.github["backend"].assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:prod-forge/backend:environment:prod"
+    error_message = "Backend role must trust exactly repo:prod-forge/backend:environment:prod"
   }
 
   assert {
-    condition = toset(jsondecode(aws_iam_role.github["backend"].assume_role_policy).Statement[0].Condition.StringLike["token.actions.githubusercontent.com:sub"]) == toset([
-      "repo:prod-forge/backend:environment:prod",
-      "repo:prod-forge/backend:ref:refs/tags/v*",
-    ])
-    error_message = "Backend role must trust exactly the prod environment and release tags"
+    condition     = !contains(keys(jsondecode(aws_iam_role.github["backend"].assume_role_policy).Statement[0].Condition), "StringLike")
+    error_message = "Backend role must not use wildcard subjects"
   }
 
   assert {
@@ -59,19 +53,13 @@ run "frontend_role_trusts_only_frontend_repo" {
   }
 
   assert {
-    condition = alltrue([
-      for sub in jsondecode(aws_iam_role.github["frontend"].assume_role_policy).Statement[0].Condition.StringLike["token.actions.githubusercontent.com:sub"] :
-      startswith(sub, "repo:prod-forge/frontend:")
-    ])
-    error_message = "Frontend role must only trust repo:prod-forge/frontend"
+    condition     = jsondecode(aws_iam_role.github["frontend"].assume_role_policy).Statement[0].Condition.StringEquals["token.actions.githubusercontent.com:sub"] == "repo:prod-forge/frontend:environment:prod"
+    error_message = "Frontend role must trust exactly repo:prod-forge/frontend:environment:prod"
   }
 
   assert {
-    condition = toset(jsondecode(aws_iam_role.github["frontend"].assume_role_policy).Statement[0].Condition.StringLike["token.actions.githubusercontent.com:sub"]) == toset([
-      "repo:prod-forge/frontend:environment:prod",
-      "repo:prod-forge/frontend:ref:refs/tags/v*",
-    ])
-    error_message = "Frontend role must trust exactly the prod environment and release tags"
+    condition     = !contains(keys(jsondecode(aws_iam_role.github["frontend"].assume_role_policy).Statement[0].Condition), "StringLike")
+    error_message = "Frontend role must not use wildcard subjects"
   }
 
   assert {

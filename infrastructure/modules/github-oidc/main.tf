@@ -23,10 +23,9 @@ locals {
   }
 }
 
-# Each role trusts only its own repository: jobs that run in the GitHub
-# environment (sub: repo:<owner>/<repo>:environment:<env>) and release tags.
-# A job that declares `environment:` gets the environment sub claim instead of
-# the ref claim, so the protection rules of the environment gate the deploy.
+# Each role trusts only jobs of its own repository that run in the GitHub
+# environment (sub: repo:<owner>/<repo>:environment:<env>). No ref-based subject
+# is trusted, so the environment protection rules always gate the deploy.
 resource "aws_iam_role" "github" {
   for_each = local.roles
 
@@ -44,13 +43,7 @@ resource "aws_iam_role" "github" {
         Condition = {
           StringEquals = {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-          }
-          # StringLike only because the tag pattern needs a wildcard.
-          StringLike = {
-            "token.actions.githubusercontent.com:sub" = [
-              "repo:${var.github_owner}/${each.value}:environment:${var.github_environment}",
-              "repo:${var.github_owner}/${each.value}:ref:refs/tags/v*",
-            ]
+            "token.actions.githubusercontent.com:sub" = "repo:${var.github_owner}/${each.value}:environment:${var.github_environment}"
           }
         }
       }

@@ -77,8 +77,19 @@ Do not attach `AdministratorAccess`. Create a permission set named `TerraformOpe
 | `kms:*`, `secretsmanager:*` | Encryption keys and application secrets |
 | `logs:*`, `cloudwatch:*`, `sns:*`, `budgets:*` | Log groups, alarms, notifications, budget |
 | `ssm:*` | Monitoring host access (Session Manager) and AMI parameters |
-| `iam:*` limited to `arn:aws:iam::<account-id>:role/<project>-*`, the ECS task roles and the GitHub OIDC provider | Roles and policies created by the modules; deny `iam:*User*` and `iam:*AccessKey*` |
+| `iam:*Role*`, `iam:*RolePolicy*`, `iam:*Policy*`, `iam:*InstanceProfile*`, `iam:PassRole` limited to the ARNs below | Roles and policies created by the modules; deny `iam:*User*` and `iam:*AccessKey*` |
+| `iam:*OpenIDConnectProvider*` on `oidc-provider/token.actions.githubusercontent.com` | GitHub OIDC provider |
+| `iam:CreateServiceLinkedRole` with `iam:AWSServiceName` in `ecs.amazonaws.com`, `elasticloadbalancing.amazonaws.com`, `rds.amazonaws.com`, `elasticache.amazonaws.com`, `ecs.application-autoscaling.amazonaws.com` | Service-linked roles AWS creates on first use |
 | `sts:GetCallerIdentity` | Account lookups |
+
+IAM ARNs this repository creates (account `<account-id>`):
+
+- roles: `role/<project>-*` (GitHub roles, VPC flow logs, e.g. `<project>-vpc-flow-logs-role`), `role/ecs-task-role`, `role/ecs-task-execution-role`, `role/ec2-ecr-role`, `role/<rds-identifier>-enhanced-monitoring`
+- policies: `policy/<project>-*` (GitHub deploy policies), `policy/allow-rds-secret-access`, `policy/ec2-secrets-access`
+- instance profile: `instance-profile/ec2-instance-profile`
+- OIDC provider: `oidc-provider/token.actions.githubusercontent.com`
+
+Several of these names are not project-prefixed yet; the Task 9 renames make the patterns uniform, after which only `<project>-*` remains.
 
 Narrow `Resource` to the project prefix wherever the service supports it. The one-off bootstrap (state bucket) can use a separate, short-lived permission set.
 

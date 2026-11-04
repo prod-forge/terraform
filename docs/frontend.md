@@ -128,11 +128,7 @@ Set these as variables or secrets in the frontend GitHub repository.
 
 The frontend CI/CD assumes its own OIDC role (`<project>-<environment>-github-frontend-role`), which only allows the S3 sync and the CloudFront invalidation. No IAM user or long-lived credentials are needed.
 
-The GitHub OIDC module already trusts the `frontend` repository:
-
-```hcl
-github_repos = ["backend", "frontend"]
-```
+The GitHub OIDC module creates the frontend role for the repository set in `frontend_repo` (default `frontend`). Its trust policy accepts only the `repo:prod-forge/frontend:environment:prod` subject, so the deploy job must run in the `prod` GitHub environment.
 
 A dedicated IAM policy grants only what is needed:
 

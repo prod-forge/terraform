@@ -213,18 +213,22 @@ The `github-oidc` module creates one role per repository, so a compromised repos
 
 | Role | Trusted subjects (`sub`) | Permissions |
 | --- | --- | --- |
-| `<project>-<environment>-github-backend-role` | `repo:prod-forge/backend:environment:prod`, `repo:prod-forge/backend:ref:refs/tags/v*` | ECR push to the application repository, ECS deploy, migration task, rollback |
-| `<project>-<environment>-github-frontend-role` | `repo:prod-forge/frontend:environment:prod`, `repo:prod-forge/frontend:ref:refs/tags/v*` | S3 sync on the web client and assets buckets, CloudFront invalidation |
+| `<project>-<environment>-github-backend-role` | `repo:prod-forge/backend:environment:prod` | ECR push to the application repository, ECS deploy, migration task, rollback |
+| `<project>-<environment>-github-frontend-role` | `repo:prod-forge/frontend:environment:prod` | S3 sync on the web client and assets buckets, CloudFront invalidation |
 
-Both roles also require `aud = sts.amazonaws.com`. `StringLike` is used for `sub` only because of the tag wildcard.
+Both roles also require `aud = sts.amazonaws.com`. The subject is matched exactly (`StringEquals`), with no wildcard.
 
-A job that declares `environment: prod` receives the `...:environment:prod` subject instead of the ref-based one. That is why deploy jobs must run in the `prod` GitHub environment: its protection rules (required reviewers, branch and tag restrictions) are then enforced before AWS hands out credentials. The tag subject is kept for jobs that do not use an environment.
+Only the `environment:prod` subject is trusted, so deploy jobs must declare `environment: prod`. The environment's protection rules (required reviewers, branch and tag restrictions) are then enforced before AWS hands out credentials. A ref-based subject such as `ref:refs/tags/v*` is deliberately not trusted: any workflow run on a tag without an environment would otherwise bypass those rules.
 
 ### Rollout notes
 
 - **Role names change.** Replace `role/github-actions-ecs-ecr-role` in `role-to-assume` with `role/<project>-<environment>-github-backend-role` in the backend `cd.yml` and `rollback.yml`, and with `role/<project>-<environment>-github-frontend-role` in the frontend `cd.yml`. Until then the workflows fail with `Not authorized to perform sts:AssumeRoleWithWebIdentity`.
 - **ECR tags are immutable.** The backend `cd.yml` pushes only the version tag (`<version>` from the `v*` tag), so a normal release works. Re-running a release for the same tag, or pushing `latest`, is rejected; cut a new tag instead.
-- **ECR is replaced.** Enabling KMS encryption forces a new repository, which deletes the images in the old one. Push the current image again (or the `initial` image, see above) before the next `terraform apply` is used by ECS, and keep the old repository's images if a rollback target is needed.
+- **ECR is replaced; migrate the images by hand first.** Enabling KMS encryption forces a new repository, and `terraform apply` cannot delete a non-empty repository (`RepositoryNotEmptyException`), so the apply would stop half-way. Before applying:
+  1. List the images: `aws ecr describe-images --repository-name <project> --query 'imageDetails[].imageTags'`.
+  2. Note the tags you still need (the running release and the rollback targets). Pull and keep them locally if they cannot be rebuilt.
+  3. Delete the images: `aws ecr batch-delete-image --repository-name <project> --image-ids "$(aws ecr list-images --repository-name <project> --query 'imageIds[]' --output json)"` (or delete the whole repository with `aws ecr delete-repository --force`).
+  4. Run `terraform apply`, then re-push the current release tag (and the `initial` image, see above) before ECS starts new tasks, because running tasks cannot pull from the missing repository.
 - **Old IAM resources are replaced.** The `github-actions-ecs-ecr-role` role and the `github-actions-*` policies are removed and recreated under the new names.
 
 ### Why OIDC is Recommended
