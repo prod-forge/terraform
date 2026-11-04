@@ -155,7 +155,7 @@ Terraform generates these secrets with `random_password` (64 characters, no spec
 - `<project>/<environment>/jwt-secret` - the JWT signing secret, injected as `JWT_SECRET`. The backend refuses to start without it (at least 32 characters).
 - `<project>/<environment>/grafana-admin` - the Grafana admin password, read by the monitoring host (32 characters).
 
-The task execution role may read the first two. Every secret has `recovery_window_in_days = secret_recovery_window_days`: 30 in prod, 0 in dev so a destroyed dev can be recreated with the same names right away. Values live in Terraform state, so keep the state bucket private and encrypted.
+The task execution role reads the first two (see [IAM](#iam)); the Grafana password is read by the monitoring host role. Every secret has `recovery_window_in_days = secret_recovery_window_days`: 30 in prod, 0 in dev so a destroyed dev can be recreated with the same names right away. Values live in Terraform state, so keep the state bucket private and encrypted.
 
 ## GitHub Integration for CI/CD
 
@@ -229,14 +229,9 @@ Only the `environment:<environment>` subject is trusted (`environment:prod` for 
 
 ### Rollout notes
 
-- **Role names change.** The workflows take the role from the `AWS_DEPLOY_ROLE_ARN` repository variable (see [Deploy workflow variables](#deploy-workflow-variables)): set it to `github_backend_role_arn` in the backend repository and to `github_frontend_role_arn` in the frontend repository. A stale value (the old `github-actions-ecs-ecr-role`) fails with `Not authorized to perform sts:AssumeRoleWithWebIdentity`.
+- **Role ARNs.** The workflows take the role from the `AWS_DEPLOY_ROLE_ARN` repository variable (see [Deploy workflow variables](#deploy-workflow-variables)): set it to `github_backend_role_arn` in the backend repository and to `github_frontend_role_arn` in the frontend repository. A wrong or stale value fails with `Not authorized to perform sts:AssumeRoleWithWebIdentity`.
 - **ECR tags are immutable.** The backend `cd.yml` pushes only the version tag (`<version>` from the `v*` tag), so a normal release works. Re-running a release for the same tag, or pushing `latest`, is rejected; cut a new tag instead.
-- **ECR is replaced; migrate the images by hand first.** Enabling KMS encryption and the per-environment name (`<project>` becomes `<project>-<environment>`) force a new repository, and `terraform apply` cannot delete a non-empty repository (`RepositoryNotEmptyException`), so the apply would stop half-way. Before applying:
-  1. List the images: `aws ecr describe-images --repository-name <project> --query 'imageDetails[].imageTags'`.
-  2. Note the tags you still need (the running release and the rollback targets). Pull and keep them locally if they cannot be rebuilt.
-  3. Delete the images: `aws ecr batch-delete-image --repository-name <project> --image-ids "$(aws ecr list-images --repository-name <project> --query 'imageIds[]' --output json)"`. `batch-delete-image` accepts at most 100 image ids per call, so for a larger repository delete in batches (loop over `list-images --max-items 100`), or delete the whole repository instead: `aws ecr delete-repository --repository-name <project> --force`.
-  4. Run `terraform apply`, then push the current release tag (and the `initial` image, see above) to the new repository (output `ecr_repository_url`) before ECS starts new tasks, because running tasks cannot pull from the missing repository.
-- **Old IAM resources are replaced.** The `github-actions-ecs-ecr-role` role and the `github-actions-*` policies are removed and recreated under the new names.
+- **Changing the ECR name or encryption forces a new repository.** The encryption type (KMS) and the name (`<project>-<environment>`) are fixed at creation, and `terraform apply` cannot delete a non-empty repository (`RepositoryNotEmptyException`). Copy the images you still need, empty the repository (`aws ecr batch-delete-image` takes at most 100 image ids per call) or remove it from the state first, as in the [migration runbook](migration-to-environments.md#5-create-the-new-repository-and-buckets-copy-the-data).
 
 ### Deploy workflow variables
 
@@ -253,7 +248,7 @@ Backend repository (`cd.yml`, `rollback.yml`, `show-ecs-revisions.yml`):
 | `ECS_TASK_FAMILY` | `ecs_task_definition_family` | `prod-forge-todolist-prod-task` |
 | `ECS_MIGRATION_TASK_FAMILY` | `ecs_migration_task_definition_family` | `prod-forge-todolist-prod-migration-task` |
 | `ECS_MIGRATION_LOG_GROUP` | `ecs_migration_log_group_name` | `/ecs/prod-forge-todolist-prod-task-migration` |
-| `PRIVATE_SUBNET_IDS` | `private_subnet_ids` (comma-joined) | `subnet-0aaa,subnet-0bbb,subnet-0ccc` |
+| `PRIVATE_SUBNET_IDS` | `private_subnet_ids` (comma-joined) | `subnet-0aaa,subnet-0bbb` |
 | `ECS_SECURITY_GROUP_ID` | `ecs_security_group_id` | `sg-0123456789abcdef0` |
 
 Frontend repository (`cd.yml`, `rollback.yml`, `show-web-client-versions.yml`):
@@ -307,7 +302,7 @@ The cluster will be used to run our backend services using AWS Fargate.
 ECS tasks run in private subnets and get no public IP. Outbound traffic leaves through NAT gateways (one per AZ in prod, one shared NAT gateway by default) via a private route table per AZ with `0.0.0.0/0` → NAT.
 
 - **VPC endpoints.** An S3 gateway endpoint is always on (ECR image layers live in S3). With `vpc_enable_endpoints = true` (prod), interface endpoints for `ecr.api`, `ecr.dkr`, `secretsmanager`, `logs` and `ssmmessages` keep image pulls, secret reads, log delivery and ECS Exec inside the VPC instead of going through NAT.
-- **Security group.** The ECS group allows ingress only on port 3000 from the ALB group. Egress is limited to HTTPS (443, for AWS APIs and external services such as Sentry), PostgreSQL 5432 to the RDS group and Redis 6379 to the Redis group.
+- **Security group.** The ECS group allows ingress only on port 3000, from the ALB group and from the monitoring host (Prometheus scrape). Egress is limited to HTTPS (443, for AWS APIs and external services such as Sentry), PostgreSQL 5432 to the RDS group and Redis 6379 to the Redis group.
 - **Flow logs.** VPC flow logs (all traffic) go to the `/vpc/<project>-<environment>-flow-logs` log group with 30 days of retention.
 
 Without the NAT route or the endpoints, tasks in private subnets cannot pull images from ECR or read secrets from Secrets Manager, and the deployment fails with `CannotPullContainerError` or `ResourceInitializationError`.
@@ -374,7 +369,7 @@ Service behavior:
 - **Deployment circuit breaker** with automatic rollback: a deployment whose tasks keep failing is rolled back to the previous task definition.
 - **Health check grace period** of 60 seconds before ALB health checks can mark a new task unhealthy.
 - **Tags** from the service are propagated to its tasks (`propagate_tags = "SERVICE"`).
-- **Service discovery** (`service_discovery_arn`) is off until a Cloud Map namespace exists.
+- **Service discovery.** Tasks register in the Cloud Map service `backend` of the `service_namespace` private DNS namespace (`service_discovery_arn`); Prometheus on the monitoring host finds the task IPs through it.
 
 ### IAM
 
@@ -470,7 +465,6 @@ Redis runs as an `aws_elasticache_replication_group`. Prod has two nodes (primar
 - **Snapshots.** Daily snapshots (7 days of retention in prod, 1 by default). Maintenance and snapshot windows do not overlap.
 - **Sizing.** Prod uses `cache.t4g.small`, the module default is `cache.t4g.micro`.
 - **Rotating the AUTH token.** Change the `random_password` (for example `terraform -chdir=infrastructure/environments/prod apply -replace=module.stack.module.secrets_manager.random_password.redis`) and apply. ElastiCache applies the new token in place, but running tasks still hold the old value, so force a new ECS deployment right after the apply to pick up the new secret.
-- **Migration note.** Replacing the old `aws_elasticache_cluster` with a replication group recreates Redis. Cached data is lost, which is acceptable for a cache; expect a short window with no Redis during the apply.
 
 ## One-Run ECS Tasks
 

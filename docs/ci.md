@@ -49,6 +49,7 @@ All test files live in `infrastructure/environments/prod/tests/` and run with `t
 
 - `enable_client_vpn = true` without the key files is rejected by the `enable_client_vpn` validation;
 - the prod root plans end to end without the git-ignored VPN files, and names follow `<project>-<environment>-<name>`;
+- the outputs that backend CD reads (`ecr_repository_name`, `ecs_cluster_name`, `ecs_service_name`, the task definition families and the log groups) carry the expected names;
 - the dev switches (`environment = "dev"`, no WAF, no VPN, OIDC provider read instead of created, one Redis node, the `<project>-dev.local` namespace, no budget) plan end to end.
 
 `alarms.tftest.hcl` targets the `alarms` module: the alarm count (2 ECS, 3 ALB, 3 RDS, 2 per Redis node, 1 per NAT gateway), the SNS email subscription and the budget, with negative cases (negative budget, empty `alert_email`, zero budget amount) first.
@@ -58,9 +59,11 @@ All test files live in `infrastructure/environments/prod/tests/` and run with `t
 - no certificate, 443 listener, validation or alias record exists without a domain, and port 80 forwards;
 - with a domain there is one validated certificate, a 443 listener with `ELBSecurityPolicy-TLS13-1-2-2021-06`, a `301` redirect on port 80, `A` (API) and `A`/`AAAA` (web) alias records, and CloudFront serves the alias with `TLSv1.2_2021`;
 - the regional ACL has one ALB association and the CloudFront ACL none; the rule set and the 2000/5 min rate limit;
-- variable validations reject a domain without a zone or certificate and an unknown WAF scope.
+- variable validations reject a domain without a zone, zone name or certificate, an `api_origin` with a path, an unknown WAF scope and a regional ACL without a resource ARN.
 
 `security-baseline.tftest.hcl` checks the multi-region, validated, KMS-encrypted trail with its bucket lifecycle, the GuardDuty detector and the Access Analyzer, that every switch off creates nothing, and that a retention shorter than the archive age is rejected.
+
+`task-definition.tftest.hcl` checks the `backend_config` validations (shutdown timeouts below `stopTimeout`, known log levels), that the task definition sets every backend variable with the backend defaults, and that Sentry and the OTLP endpoint are opt-in.
 
 `github-oidc.tftest.hcl` checks that each GitHub role trusts only its own repository and environment; `observability.tftest.hcl` checks the observability config upload and the Cloud Map namespace.
 
@@ -78,7 +81,7 @@ Both scanners are at zero: `tflint --recursive` reports no issues (every module 
 
 | ID | Resources | Reason |
 | --- | --- | --- |
-| CKV_AWS_130 | module.vpc.aws_subnet.public[*] | Public subnets host only the ALB, the NAT gateways and the monitoring EC2; ECS tasks run in private subnets |
+| CKV_AWS_130 | module.vpc.aws_subnet.public[*] | Public subnets host only the ALB, the NAT gateways and the monitoring EC2, which needs a public IP; ECS tasks run in private subnets |
 | CKV_AWS_158 | module.vpc.aws_cloudwatch_log_group.flow_logs, module.task_definition.aws_cloudwatch_log_group.ecs, module.task_definition.aws_cloudwatch_log_group.ecs_migration | Encrypted with the CloudWatch Logs service key; no logs CMK yet |
 | CKV_AWS_338 | same log groups | Operational logs, retention set by a variable (30 days in prod) to bound cost |
 | CKV_AWS_394 | module.vpc.data.aws_availability_zones.available | Pinning zone names would hard-code AZs; the sorted list is sliced to `az_count` |
@@ -90,7 +93,8 @@ Both scanners are at zero: `tflint --recursive` reports no issues (every module 
 | CKV_AWS_174 | module.frontend.aws_cloudfront_distribution.web_client | `TLSv1.2_2021` is enforced with a custom domain; the default `*.cloudfront.net` certificate only allows `TLSv1` |
 | CKV_AWS_310 | module.frontend.aws_cloudfront_distribution.web_client | Both origins are single-region buckets; failover needs a replicated bucket that is not provisioned |
 | CKV_AWS_374 | module.frontend.aws_cloudfront_distribution.web_client | The web client is public worldwide; no geo-blocking requirement |
-| CKV_AWS_88 | module.monitoring_ec2.aws_instance.monitoring | Grafana is reached by IP from `admin_cidr_blocks`; SSH is gone and the host is otherwise managed through SSM |
+| CKV_AWS_88 | module.monitoring_ec2.aws_instance.monitoring | The public IP exists only for egress (SSM, package and image downloads); there is no SSH and no inbound path except Grafana from the optional `admin_cidr_blocks` |
+| CKV_AWS_336 | module.task_definition.aws_ecs_task_definition.app | The Node image writes to its filesystem at runtime; a read-only root with tmpfs mounts is a separate hardening task |
 | CKV_AWS_259 | module.frontend.aws_cloudfront_response_headers_policy.security | HSTS `preload` is a hard-to-revert commitment; off until the owner opts in |
 
 The CloudTrail checks CKV_AWS_35 (KMS), CKV_AWS_36 (log file validation), CKV_AWS_67 (all regions) and CKV_AWS_252 (SNS topic) pass on `module.security_baseline`. CKV2_AWS_3 (GuardDuty) does not exist in Checkov 3.4.3; its GuardDuty check is CKV_AWS_238 (detector enabled), which passes.

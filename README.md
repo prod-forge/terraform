@@ -30,8 +30,8 @@ Built around a simple Todo API, but designed as a real-world production system.
 | web-client     | React · Vite · Redux Toolkit · Tailwind CSS · NX                  |
 | Deploy         | AWS S3 · CloudFront · ECR · ECS                                   |
 | Backend        | NestJS · Prisma · PostgreSQL · Redis · Docker                     |
-| Infrastructure | AWS · RDS · ElastiCache                                          |
-| Observability  | Prometheus · Grafana · Loki · Promtail                            |
+| Infrastructure | Terraform · AWS · RDS · ElastiCache                              |
+| Observability  | Prometheus · Grafana · Loki · Promtail · Tempo                    |
 | Quality        | ESLint · Prettier · Husky · Commitlint · CI/CD                    |
 
 # Table of contents
@@ -70,11 +70,14 @@ Built around a simple Todo API, but designed as a real-world production system.
     - [Initial Application Image](docs/workflow.md#initial-application-image)
       - [Required Endpoints](docs/workflow.md#required-endpoints)
   - [AWS Secrets Manager](docs/workflow.md#aws-secrets-manager)
+    - [Generated secrets](docs/workflow.md#generated-secrets)
   - [GitHub Integration for CI/CD](docs/workflow.md#github-integration-for-cicd)
     - [Approaches](docs/workflow.md#approaches)
       - [1. Dedicated AWS User](docs/workflow.md#1-dedicated-aws-user)
       - [2. OpenID Connect (OIDC) - Recommended](docs/workflow.md#2-openid-connect-oidc---recommended)
     - [Terraform Setup](docs/workflow.md#terraform-setup)
+    - [Roles and trust conditions](docs/workflow.md#roles-and-trust-conditions)
+    - [Rollout notes](docs/workflow.md#rollout-notes)
     - [Deploy workflow variables](docs/workflow.md#deploy-workflow-variables)
     - [Why OIDC is Recommended](docs/workflow.md#why-oidc-is-recommended)
   - [ECS Cluster](docs/workflow.md#ecs-cluster)
@@ -83,6 +86,8 @@ Built around a simple Todo API, but designed as a real-world production system.
   - [ECS Service](docs/workflow.md#ecs-service)
     - [IAM](docs/workflow.md#iam)
   - [Task Definition](docs/workflow.md#task-definition)
+    - [Backend configuration](docs/workflow.md#backend-configuration)
+  - [Redis](docs/workflow.md#redis)
   - [One-Run ECS Tasks](docs/workflow.md#one-run-ecs-tasks)
 
 <!-- -->
@@ -156,6 +161,7 @@ Built around a simple Todo API, but designed as a real-world production system.
   - [Tests](docs/ci.md#tests)
   - [Why there is no terraform plan in CI yet](docs/ci.md#why-there-is-no-terraform-plan-in-ci-yet)
   - [Baseline](docs/ci.md#baseline)
+    - [Inline skips](docs/ci.md#inline-skips)
 
 <!-- -->
 
@@ -172,6 +178,7 @@ Built around a simple Todo API, but designed as a real-world production system.
   - [Capacity model](docs/scaling.md#capacity-model)
   - [Scaling policies](docs/scaling.md#scaling-policies)
   - [Deployments and shutdown](docs/scaling.md#deployments-and-shutdown)
+  - [Health checks: liveness vs readiness](docs/scaling.md#health-checks-liveness-vs-readiness)
   - [How to load-test the policies](docs/scaling.md#how-to-load-test-the-policies)
   - [Fargate Spot trade-off](docs/scaling.md#fargate-spot-trade-off)
 
@@ -183,9 +190,11 @@ Built around a simple Todo API, but designed as a real-world production system.
   - [WAF](docs/security.md#waf)
   - [Response headers](docs/security.md#response-headers)
   - [Load balancer hardening](docs/security.md#load-balancer-hardening)
+  - [Metrics endpoints](docs/security.md#metrics-endpoints)
   - [Access logs](docs/security.md#access-logs)
   - [Security groups](docs/security.md#security-groups)
   - [IAM](docs/security.md#iam)
+  - [Monitoring host](docs/security.md#monitoring-host)
   - [Account security baseline](docs/security.md#account-security-baseline)
   - [Known gaps](docs/security.md#known-gaps)
 
@@ -193,8 +202,8 @@ Built around a simple Todo API, but designed as a real-world production system.
 
 - [13. Cost](docs/cost.md)
   - [Monthly Estimate](docs/cost.md#monthly-estimate)
-  - [Main Levers](docs/cost.md#main-levers)
   - [Budget](docs/cost.md#budget)
+  - [Main Levers](docs/cost.md#main-levers)
 
 <!-- -->
 

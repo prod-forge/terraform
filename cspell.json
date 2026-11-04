@@ -49,6 +49,7 @@
     "tftest",
     "tftpl",
     "tfvars",
+    "tmpfs",
     "todolist",
     "Tunables",
     "utun"

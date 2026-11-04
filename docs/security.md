@@ -57,7 +57,7 @@ The CloudFront response headers policy (see [Frontend](frontend.md#security-head
 
 ## Metrics endpoints
 
-The backend serves `/metrics` and `/metrics/database` (older builds also `/api/metrics`) without authentication. The primary control is in the backend, which rejects metrics requests that came through the ALB (`X-Forwarded-For` present). As defence in depth, a listener rule with priority 1 returns a fixed 404 for the path patterns `/metrics*` and `/api/metrics*` on the forwarding listener (443 with a domain, 80 without). ALB path matching is case-sensitive, so the rule alone is not a complete barrier. Prometheus scrapes the task IPs on port 3000 directly and is not affected.
+The backend serves `/metrics` and `/metrics/database` without authentication. The primary control is in the backend, which answers 404 to metrics requests that came through the ALB (`X-Forwarded-For` present), with or without the `/api` prefix. As defence in depth, a listener rule with priority 1 returns a fixed 404 for the path patterns `/metrics*` and `/api/metrics*` on the forwarding listener (443 with a domain, 80 without). ALB path matching is case-sensitive, so the rule alone is not a complete barrier. Prometheus scrapes the task IPs on port 3000 directly and is not affected.
 
 ## Access logs
 
@@ -86,7 +86,7 @@ The ALB is the only public entry point for the API. ECS tasks run in private sub
 
 - GitHub Actions authenticate through OIDC (no static keys) and use one role per repository: the backend role gets ECR push and ECS deploy, the frontend role gets the web client deploy (S3 sync and `cloudfront:CreateInvalidation` on the one distribution). Trust is limited to the repository and its GitHub environment (`environment:prod` for the prod roles, `environment:dev` for dev). The ECR repository has immutable tags, scan on push and KMS encryption.
 - The ECS execution role reads only the secrets the task needs (RDS, Redis AUTH, JWT, policy `<project>-<env>-ecs-secrets-read`) and decrypts them with the project KMS key, which rotates yearly.
-- The monitoring EC2 role reads the backend secret and the Grafana admin secret, reads the observability config bucket, pulls from ECR (`AmazonEC2ContainerRegistryReadOnly`, attached to this role only) and uses SSM Session Manager (`AmazonSSMManagedInstanceCore`).
+- The monitoring EC2 role reads the Grafana admin secret (and decrypts it with the project KMS key), reads the observability config bucket and uses SSM Session Manager (`AmazonSSMManagedInstanceCore`). It has no ECR access: the observability images come from public registries.
 - Every role and policy name starts with `<project>-<env>-`, so the IAM permissions of the Terraform operator can be scoped to that prefix.
 
 ## Monitoring host

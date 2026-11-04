@@ -269,7 +269,7 @@ terraform -chdir=infrastructure/environments/prod test
 ```bash
 tflint --recursive
 checkov -d infrastructure
-terraform-docs
+terraform-docs -c .terraform-docs.yml infrastructure/modules/<module>
 ```
 
 ---
@@ -283,8 +283,8 @@ terraform/
   bootstrap/                      state bucket and KMS key (local state)
   infrastructure/
     environments/
-      dev/                        root: backend, provider, variables, tests
-      prod/
+      dev/                        root: backend, providers, variables, tfvars
+      prod/                       same, plus moved.tf and tests/
     modules/
       stack/                      composition shared by both roots
       vpc/ rds/ redis/ ...        single-purpose modules
