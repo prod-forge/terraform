@@ -57,7 +57,7 @@ This confirms that network routing and security groups are configured correctly.
 
 Symptoms: tasks stop right after `PROVISIONING` with `CannotPullContainerError` or `ResourceInitializationError` in the service events (`aws ecs describe-services` or the stopped task's `stoppedReason`).
 
-1. Tasks run in private subnets, so they need a route to ECR: either a NAT gateway or the interface endpoints. Check that the private route table has `0.0.0.0/0` to a NAT gateway (`aws ec2 describe-route-tables`), or that `enable_vpc_endpoints = true` (prod) created the `ecr.api`, `ecr.dkr`, `secretsmanager`, `logs` and `ssmmessages` endpoints and they are `available`.
+1. Tasks run in private subnets, so they need a route to ECR: either a NAT gateway or the interface endpoints. Check that the private route table has `0.0.0.0/0` to a NAT gateway (`aws ec2 describe-route-tables`), or that `vpc_enable_endpoints = true` (prod) created the `ecr.api`, `ecr.dkr`, `secretsmanager`, `logs` and `ssmmessages` endpoints and they are `available`.
 2. Image layers come from S3. The S3 gateway endpoint must be associated with the private route tables (it is always created), and the endpoint security group allows 443 from the VPC CIDR only, so a changed CIDR breaks it.
 3. The image tag must exist in the environment's repository (`aws ecr describe-images --repository-name <project>-<environment>`). A fresh environment has only the `initial` image until the first release is pushed.
 4. The task execution role must be able to read the secrets and use the KMS key (`secretsmanager:GetSecretValue`, `kms:Decrypt`); a missing permission shows up as `ResourceInitializationError: unable to pull secrets`.

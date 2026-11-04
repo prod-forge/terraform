@@ -46,7 +46,7 @@
 - Keep plans predictable and readable
 - Avoid resource recreation unless explicitly intended
 - Always run `terraform fmt` and `terraform validate`
-- Keep Terraform files logically separated: `main.tf`, `variables.tf`, `outputs.tf` and `versions.tf` in every root and module. Providers, backend and `default_tags` live in the environment root's `versions.tf`; a separate `providers.tf` or `locals.tf` is not used (not applicable)
+- Keep Terraform files logically separated: every root and module has `versions.tf` and `variables.tf`; `main.tf` and `outputs.tf` exist where the unit has resources or outputs. Providers, backend and `default_tags` live in the environment root's `versions.tf`; a separate `providers.tf` or `locals.tf` is not used (not applicable)
 
 ---
 

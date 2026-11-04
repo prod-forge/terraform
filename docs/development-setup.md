@@ -114,6 +114,8 @@ aws sso login --profile prod-forge
 export AWS_PROFILE=prod-forge
 ```
 
+## Verify AWS Connection
+
 You can verify the configuration:
 
 ```shell

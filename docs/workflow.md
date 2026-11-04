@@ -264,7 +264,7 @@ The cluster will be used to run our backend services using AWS Fargate.
 
 ECS tasks run in private subnets and get no public IP. Outbound traffic leaves through NAT gateways (one per AZ in prod, one shared NAT gateway by default) via a private route table per AZ with `0.0.0.0/0` → NAT.
 
-- **VPC endpoints.** An S3 gateway endpoint is always on (ECR image layers live in S3). With `enable_vpc_endpoints = true` (prod), interface endpoints for `ecr.api`, `ecr.dkr`, `secretsmanager`, `logs` and `ssmmessages` keep image pulls, secret reads, log delivery and ECS Exec inside the VPC instead of going through NAT.
+- **VPC endpoints.** An S3 gateway endpoint is always on (ECR image layers live in S3). With `vpc_enable_endpoints = true` (prod), interface endpoints for `ecr.api`, `ecr.dkr`, `secretsmanager`, `logs` and `ssmmessages` keep image pulls, secret reads, log delivery and ECS Exec inside the VPC instead of going through NAT.
 - **Security group.** The ECS group allows ingress only on port 3000 from the ALB group. Egress is limited to HTTPS (443, for AWS APIs and external services such as Sentry), PostgreSQL 5432 to the RDS group and Redis 6379 to the Redis group.
 - **Flow logs.** VPC flow logs (all traffic) go to the `/vpc/<project>-<environment>-flow-logs` log group with 30 days of retention.
 
