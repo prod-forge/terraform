@@ -92,6 +92,7 @@
 | <a name="input_redis_snapshot_retention_limit"></a> [redis\_snapshot\_retention\_limit](#input\_redis\_snapshot\_retention\_limit) | n/a | `number` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | AWS region of the regional provider | `string` | n/a | yes |
 | <a name="input_secret_recovery_window_days"></a> [secret\_recovery\_window\_days](#input\_secret\_recovery\_window\_days) | Recovery window of every Secrets Manager secret; 0 deletes immediately so a recreated environment can reuse the names | `number` | n/a | yes |
+| <a name="input_service_namespace"></a> [service\_namespace](#input\_service\_namespace) | Cloud Map private DNS namespace; unique per environment so two environments in one account never share a name | `string` | n/a | yes |
 | <a name="input_vpc_enable_endpoints"></a> [vpc\_enable\_endpoints](#input\_vpc\_enable\_endpoints) | n/a | `bool` | n/a | yes |
 | <a name="input_vpc_nat_per_az"></a> [vpc\_nat\_per\_az](#input\_vpc\_nat\_per\_az) | n/a | `bool` | n/a | yes |
 | <a name="input_vpn_ca_certificate"></a> [vpn\_ca\_certificate](#input\_vpn\_ca\_certificate) | PEM body of the CA that signs the server and client certificates | `string` | `""` | no |

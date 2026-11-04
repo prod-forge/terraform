@@ -37,17 +37,20 @@ ecs_task_memory        = 1024
 ecs_log_retention_days = 30
 
 # Set to the owned domain to enable HTTPS on the ALB, the CloudFront custom domain and DNS records.
-domain_name      = ""
-hosted_zone_name = ""
-api_subdomain    = "api"
-enable_waf       = true
+domain_name       = ""
+hosted_zone_name  = ""
+api_subdomain     = "api"
+enable_waf        = true
+service_namespace = "prod-forge-todolist.local"
 
 # Reads server.crt, server.key, ca.crt and ca.key from infrastructure/vpn-key (see docs/debugging.md).
 enable_client_vpn = true
 
 # Replace with the real on-call mailbox: alarms and budget notifications go here (the subscription must be confirmed).
-alert_email        = "alerts@example.com"
-monthly_budget_usd = 400
+alert_email = "alerts@example.com"
+# The budget has no cost filter, so it tracks the whole account: prod owns it and
+# sizes it above the combined dev and prod estimate (docs/cost.md).
+monthly_budget_usd = 800
 
 monitoring_instance_type = "t3.small"
 # Grafana is reachable only from these CIDRs. Empty keeps it closed; use SSM port forwarding.

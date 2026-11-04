@@ -87,6 +87,8 @@ run "dev_switches_disable_waf_vpn_and_oidc_provider" {
     enable_waf                  = false
     create_github_oidc_provider = false
     redis_num_cache_clusters    = 1
+    service_namespace           = "prod-forge-todolist-dev.local"
+    monthly_budget_usd          = 0
   }
 
   assert {

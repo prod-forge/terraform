@@ -17,8 +17,9 @@ run "every_observability_file_is_uploaded" {
   }
 
   variables {
-    source_dir  = "../../observability"
-    kms_key_arn = "arn:aws:kms:eu-central-1:123456789012:key/00000000-0000-0000-0000-000000000000"
+    source_dir        = "../../observability"
+    service_namespace = "prod-forge-test.local"
+    kms_key_arn       = "arn:aws:kms:eu-central-1:123456789012:key/00000000-0000-0000-0000-000000000000"
   }
 
   assert {
@@ -50,7 +51,8 @@ run "service_discovery_namespace_is_project_local" {
   }
 
   variables {
-    vpc_id = "vpc-0123456789abcdef0"
+    vpc_id         = "vpc-0123456789abcdef0"
+    namespace_name = "prod-forge-test.local"
   }
 
   assert {

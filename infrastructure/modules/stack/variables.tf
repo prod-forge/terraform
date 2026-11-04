@@ -203,3 +203,8 @@ variable "enable_account_security_services" {
   description = "Create the account-level CloudTrail trail, GuardDuty detector and IAM Access Analyzer; exactly one environment per account owns them"
   type        = bool
 }
+
+variable "service_namespace" {
+  description = "Cloud Map private DNS namespace; unique per environment so two environments in one account never share a name"
+  type        = string
+}

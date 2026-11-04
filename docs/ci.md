@@ -47,7 +47,7 @@ All test files live in `infrastructure/environments/prod/tests/` and run with `t
 
 - `enable_client_vpn = true` without the key files is rejected by the `enable_client_vpn` validation;
 - the prod root plans end to end without the git-ignored VPN files, and names follow `<project>-<environment>-<name>`;
-- the dev switches (`environment = "dev"`, no WAF, no VPN, OIDC provider read instead of created, one Redis node) plan end to end.
+- the dev switches (`environment = "dev"`, no WAF, no VPN, OIDC provider read instead of created, one Redis node, the `<project>-dev.local` namespace, no budget) plan end to end.
 
 `alarms.tftest.hcl` targets the `alarms` module: the alarm count (2 ECS, 3 ALB, 3 RDS, 2 per Redis node, 1 per NAT gateway), the SNS email subscription and the budget, with negative cases (negative budget, empty `alert_email`, zero budget amount) first.
 

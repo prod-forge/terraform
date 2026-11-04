@@ -27,7 +27,8 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_project"></a> [project](#input\_project) | Project name; the private DNS namespace is <project>.local | `string` | n/a | yes |
+| <a name="input_namespace_name"></a> [namespace\_name](#input\_namespace\_name) | Private DNS namespace name, unique per environment (for example <project>.local in prod, <project>-dev.local in dev) | `string` | n/a | yes |
+| <a name="input_project"></a> [project](#input\_project) | Project name, used in the namespace description | `string` | n/a | yes |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC the private DNS namespace is attached to | `string` | n/a | yes |
 
 ## Outputs

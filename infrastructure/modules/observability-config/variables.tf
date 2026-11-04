@@ -17,3 +17,8 @@ variable "kms_key_arn" {
   description = "KMS key ARN used for server-side encryption of the bucket"
   type        = string
 }
+
+variable "service_namespace" {
+  description = "Cloud Map namespace the backend registers in; Prometheus scrapes backend.<namespace>"
+  type        = string
+}

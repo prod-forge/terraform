@@ -193,6 +193,7 @@ Built around a simple Todo API, but designed as a real-world production system.
 - [12. Cost](https://github.com/prod-forge/terraform/blob/main/docs/cost.md)
   - [Monthly Estimate](https://github.com/prod-forge/terraform/blob/main/docs/cost.md#monthly-estimate)
   - [Main Levers](https://github.com/prod-forge/terraform/blob/main/docs/cost.md#main-levers)
+  - [Budget](https://github.com/prod-forge/terraform/blob/main/docs/cost.md#budget)
 
 <!-- -->
 

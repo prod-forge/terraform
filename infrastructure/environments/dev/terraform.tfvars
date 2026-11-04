@@ -37,16 +37,18 @@ ecs_task_cpu           = 256
 ecs_task_memory        = 512
 ecs_log_retention_days = 7
 
-domain_name      = ""
-hosted_zone_name = ""
-api_subdomain    = "api"
-enable_waf       = false
+domain_name       = ""
+hosted_zone_name  = ""
+api_subdomain     = "api"
+enable_waf        = false
+service_namespace = "prod-forge-todolist-dev.local"
 
 # Dev is reached through SSM; set true and provide the key files to add a Client VPN.
 enable_client_vpn = false
 
-alert_email        = "alerts@example.com"
-monthly_budget_usd = 200
+alert_email = "alerts@example.com"
+# 0: no budget. The account-wide budget is owned by prod (docs/cost.md).
+monthly_budget_usd = 0
 
 monitoring_instance_type = "t3.small"
 admin_cidr_blocks        = []

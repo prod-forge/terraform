@@ -173,6 +173,11 @@ variable "enable_waf" {
   type = bool
 }
 
+variable "service_namespace" {
+  description = "Cloud Map private DNS namespace (backend.<namespace> is the Prometheus scrape target)"
+  type        = string
+}
+
 ############################
 # Client VPN
 ############################

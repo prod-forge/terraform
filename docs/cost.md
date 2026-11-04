@@ -21,7 +21,9 @@ Approximate monthly cost of each environment in `eu-central-1`, at on-demand lis
 | CloudTrail, GuardDuty, Access Analyzer | 0 | 10 | first trail copy of management events is free; GuardDuty bills analyzed events and flow/DNS log volume; the account analyzer is free; prod owns them for the shared account |
 | **Total** | **about 150** | **about 580** | |
 
-The prod estimate is above the 400 USD `monthly_budget_usd` in `environments/prod/terraform.tfvars`; that budget is a starting guess, so raise it (or apply the levers below) before the 80% alert becomes noise. Dev uses a 200 USD budget.
+## Budget
+
+`aws_budgets_budget` has no cost filter, so it measures the spend of the whole account, not of one environment. It is therefore an account singleton, like CloudTrail and GuardDuty: prod owns it with `monthly_budget_usd = 800`, above the combined estimate of dev and prod (about 730 USD), and dev sets `monthly_budget_usd = 0` (no budget) while both share an account. Alerts go to `alert_email` at 80% (640 USD) and 100% of actual spend. Without dev in the account, lower it to about 600 USD; with a separate dev account, give dev its own budget of about 200 USD. Use Cost Explorer grouped by the `Environment` tag to see which environment drives the total.
 
 ## Main Levers
 

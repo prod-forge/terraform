@@ -220,9 +220,10 @@ module "ecs_service" {
 ############################
 
 module "service_discovery" {
-  source  = "../service-discovery"
-  project = var.project
-  vpc_id  = module.vpc.vpc_id
+  source         = "../service-discovery"
+  project        = var.project
+  vpc_id         = module.vpc.vpc_id
+  namespace_name = var.service_namespace
 }
 
 ############################
@@ -357,6 +358,8 @@ module "observability_config" {
   environment = var.environment
   source_dir  = "${path.module}/../../observability"
   kms_key_arn = module.secrets_manager.kms_arn
+
+  service_namespace = module.service_discovery.namespace_name
 }
 
 module "monitoring_iam" {

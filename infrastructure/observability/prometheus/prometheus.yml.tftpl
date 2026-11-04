@@ -12,7 +12,7 @@ scrape_configs:
     # Cloud Map registers one A record per running ECS task.
     dns_sd_configs:
       - names:
-          - backend.${project}.local
+          - backend.${namespace}
         type: A
         port: 3000
         refresh_interval: 15s

@@ -67,6 +67,8 @@ module "stack" {
   api_subdomain    = var.api_subdomain
   enable_waf       = var.enable_waf
 
+  service_namespace = var.service_namespace
+
   enable_client_vpn      = var.enable_client_vpn
   vpn_server_certificate = local.vpn_pem.server_certificate
   vpn_server_private_key = local.vpn_pem.server_private_key

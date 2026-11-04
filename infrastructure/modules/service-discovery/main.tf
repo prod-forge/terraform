@@ -1,5 +1,5 @@
 resource "aws_service_discovery_private_dns_namespace" "this" {
-  name        = "${var.project}.local"
+  name        = var.namespace_name
   description = "Private service discovery for ${var.project}"
   vpc         = var.vpc_id
 }

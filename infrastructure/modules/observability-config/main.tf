@@ -3,8 +3,8 @@ locals {
   templates = toset([for f in local.files : f if endswith(f, ".tftpl")])
   plain     = setsubtract(local.files, local.templates)
 
-  # *.tftpl files are rendered with the project name and uploaded without the suffix.
-  rendered = { for f in local.templates : trimsuffix(f, ".tftpl") => templatefile("${var.source_dir}/${f}", { project = var.project }) }
+  # *.tftpl files are rendered with the Cloud Map namespace and uploaded without the suffix.
+  rendered = { for f in local.templates : trimsuffix(f, ".tftpl") => templatefile("${var.source_dir}/${f}", { namespace = var.service_namespace }) }
 }
 
 resource "aws_s3_bucket" "this" {

@@ -101,7 +101,7 @@ infrastructure/
 
 - `infrastructure/modules/stack` holds the composition that used to be the `infrastructure/` root. It takes typed inputs for everything that differs between environments.
 - `infrastructure/environments/<env>` is a tiny root: the S3 backend, the two AWS providers (regional and `us-east-1`) with `default_tags`, the `module "stack"` call and `terraform.tfvars`.
-- Every resource name is `<project>-<environment>-<name>` (for example `prod-forge-todolist-dev-cluster`), so both environments can live in one AWS account without name collisions. The Cloud Map namespace `<project>.local` is the exception: it is private to each VPC.
+- Every resource name is `<project>-<environment>-<name>` (for example `prod-forge-todolist-dev-cluster`), so both environments can live in one AWS account without name collisions. The Cloud Map namespace is a DNS name instead: `service_namespace` is `<project>.local` in prod and `<project>-dev.local` in dev.
 - Every resource gets the tags `Project`, `Environment`, `Owner`, `CostCenter`, `ManagedBy = "terraform"` and `Repository` from the provider `default_tags`; modules set only a `Name` tag where AWS shows it.
 
 Commands run from the repository root with `-chdir`:
@@ -130,7 +130,8 @@ terraform -chdir=infrastructure/environments/dev apply
 | GitHub OIDC provider | read (`create_github_oidc_provider = false`) | created |
 | CloudTrail, GuardDuty, Access Analyzer | covered by prod | created |
 | GitHub environment trusted by the deploy roles | `dev` | `prod` |
-| Monthly budget | 200 USD | 400 USD |
+| Monthly budget (whole account, see [Cost](cost.md#budget)) | none (`0`) | 800 USD |
+| Cloud Map namespace (`service_namespace`) | `<project>-dev.local` | `<project>.local` |
 | State key | `environments/dev/terraform.tfstate` | `infrastructure/terraform.tfstate` |
 
 ### One AWS Account or Two
@@ -138,6 +139,7 @@ terraform -chdir=infrastructure/environments/dev apply
 The defaults assume dev and prod share one account. Some things exist only once per account, so prod owns them and dev reads or skips them:
 
 - the GitHub OIDC provider (`create_github_oidc_provider`);
+- the account-wide cost budget (`monthly_budget_usd`, see [Cost](cost.md#budget));
 - the CloudTrail trail, the GuardDuty detector and the IAM Access Analyzer (`enable_account_security_services`, see [Security](security.md#account-security-baseline)).
 
 With a separate dev account, run the bootstrap there too, point the dev backend at that bucket and set those switches to `true` in `environments/dev/terraform.tfvars`.
