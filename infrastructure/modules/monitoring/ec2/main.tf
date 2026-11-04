@@ -39,4 +39,10 @@ resource "aws_instance" "monitoring" {
     volume_type = "gp3"
     volume_size = 30
   }
+
+  # AMI updates are rolled out deliberately (taint/replace), not on every
+  # SSM parameter change.
+  lifecycle {
+    ignore_changes = [ami]
+  }
 }

@@ -409,9 +409,6 @@ module "monitoring_ec2" {
 
   observability_bucket     = module.observability_config.bucket_name
   grafana_admin_secret_arn = module.secrets_manager.grafana_admin_secret_arn
-
-  # The boot-time sync needs the role policies and attachments in place.
-  depends_on = [module.monitoring_iam]
 }
 
 # Prometheus on the monitoring host scrapes the backend tasks on the app port.
