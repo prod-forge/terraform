@@ -65,6 +65,45 @@ resource "aws_cloudfront_origin_access_control" "assets" {
 }
 
 ############################################################
+# CloudFront Security Response Headers
+############################################################
+
+# The full CSP lives in the web client index.html meta tag (it needs the
+# build-time API URL). Browsers enforce every CSP they receive, so this header
+# only adds frame-ancestors, which a meta tag cannot carry.
+resource "aws_cloudfront_response_headers_policy" "security" {
+  name = "${var.project}-${var.environment}-security-headers"
+
+  security_headers_config {
+    strict_transport_security {
+      access_control_max_age_sec = 63072000
+      include_subdomains         = true
+      preload                    = false
+      override                   = true
+    }
+
+    content_type_options {
+      override = true
+    }
+
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+
+    content_security_policy {
+      content_security_policy = "frame-ancestors 'none'"
+      override                = true
+    }
+  }
+}
+
+############################################################
 # CloudFront Distribution
 ############################################################
 
@@ -92,6 +131,8 @@ resource "aws_cloudfront_distribution" "web_client" {
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
 
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security.id
+
     # AWS managed CachingOptimized policy
     cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6"
   }
@@ -103,6 +144,8 @@ resource "aws_cloudfront_distribution" "web_client" {
     target_origin_id       = "assets"
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
+
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security.id
 
     # AWS managed CachingOptimized policy
     cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6"

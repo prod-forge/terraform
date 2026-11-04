@@ -28,6 +28,12 @@ Browser → CloudFront → [SigV4 signed] → S3
 
 The raw S3 URLs are never exposed.
 
+## Security Headers
+
+A CloudFront response headers policy is attached to every cache behavior: `Strict-Transport-Security` (2 years, includeSubDomains), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Content-Security-Policy: frame-ancestors 'none'`.
+
+The full CSP lives in the web client `index.html` meta tag, because it needs the build-time API URL. Browsers enforce every CSP they receive, so the header adds the one directive a meta tag cannot carry (`frame-ancestors`) without duplicating the API and asset origins.
+
 ## SPA Routing
 
 When a user navigates directly to a client-side route like `/todos/123`, S3 returns a 403 because that file does not exist. CloudFront is configured to intercept 403 and 404 responses and return `index.html` with a `200` status instead.
