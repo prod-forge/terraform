@@ -25,7 +25,7 @@ run "alarms_rejects_negative_budget" {
   command = plan
 
   module {
-    source = "./modules/alarms"
+    source = "../../modules/alarms"
   }
 
   variables {
@@ -39,7 +39,7 @@ run "alarms_without_email_creates_no_subscription_or_budget" {
   command = plan
 
   module {
-    source = "./modules/alarms"
+    source = "../../modules/alarms"
   }
 
   variables {
@@ -62,7 +62,7 @@ run "alarms_without_budget_amount_creates_no_budget" {
   command = plan
 
   module {
-    source = "./modules/alarms"
+    source = "../../modules/alarms"
   }
 
   variables {
@@ -84,7 +84,7 @@ run "alarms_cover_every_signal" {
   command = plan
 
   module {
-    source = "./modules/alarms"
+    source = "../../modules/alarms"
   }
 
   variables {
@@ -127,7 +127,7 @@ run "alarms_subscribe_email_and_create_budget" {
   command = plan
 
   module {
-    source = "./modules/alarms"
+    source = "../../modules/alarms"
   }
 
   variables {
@@ -155,7 +155,7 @@ run "alarms_scale_with_nat_gateways_and_redis_nodes" {
   command = plan
 
   module {
-    source = "./modules/alarms"
+    source = "../../modules/alarms"
   }
 
   variables {

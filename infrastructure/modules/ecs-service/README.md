@@ -1,13 +1,16 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.10 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.35 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.35 |
 
 ## Modules
 
@@ -38,6 +41,7 @@ No modules.
 | <a name="input_ecs_cluster_id"></a> [ecs\_cluster\_id](#input\_ecs\_cluster\_id) | ECS Cluster ID | `string` | n/a | yes |
 | <a name="input_ecs_cluster_name"></a> [ecs\_cluster\_name](#input\_ecs\_cluster\_name) | ECS Cluster name | `string` | n/a | yes |
 | <a name="input_ecs_task_definition_arn"></a> [ecs\_task\_definition\_arn](#input\_ecs\_task\_definition\_arn) | ECS Task Definition ARN | `string` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, prod), used in resource names | `string` | n/a | yes |
 | <a name="input_lb_arn_suffix"></a> [lb\_arn\_suffix](#input\_lb\_arn\_suffix) | ALB ARN suffix, used by the ALBRequestCountPerTarget scaling metric | `string` | n/a | yes |
 | <a name="input_lb_target_group_arn"></a> [lb\_target\_group\_arn](#input\_lb\_target\_group\_arn) | Load Balancer Target Group ARN | `string` | n/a | yes |
 | <a name="input_lb_target_group_arn_suffix"></a> [lb\_target\_group\_arn\_suffix](#input\_lb\_target\_group\_arn\_suffix) | Target group ARN suffix, used by the ALBRequestCountPerTarget scaling metric | `string` | n/a | yes |
@@ -50,6 +54,7 @@ No modules.
 | <a name="input_service_discovery_arn"></a> [service\_discovery\_arn](#input\_service\_discovery\_arn) | Cloud Map service ARN to register tasks in; null disables service discovery | `string` | `null` | no |
 | <a name="input_sg_ecs_id"></a> [sg\_ecs\_id](#input\_sg\_ecs\_id) | Security Group for ECS ID | `string` | n/a | yes |
 | <a name="input_task_definition_family"></a> [task\_definition\_family](#input\_task\_definition\_family) | Family of the application task definition, used to scope the CD policy | `string` | n/a | yes |
+| <a name="input_task_role_arns"></a> [task\_role\_arns](#input\_task\_role\_arns) | Task and task execution role ARNs the backend CD may pass to ECS | `list(string)` | n/a | yes |
 
 ## Outputs
 

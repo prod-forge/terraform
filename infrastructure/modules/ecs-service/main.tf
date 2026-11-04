@@ -14,7 +14,7 @@ locals {
 }
 
 resource "aws_iam_policy" "ecs_deploy" {
-  name = "${var.project}-github-ecs-policy"
+  name = "${var.project}-${var.environment}-github-ecs-policy"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -63,18 +63,15 @@ resource "aws_iam_policy" "ecs_deploy" {
 }
 
 resource "aws_iam_policy" "ecs_passrole" {
-  name = "${var.project}-github-ecs-passrole-policy"
+  name = "${var.project}-${var.environment}-github-ecs-passrole-policy"
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = ["iam:PassRole"]
-        Resource = [
-          "arn:aws:iam::${var.aws_account_id}:role/ecs-task-role",
-          "arn:aws:iam::${var.aws_account_id}:role/ecs-task-execution-role",
-        ]
+        Effect   = "Allow"
+        Action   = ["iam:PassRole"]
+        Resource = var.task_role_arns
         Condition = {
           StringEquals = { "iam:PassedToService" = "ecs-tasks.amazonaws.com" }
         }
@@ -98,7 +95,7 @@ resource "aws_iam_role_policy_attachment" "ecs_passrole" {
 ############################################################
 
 resource "aws_ecs_service" "app" {
-  name            = "${var.project}-service"
+  name            = "${var.project}-${var.environment}-service"
   cluster         = var.ecs_cluster_id
   task_definition = var.ecs_task_definition_arn
 

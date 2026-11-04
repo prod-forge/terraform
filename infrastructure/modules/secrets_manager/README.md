@@ -1,14 +1,18 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.10 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.35 |
+| <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.7 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
-| <a name="provider_random"></a> [random](#provider\_random) | n/a |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.35 |
+| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.7 |
 
 ## Modules
 
@@ -36,6 +40,7 @@ No modules.
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name, used in generated secret names | `string` | n/a | yes |
 | <a name="input_project"></a> [project](#input\_project) | Project name, used in generated secret names | `string` | n/a | yes |
+| <a name="input_recovery_window_in_days"></a> [recovery\_window\_in\_days](#input\_recovery\_window\_in\_days) | Days a deleted secret stays recoverable; 0 deletes immediately so a recreated environment can reuse the names | `number` | `30` | no |
 | <a name="input_secrets_manager_name"></a> [secrets\_manager\_name](#input\_secrets\_manager\_name) | Secrets Manager Name | `string` | n/a | yes |
 
 ## Outputs

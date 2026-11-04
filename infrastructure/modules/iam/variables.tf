@@ -1,7 +1,18 @@
-variable "rds_secrets_arn" {
-  description = "RDS Secrets ARN"
+variable "project" {
+  description = "Project name, used in resource names"
   type        = string
 }
+
+variable "environment" {
+  description = "Environment name (dev, prod), used in resource names"
+  type        = string
+}
+
+variable "db_secret_arn" {
+  description = "ARN of the RDS-managed master user secret"
+  type        = string
+}
+
 variable "kms_arn" {
   description = "KMS ARN"
   type        = string

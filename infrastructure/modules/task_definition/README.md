@@ -1,13 +1,16 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.10 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.35 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.35 |
 
 ## Modules
 
@@ -30,6 +33,7 @@ No modules.
 | <a name="input_db_name"></a> [db\_name](#input\_db\_name) | DB Table Name | `string` | n/a | yes |
 | <a name="input_db_port"></a> [db\_port](#input\_db\_port) | DB Port | `string` | n/a | yes |
 | <a name="input_db_username"></a> [db\_username](#input\_db\_username) | DB Username | `string` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, prod), used in resource names | `string` | n/a | yes |
 | <a name="input_image_tag"></a> [image\_tag](#input\_image\_tag) | Image tag of the initial task definition revision; CD replaces the image afterwards | `string` | `"initial"` | no |
 | <a name="input_jwt_secret_arn"></a> [jwt\_secret\_arn](#input\_jwt\_secret\_arn) | JWT signing secret ARN | `string` | n/a | yes |
 | <a name="input_log_retention_days"></a> [log\_retention\_days](#input\_log\_retention\_days) | CloudWatch retention for application and migration logs | `number` | `7` | no |

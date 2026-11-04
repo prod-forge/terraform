@@ -1,3 +1,6 @@
 project     = "prod-forge-todolist"
 environment = "prod"
 region      = "eu-central-1"
+owner       = "devops"
+cost_center = "prod-forge"
+repository  = "github.com/prod-forge/terraform"

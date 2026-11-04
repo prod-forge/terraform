@@ -2,7 +2,8 @@
 # AWS KMS - Encryption for Secrets Manager
 ############################
 resource "aws_kms_key" "this" {
-  description = "KMS key for app secrets"
+  description         = "${var.project}-${var.environment} application secrets and data at rest"
+  enable_key_rotation = true
 }
 
 ############################
@@ -11,6 +12,8 @@ resource "aws_kms_key" "this" {
 resource "aws_secretsmanager_secret" "prod_forge_secret" {
   name       = var.secrets_manager_name
   kms_key_id = aws_kms_key.this.arn
+
+  recovery_window_in_days = var.recovery_window_in_days
 }
 
 ############################
@@ -24,6 +27,8 @@ resource "random_password" "redis" {
 resource "aws_secretsmanager_secret" "redis_auth" {
   name       = "${var.project}/${var.environment}/redis-auth"
   kms_key_id = aws_kms_key.this.arn
+
+  recovery_window_in_days = var.recovery_window_in_days
 }
 
 resource "aws_secretsmanager_secret_version" "redis_auth" {
@@ -39,6 +44,8 @@ resource "random_password" "jwt" {
 resource "aws_secretsmanager_secret" "jwt" {
   name       = "${var.project}/${var.environment}/jwt-secret"
   kms_key_id = aws_kms_key.this.arn
+
+  recovery_window_in_days = var.recovery_window_in_days
 }
 
 resource "aws_secretsmanager_secret_version" "jwt" {
@@ -54,6 +61,8 @@ resource "random_password" "grafana_admin" {
 resource "aws_secretsmanager_secret" "grafana_admin" {
   name       = "${var.project}/${var.environment}/grafana-admin"
   kms_key_id = aws_kms_key.this.arn
+
+  recovery_window_in_days = var.recovery_window_in_days
 }
 
 resource "aws_secretsmanager_secret_version" "grafana_admin" {

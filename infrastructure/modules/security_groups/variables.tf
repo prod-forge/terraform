@@ -4,11 +4,16 @@ variable "vpc_id" {
 }
 
 variable "vpc_cidr" {
-  description = "VPC CIDR block, the only source allowed into the Client VPN security group"
+  description = "VPC CIDR block: the only source allowed into the Client VPN group and the only egress target of the ALB and VPN groups"
   type        = string
 }
 
 variable "project" {
   description = "Project name used to prefix security group names"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment name (dev, prod), used to prefix security group names"
   type        = string
 }

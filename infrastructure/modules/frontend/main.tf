@@ -8,13 +8,6 @@ locals {
 
 resource "aws_s3_bucket" "web_client" {
   bucket = var.web_client_bucket_name
-
-  tags = {
-    Project     = var.project
-    Environment = var.environment
-    Owner       = "devops"
-    ManagedBy   = "terraform"
-  }
 }
 
 resource "aws_s3_bucket_public_access_block" "web_client" {
@@ -62,13 +55,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "web_client" {
 
 resource "aws_s3_bucket" "assets" {
   bucket = var.assets_bucket_name
-
-  tags = {
-    Project     = var.project
-    Environment = var.environment
-    Owner       = "devops"
-    ManagedBy   = "terraform"
-  }
 }
 
 resource "aws_s3_bucket_public_access_block" "assets" {
@@ -85,14 +71,14 @@ resource "aws_s3_bucket_public_access_block" "assets" {
 ############################################################
 
 resource "aws_cloudfront_origin_access_control" "web_client" {
-  name                              = "${var.project}-web-client-oac"
+  name                              = "${var.project}-${var.environment}-web-client-oac"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
 }
 
 resource "aws_cloudfront_origin_access_control" "assets" {
-  name                              = "${var.project}-assets-oac"
+  name                              = "${var.project}-${var.environment}-assets-oac"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
@@ -223,13 +209,6 @@ resource "aws_cloudfront_distribution" "web_client" {
     ssl_support_method             = local.custom_domain ? "sni-only" : null
     minimum_protocol_version       = local.custom_domain ? "TLSv1.2_2021" : "TLSv1"
   }
-
-  tags = {
-    Project     = var.project
-    Environment = var.environment
-    Owner       = "devops"
-    ManagedBy   = "terraform"
-  }
 }
 
 ############################################################
@@ -283,7 +262,7 @@ resource "aws_s3_bucket_policy" "assets" {
 ############################################################
 
 resource "aws_iam_policy" "web_client_deploy" {
-  name = "${var.project}-github-web-client-deploy-policy"
+  name = "${var.project}-${var.environment}-github-web-client-deploy-policy"
 
   policy = jsonencode({
     Version = "2012-10-17"

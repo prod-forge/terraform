@@ -15,14 +15,14 @@ resource "aws_vpc_endpoint" "s3" {
   route_table_ids   = aws_route_table.private[*].id
 
   tags = {
-    Name = "ecs-s3-endpoint"
+    Name = "${local.prefix}-s3-endpoint"
   }
 }
 
 resource "aws_security_group" "vpc_endpoints" {
   count = var.enable_vpc_endpoints ? 1 : 0
 
-  name        = "${var.project}-vpc-endpoints-sg"
+  name_prefix = "${local.prefix}-vpce-sg-"
   description = "HTTPS from the VPC to interface endpoints"
   vpc_id      = aws_vpc.this.id
 
@@ -35,7 +35,12 @@ resource "aws_security_group" "vpc_endpoints" {
   }
 
   tags = {
-    Name = "${var.project}-vpc-endpoints-sg"
+    Name = "${local.prefix}-vpce-sg"
+  }
+
+  # The endpoints switch to the replacement group before the old one is deleted.
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -50,6 +55,6 @@ resource "aws_vpc_endpoint" "interface" {
   private_dns_enabled = true
 
   tags = {
-    Name = "ecs-${each.key}-endpoint"
+    Name = "${local.prefix}-${each.key}-endpoint"
   }
 }

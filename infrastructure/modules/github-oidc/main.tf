@@ -4,7 +4,11 @@
 
 # AWS validates the GitHub certificate chain with its trusted CA library and
 # ignores thumbprint_list for token.actions.githubusercontent.com, so none is set.
+# Only one provider per URL may exist in an account: the environment that owns
+# it creates it, the others in the same account read it.
 resource "aws_iam_openid_connect_provider" "github" {
+  count = var.create_oidc_provider ? 1 : 0
+
   url = "https://token.actions.githubusercontent.com"
 
   client_id_list = [
@@ -12,11 +16,24 @@ resource "aws_iam_openid_connect_provider" "github" {
   ]
 }
 
+data "aws_iam_openid_connect_provider" "github" {
+  count = var.create_oidc_provider ? 0 : 1
+
+  url = "https://token.actions.githubusercontent.com"
+}
+
+moved {
+  from = aws_iam_openid_connect_provider.github
+  to   = aws_iam_openid_connect_provider.github[0]
+}
+
 ############################################################
 # IAM Roles for GitHub Actions
 ############################################################
 
 locals {
+  oidc_provider_arn = var.create_oidc_provider ? aws_iam_openid_connect_provider.github[0].arn : data.aws_iam_openid_connect_provider.github[0].arn
+
   roles = {
     backend  = var.backend_repo
     frontend = var.frontend_repo
@@ -37,7 +54,7 @@ resource "aws_iam_role" "github" {
       {
         Effect = "Allow"
         Principal = {
-          Federated = aws_iam_openid_connect_provider.github.arn
+          Federated = local.oidc_provider_arn
         }
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {

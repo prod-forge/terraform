@@ -5,6 +5,7 @@
 data "aws_caller_identity" "current" {}
 
 locals {
+  name             = "${var.project}-${var.environment}"
   hosted_zone_name = var.hosted_zone_name != "" ? var.hosted_zone_name : var.domain_name
   api_domain_name  = var.domain_name != "" ? "${var.api_subdomain}.${var.domain_name}" : ""
 }
@@ -14,8 +15,8 @@ locals {
 ############################
 
 module "ecr" {
-  source            = "./modules/ecr"
-  repository_name   = var.project
+  source            = "../ecr"
+  repository_name   = local.name
   backend_role_name = module.github_oidc.backend_role_name
 }
 
@@ -24,10 +25,13 @@ module "ecr" {
 ############################
 
 module "github_oidc" {
-  source       = "./modules/github-oidc"
+  source       = "../github-oidc"
   project      = var.project
   environment  = var.environment
   github_owner = "prod-forge"
+
+  github_environment   = var.environment
+  create_oidc_provider = var.create_github_oidc_provider
 }
 
 ############################
@@ -35,10 +39,12 @@ module "github_oidc" {
 ############################
 
 module "secrets_manager" {
-  secrets_manager_name = "prod_forge/backend/config-v1"
-  source               = "./modules/secrets_manager"
+  source               = "../secrets_manager"
+  secrets_manager_name = var.app_secret_name
   project              = var.project
   environment          = var.environment
+
+  recovery_window_in_days = var.secret_recovery_window_days
 }
 
 ############################
@@ -46,8 +52,9 @@ module "secrets_manager" {
 ############################
 
 module "vpc" {
-  source  = "./modules/vpc"
-  project = var.project
+  source      = "../vpc"
+  project     = var.project
+  environment = var.environment
 
   nat_per_az           = var.vpc_nat_per_az
   enable_vpc_endpoints = var.vpc_enable_endpoints
@@ -58,9 +65,11 @@ module "vpc" {
 ############################
 
 module "iam" {
-  source          = "./modules/iam"
-  rds_secrets_arn = module.rds.secrets_arn
-  kms_arn         = module.secrets_manager.kms_arn
+  source        = "../iam"
+  project       = var.project
+  environment   = var.environment
+  db_secret_arn = module.rds.secrets_arn
+  kms_arn       = module.secrets_manager.kms_arn
 
   redis_auth_secret_arn = module.secrets_manager.redis_auth_secret_arn
   jwt_secret_arn        = module.secrets_manager.jwt_secret_arn
@@ -71,10 +80,11 @@ module "iam" {
 ############################
 
 module "security_groups" {
-  source   = "./modules/security_groups"
-  vpc_id   = module.vpc.vpc_id
-  vpc_cidr = module.vpc.vpc_cidr
-  project  = var.project
+  source      = "../security_groups"
+  vpc_id      = module.vpc.vpc_id
+  vpc_cidr    = module.vpc.vpc_cidr
+  project     = var.project
+  environment = var.environment
 }
 
 ############################
@@ -82,7 +92,7 @@ module "security_groups" {
 ############################
 
 module "load_balancer" {
-  source            = "./modules/load_balancer"
+  source            = "../load_balancer"
   vpc_id            = module.vpc.vpc_id
   sg_alb_id         = module.security_groups.sg_alb_id
   public_subnet_ids = module.vpc.public_subnet_ids
@@ -100,10 +110,8 @@ module "load_balancer" {
 ############################
 
 module "logs_bucket" {
-  source      = "./modules/logs-bucket"
-  project     = var.project
-  environment = var.environment
-  bucket_name = "${var.project}-access-logs"
+  source      = "../logs-bucket"
+  bucket_name = "${local.name}-access-logs"
 }
 
 ############################
@@ -111,7 +119,9 @@ module "logs_bucket" {
 ############################
 
 module "waf_alb" {
-  source       = "./modules/waf"
+  count = var.enable_waf ? 1 : 0
+
+  source       = "../waf"
   project      = var.project
   environment  = var.environment
   scope        = "REGIONAL"
@@ -119,7 +129,9 @@ module "waf_alb" {
 }
 
 module "waf_cloudfront" {
-  source      = "./modules/waf"
+  count = var.enable_waf ? 1 : 0
+
+  source      = "../waf"
   project     = var.project
   environment = var.environment
   scope       = "CLOUDFRONT"
@@ -134,14 +146,14 @@ module "waf_cloudfront" {
 ############################
 
 module "api_certificate" {
-  source         = "./modules/acm-certificate"
+  source         = "../acm-certificate"
   domain_name    = local.api_domain_name
   hosted_zone_id = module.dns.zone_id
 }
 
 # CloudFront only accepts certificates from us-east-1.
 module "cloudfront_certificate" {
-  source         = "./modules/acm-certificate"
+  source         = "../acm-certificate"
   domain_name    = var.domain_name
   hosted_zone_id = module.dns.zone_id
 
@@ -151,7 +163,7 @@ module "cloudfront_certificate" {
 }
 
 module "dns" {
-  source           = "./modules/dns"
+  source           = "../dns"
   domain_name      = var.domain_name
   hosted_zone_name = local.hosted_zone_name
   api_domain_name  = local.api_domain_name
@@ -167,8 +179,9 @@ module "dns" {
 ############################
 
 module "ecs_cluster" {
-  source  = "./modules/ecs-cluster"
-  project = var.project
+  source      = "../ecs-cluster"
+  project     = var.project
+  environment = var.environment
 }
 
 ############################
@@ -176,7 +189,7 @@ module "ecs_cluster" {
 ############################
 
 module "ecs_service" {
-  source                  = "./modules/ecs-service"
+  source                  = "../ecs-service"
   ecs_cluster_id          = module.ecs_cluster.ecs_cluster_id
   ecs_cluster_name        = module.ecs_cluster.ecs_cluster_name
   ecs_task_definition_arn = module.task_definition.ecs_task_definition_arn
@@ -185,11 +198,13 @@ module "ecs_service" {
   lb_target_group_arn     = module.load_balancer.lb_target_group_arn
   depends_on              = [module.load_balancer.lb_listener]
   project                 = var.project
+  environment             = var.environment
   backend_role_name       = module.github_oidc.backend_role_name
   aws_account_id          = data.aws_caller_identity.current.account_id
+  task_role_arns          = [module.iam.task_role_arn, module.iam.task_execution_role_arn]
 
   task_definition_family           = module.task_definition.task_definition_family
-  migration_task_definition_family = "${var.project}-migration-task"
+  migration_task_definition_family = "${local.name}-migration-task"
   lb_arn_suffix                    = module.load_balancer.lb_arn_suffix
   lb_target_group_arn_suffix       = module.load_balancer.lb_target_group_arn_suffix
 
@@ -205,7 +220,7 @@ module "ecs_service" {
 ############################
 
 module "service_discovery" {
-  source  = "./modules/service-discovery"
+  source  = "../service-discovery"
   project = var.project
   vpc_id  = module.vpc.vpc_id
 }
@@ -215,7 +230,7 @@ module "service_discovery" {
 ############################
 
 module "task_definition" {
-  source                  = "./modules/task_definition"
+  source                  = "../task_definition"
   task_execution_role_arn = module.iam.task_execution_role_arn
   task_role_arn           = module.iam.task_role_arn
   repository_url          = module.ecr.repository_url
@@ -229,6 +244,7 @@ module "task_definition" {
   redis_auth_secret_arn   = module.secrets_manager.redis_auth_secret_arn
   jwt_secret_arn          = module.secrets_manager.jwt_secret_arn
   project                 = var.project
+  environment             = var.environment
   region                  = var.region
 
   cpu                = var.ecs_task_cpu
@@ -241,10 +257,10 @@ module "task_definition" {
 ############################
 
 module "rds" {
-  source                = "./modules/rds"
+  source                = "../rds"
   db_subnet_group_name  = module.vpc.rds_name
   vpc_security_group_id = module.security_groups.sg_rds_id
-  rds_identifier        = var.rds_identifier
+  rds_identifier        = "${local.name}-postgres"
 
   username = var.rds_username
   db_name  = var.rds_db_name
@@ -257,6 +273,7 @@ module "rds" {
   multi_az                = var.rds_multi_az
   backup_retention_period = var.rds_backup_retention_period
   deletion_protection     = var.rds_deletion_protection
+  snapshot_identifier     = var.rds_snapshot_identifier
 }
 
 ############################
@@ -264,14 +281,16 @@ module "rds" {
 ############################
 
 module "redis" {
-  source             = "./modules/redis"
+  source             = "../redis"
   sg_redis_id        = module.security_groups.sg_redis_id
   private_subnet_ids = module.vpc.private_subnet_ids
   project            = var.project
+  environment        = var.environment
   kms_key_arn        = module.secrets_manager.kms_arn
   auth_token         = module.secrets_manager.redis_auth_token
 
   node_type                = var.redis_node_type
+  num_cache_clusters       = var.redis_num_cache_clusters
   snapshot_retention_limit = var.redis_snapshot_retention_limit
 }
 
@@ -280,35 +299,51 @@ module "redis" {
 ############################
 
 module "server_vpn_certificate" {
-  source            = "./modules/vpn/certificates/server"
-  private_key       = file("vpn-key/server.key")
-  certificate_body  = file("vpn-key/server.crt")
-  certificate_chain = file("vpn-key/ca.crt")
+  count = var.enable_client_vpn ? 1 : 0
+
+  source            = "../vpn/certificates/server"
+  project           = var.project
+  environment       = var.environment
+  private_key       = var.vpn_server_private_key
+  certificate_body  = var.vpn_server_certificate
+  certificate_chain = var.vpn_ca_certificate
 }
 
 module "client_vpn_certificate" {
-  source           = "./modules/vpn/certificates/client"
-  certificate_body = file("vpn-key/ca.crt")
-  private_key      = file("vpn-key/ca.key")
+  count = var.enable_client_vpn ? 1 : 0
+
+  source           = "../vpn/certificates/client"
+  project          = var.project
+  environment      = var.environment
+  certificate_body = var.vpn_ca_certificate
+  private_key      = var.vpn_ca_private_key
 }
 
 module "vpn_endpoint" {
-  source                     = "./modules/vpn/vpn-endpoint"
-  server_vpn_certificate_arn = module.server_vpn_certificate.arn
-  client_vpn_certificate_arn = module.client_vpn_certificate.arn
+  count = var.enable_client_vpn ? 1 : 0
+
+  source                     = "../vpn/vpn-endpoint"
+  project                    = var.project
+  environment                = var.environment
+  server_vpn_certificate_arn = module.server_vpn_certificate[0].arn
+  client_vpn_certificate_arn = module.client_vpn_certificate[0].arn
   vpc_main_id                = module.vpc.vpc_id
   sg_vpn_id                  = module.security_groups.sg_vpn_id
 }
 
 module "vpn_association" {
-  source          = "./modules/vpn/associations"
-  vpn_endpoint_id = module.vpn_endpoint.id
+  count = var.enable_client_vpn ? 1 : 0
+
+  source          = "../vpn/associations"
+  vpn_endpoint_id = module.vpn_endpoint[0].id
   subnet_id       = module.vpc.private_subnet_ids[0]
 }
 
 module "vpn_rules" {
-  source          = "./modules/vpn/rules"
-  vpn_endpoint_id = module.vpn_endpoint.id
+  count = var.enable_client_vpn ? 1 : 0
+
+  source          = "../vpn/rules"
+  vpn_endpoint_id = module.vpn_endpoint[0].id
   vpc_cidr        = module.vpc.vpc_cidr
 }
 
@@ -317,15 +352,17 @@ module "vpn_rules" {
 ############################
 
 module "observability_config" {
-  source      = "./modules/observability-config"
+  source      = "../observability-config"
   project     = var.project
   environment = var.environment
-  source_dir  = "${path.module}/observability"
+  source_dir  = "${path.module}/../../observability"
   kms_key_arn = module.secrets_manager.kms_arn
 }
 
 module "monitoring_iam" {
-  source      = "./modules/monitoring/iam"
+  source      = "../monitoring/iam"
+  project     = var.project
+  environment = var.environment
   secret_arn  = module.secrets_manager.secret_arn
   kms_key_arn = module.secrets_manager.kms_arn
 
@@ -334,13 +371,16 @@ module "monitoring_iam" {
 }
 
 module "monitoring_sg" {
-  source = "./modules/monitoring/security_group"
-  vpc_id = module.vpc.vpc_id
+  source      = "../monitoring/security_group"
+  vpc_id      = module.vpc.vpc_id
+  project     = var.project
+  environment = var.environment
 
   # Grafana only from the admin CIDRs (empty list: no rule). Prometheus (9090)
   # and SSH (22) are never exposed; the host is reached through SSM.
   monitoring_ingress_rules = length(var.admin_cidr_blocks) == 0 ? [] : [
     {
+      description = "Grafana from the admin CIDR blocks"
       from_port   = 3000
       to_port     = 3000
       protocol    = "tcp"
@@ -355,7 +395,9 @@ module "monitoring_sg" {
 }
 
 module "monitoring_ec2" {
-  source                               = "./modules/monitoring/ec2"
+  source                               = "../monitoring/ec2"
+  project                              = var.project
+  environment                          = var.environment
   monitoring_ec2_instance_profile_name = module.monitoring_iam.monitoring_ec2_instance_profile_name
   instance_type                        = var.monitoring_instance_type
   sg_monitoring_id                     = module.monitoring_sg.sg_monitoring_id
@@ -383,7 +425,7 @@ resource "aws_vpc_security_group_ingress_rule" "ecs_from_monitoring" {
 ############################
 
 module "alarms" {
-  source      = "./modules/alarms"
+  source      = "../alarms"
   project     = var.project
   environment = var.environment
 
@@ -406,16 +448,16 @@ module "alarms" {
 ############################
 
 module "frontend" {
-  source                 = "./modules/frontend"
+  source                 = "../frontend"
   project                = var.project
   environment            = var.environment
-  web_client_bucket_name = "${var.project}-web-client"
-  assets_bucket_name     = "${var.project}-assets"
+  web_client_bucket_name = "${local.name}-web-client"
+  assets_bucket_name     = "${local.name}-assets"
   frontend_role_name     = module.github_oidc.frontend_role_name
 
   domain_name             = var.domain_name
   acm_certificate_arn     = module.cloudfront_certificate.certificate_arn
-  web_acl_arn             = module.waf_cloudfront.web_acl_arn
+  web_acl_arn             = var.enable_waf ? module.waf_cloudfront[0].web_acl_arn : null
   logs_bucket_domain_name = module.logs_bucket.bucket_domain_name
   logs_prefix             = module.logs_bucket.cloudfront_prefix
 }

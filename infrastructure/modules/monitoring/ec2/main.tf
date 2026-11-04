@@ -9,14 +9,14 @@ resource "aws_instance" "monitoring" {
   ami           = data.aws_ssm_parameter.ubuntu.value
   instance_type = var.instance_type
   tags = {
-    Name = "Monitoring"
+    Name = "${var.project}-${var.environment}-monitoring"
   }
   subnet_id                   = var.public_subnet_id
   associate_public_ip_address = true
   monitoring                  = true
   ebs_optimized               = true
 
-  user_data = templatefile("templates/bootstrap.sh.tpl", {
+  user_data = templatefile("${path.module}/templates/bootstrap.sh.tpl", {
     repository_url = var.repository_url
     secret_id      = var.secret_id
     region         = var.region

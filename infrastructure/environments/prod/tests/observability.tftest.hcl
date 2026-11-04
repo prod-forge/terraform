@@ -13,16 +13,16 @@ run "every_observability_file_is_uploaded" {
   command = plan
 
   module {
-    source = "./modules/observability-config"
+    source = "../../modules/observability-config"
   }
 
   variables {
-    source_dir  = "./observability"
+    source_dir  = "../../observability"
     kms_key_arn = "arn:aws:kms:eu-central-1:123456789012:key/00000000-0000-0000-0000-000000000000"
   }
 
   assert {
-    condition     = length(aws_s3_object.plain) + length(aws_s3_object.rendered) == length(fileset("./observability", "**"))
+    condition     = length(aws_s3_object.plain) + length(aws_s3_object.rendered) == length(fileset("../../observability", "**"))
     error_message = "Every file under observability/ must become one S3 object."
   }
 
@@ -46,7 +46,7 @@ run "service_discovery_namespace_is_project_local" {
   command = plan
 
   module {
-    source = "./modules/service-discovery"
+    source = "../../modules/service-discovery"
   }
 
   variables {

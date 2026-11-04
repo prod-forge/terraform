@@ -257,8 +257,7 @@ To debug bootstrap execution:
 Destroy the existing instance and recreate it:
 
 ```shell
-terraform destroy -target=module.monitoring_ec2.aws_instance.monitoring
-terraform apply
+terraform -chdir=infrastructure/environments/prod apply -replace=module.stack.module.monitoring_ec2.aws_instance.monitoring
 ```
 
 Check system initialization logs:

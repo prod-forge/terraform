@@ -1,4 +1,6 @@
 resource "aws_db_instance" "postgres" {
+  #checkov:skip=CKV_AWS_157: Multi-AZ comes from var.multi_az; prod sets true, dev runs a single instance to halve the cost
+  #checkov:skip=CKV_AWS_293: deletion protection comes from var.deletion_protection; prod sets true, dev stays off so it can be destroyed
   identifier          = var.rds_identifier
   engine              = "postgres"
   engine_version      = "18"
@@ -39,6 +41,14 @@ resource "aws_db_instance" "postgres" {
   monitoring_interval             = 60
   monitoring_role_arn             = aws_iam_role.monitoring.arn
   enabled_cloudwatch_logs_exports = ["postgresql"]
+
+  # Restores the first instance from a snapshot (see docs/migration-to-environments.md).
+  # Changing it later would replace the instance, so it only applies on creation.
+  snapshot_identifier = var.snapshot_identifier
+
+  lifecycle {
+    ignore_changes = [snapshot_identifier]
+  }
 }
 
 data "aws_iam_policy_document" "monitoring_assume" {

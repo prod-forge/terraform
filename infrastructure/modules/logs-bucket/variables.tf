@@ -1,13 +1,3 @@
-variable "project" {
-  description = "Project Name"
-  type        = string
-}
-
-variable "environment" {
-  description = "Environment name (dev, prod)"
-  type        = string
-}
-
 variable "bucket_name" {
   description = "Name of the access-log bucket shared by the ALB and CloudFront"
   type        = string

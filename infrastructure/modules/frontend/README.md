@@ -48,7 +48,7 @@ No modules.
 | <a name="input_logs_prefix"></a> [logs\_prefix](#input\_logs\_prefix) | Key prefix for CloudFront standard logs | `string` | `"cloudfront"` | no |
 | <a name="input_noncurrent_version_expiration_days"></a> [noncurrent\_version\_expiration\_days](#input\_noncurrent\_version\_expiration\_days) | Days to keep previous web client builds | `number` | `30` | no |
 | <a name="input_project"></a> [project](#input\_project) | n/a | `string` | n/a | yes |
-| <a name="input_web_acl_arn"></a> [web\_acl\_arn](#input\_web\_acl\_arn) | ARN of the CLOUDFRONT-scope WAF web ACL | `string` | n/a | yes |
+| <a name="input_web_acl_arn"></a> [web\_acl\_arn](#input\_web\_acl\_arn) | ARN of the CLOUDFRONT-scope WAF web ACL; null serves the distribution without WAF | `string` | `null` | no |
 | <a name="input_web_client_bucket_name"></a> [web\_client\_bucket\_name](#input\_web\_client\_bucket\_name) | n/a | `string` | n/a | yes |
 
 ## Outputs

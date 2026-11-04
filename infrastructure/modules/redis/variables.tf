@@ -31,9 +31,14 @@ variable "node_type" {
 }
 
 variable "num_cache_clusters" {
-  description = "Number of nodes (primary plus replicas), at least 2 for Multi-AZ failover"
+  description = "Number of nodes (primary plus replicas); 2 or more enables Multi-AZ and automatic failover"
   type        = number
   default     = 2
+
+  validation {
+    condition     = var.num_cache_clusters >= 1 && var.num_cache_clusters <= 6
+    error_message = "num_cache_clusters must be between 1 and 6."
+  }
 }
 
 variable "snapshot_retention_limit" {
@@ -58,4 +63,9 @@ variable "apply_immediately" {
   description = "Apply changes immediately instead of in the maintenance window"
   type        = bool
   default     = false
+}
+
+variable "environment" {
+  description = "Environment name (dev, prod), used in resource names"
+  type        = string
 }

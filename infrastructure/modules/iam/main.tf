@@ -1,5 +1,9 @@
+locals {
+  prefix = "${var.project}-${var.environment}"
+}
+
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "ecs-task-execution-role"
+  name = "${local.prefix}-ecs-task-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -15,8 +19,10 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 }
 
-resource "aws_iam_policy" "allow_rds_secret" {
-  name = "allow-rds-secret-access"
+# Read access to every secret injected into the task definition (database
+# password, Redis AUTH token, JWT signing secret) and their KMS key.
+resource "aws_iam_policy" "secrets_read" {
+  name = "${local.prefix}-ecs-secrets-read"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -26,7 +32,7 @@ resource "aws_iam_policy" "allow_rds_secret" {
         Action = [
           "secretsmanager:GetSecretValue"
         ]
-        Resource = [var.rds_secrets_arn, var.redis_auth_secret_arn, var.jwt_secret_arn]
+        Resource = [var.db_secret_arn, var.redis_auth_secret_arn, var.jwt_secret_arn]
       },
       {
         Effect = "Allow"
@@ -39,8 +45,13 @@ resource "aws_iam_policy" "allow_rds_secret" {
   })
 }
 
+moved {
+  from = aws_iam_policy.allow_rds_secret
+  to   = aws_iam_policy.secrets_read
+}
+
 resource "aws_iam_role" "ecs_task_role" {
-  name = "ecs-task-role"
+  name = "${local.prefix}-ecs-task-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -90,5 +101,5 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
 
 resource "aws_iam_role_policy_attachment" "ecs_secret_attach" {
   role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = aws_iam_policy.allow_rds_secret.arn
+  policy_arn = aws_iam_policy.secrets_read.arn
 }

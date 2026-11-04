@@ -1,3 +1,13 @@
+variable "project" {
+  description = "Project name, used in resource names"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment name (dev, prod), used in resource names"
+  type        = string
+}
+
 variable "server_vpn_certificate_arn" {
   description = "Server VPN Certificate ARN"
   type        = string

@@ -9,12 +9,6 @@ locals {
 
 resource "aws_s3_bucket" "this" {
   bucket = "${var.project}-${var.environment}-observability-config"
-
-  tags = {
-    Project     = var.project
-    Environment = var.environment
-    ManagedBy   = "terraform"
-  }
 }
 
 resource "aws_s3_bucket_public_access_block" "this" {

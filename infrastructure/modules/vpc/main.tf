@@ -9,6 +9,7 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
+  prefix    = "${var.project}-${var.environment}"
   azs       = slice(data.aws_availability_zones.available.names, 0, var.az_count)
   nat_count = var.nat_per_az ? var.az_count : 1
 }
@@ -19,7 +20,7 @@ resource "aws_vpc" "this" {
   enable_dns_support   = true
 
   tags = {
-    Name = "ecs-simple-vpc"
+    Name = "${local.prefix}-vpc"
   }
 }
 
@@ -31,7 +32,7 @@ resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this.id
 
   tags = {
-    Name = "ecs-igw"
+    Name = "${local.prefix}-igw"
   }
 }
 
@@ -49,7 +50,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "ecs-public-${count.index}"
+    Name = "${local.prefix}-public-${count.index}"
   }
 }
 
@@ -67,12 +68,12 @@ resource "aws_subnet" "private" {
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "ecs-private-${count.index}"
+    Name = "${local.prefix}-private-${count.index}"
   }
 }
 
 resource "aws_db_subnet_group" "main" {
-  name       = "main-db-subnet-group"
+  name       = "${local.prefix}-db-subnet-group"
   subnet_ids = aws_subnet.private[*].id
 }
 
@@ -85,7 +86,7 @@ resource "aws_route_table" "public" {
   vpc_id = aws_vpc.this.id
 
   tags = {
-    Name = "ecs-public-rt"
+    Name = "${local.prefix}-public-rt"
   }
 }
 
@@ -111,7 +112,7 @@ resource "aws_eip" "nat" {
   domain = "vpc"
 
   tags = {
-    Name = "ecs-nat-eip-${count.index}"
+    Name = "${local.prefix}-nat-eip-${count.index}"
   }
 
   depends_on = [aws_internet_gateway.this]
@@ -124,7 +125,7 @@ resource "aws_nat_gateway" "this" {
   subnet_id     = aws_subnet.public[count.index].id
 
   tags = {
-    Name = "ecs-nat-${count.index}"
+    Name = "${local.prefix}-nat-${count.index}"
   }
 
   depends_on = [aws_internet_gateway.this]
@@ -135,7 +136,7 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.this.id
 
   tags = {
-    Name = "ecs-private-rt-${count.index}"
+    Name = "${local.prefix}-private-rt-${count.index}"
   }
 }
 

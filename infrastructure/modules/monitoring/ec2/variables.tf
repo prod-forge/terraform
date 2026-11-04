@@ -1,3 +1,13 @@
+variable "project" {
+  description = "Project name, used in resource names"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment name (dev, prod), used in resource names"
+  type        = string
+}
+
 variable "repository_url" {
   description = "ECR URL"
   type        = string

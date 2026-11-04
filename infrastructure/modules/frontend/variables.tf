@@ -37,8 +37,9 @@ variable "acm_certificate_arn" {
 }
 
 variable "web_acl_arn" {
-  description = "ARN of the CLOUDFRONT-scope WAF web ACL"
+  description = "ARN of the CLOUDFRONT-scope WAF web ACL; null serves the distribution without WAF"
   type        = string
+  default     = null
 }
 
 variable "logs_bucket_domain_name" {

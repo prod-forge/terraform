@@ -1,13 +1,16 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.10 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.35 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.35 |
 
 ## Modules
 
@@ -42,6 +45,7 @@ No modules.
 | <a name="input_multi_az"></a> [multi\_az](#input\_multi\_az) | Deploy a standby in a second Availability Zone | `bool` | `false` | no |
 | <a name="input_project"></a> [project](#input\_project) | Project name, used in the final snapshot identifier | `string` | n/a | yes |
 | <a name="input_rds_identifier"></a> [rds\_identifier](#input\_rds\_identifier) | RDS Identifier | `string` | n/a | yes |
+| <a name="input_snapshot_identifier"></a> [snapshot\_identifier](#input\_snapshot\_identifier) | Encrypted DB snapshot to create the instance from; null creates an empty database. Ignored after creation | `string` | `null` | no |
 | <a name="input_username"></a> [username](#input\_username) | DB Username | `string` | n/a | yes |
 | <a name="input_vpc_security_group_id"></a> [vpc\_security\_group\_id](#input\_vpc\_security\_group\_id) | VPC Security Group ID | `string` | n/a | yes |
 

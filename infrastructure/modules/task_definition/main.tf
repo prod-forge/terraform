@@ -1,5 +1,9 @@
+locals {
+  prefix = "${var.project}-${var.environment}"
+}
+
 resource "aws_ecs_task_definition" "app" {
-  family                   = "${var.project}-task"
+  family                   = "${local.prefix}-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.cpu
@@ -92,7 +96,7 @@ resource "aws_ecs_task_definition" "app" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = "/ecs/${var.project}"
+          awslogs-group         = aws_cloudwatch_log_group.ecs.name
           awslogs-region        = var.region
           awslogs-stream-prefix = "ecs"
         }
@@ -104,13 +108,13 @@ resource "aws_ecs_task_definition" "app" {
 resource "aws_cloudwatch_log_group" "ecs" {
   #checkov:skip=CKV_AWS_158: encrypted at rest with the CloudWatch Logs service key; a dedicated CMK for logs is not provisioned yet
   #checkov:skip=CKV_AWS_338: application logs are operational, not audit records; retention is set by var.log_retention_days to bound cost
-  name              = "/ecs/${var.project}"
+  name              = "/ecs/${local.prefix}"
   retention_in_days = var.log_retention_days
 }
 
 resource "aws_cloudwatch_log_group" "ecs_migration" {
   #checkov:skip=CKV_AWS_158: encrypted at rest with the CloudWatch Logs service key; a dedicated CMK for logs is not provisioned yet
   #checkov:skip=CKV_AWS_338: migration logs are operational, not audit records; retention is set by var.log_retention_days to bound cost
-  name              = "/ecs/${var.project}-task-migration"
+  name              = "/ecs/${local.prefix}-task-migration"
   retention_in_days = var.log_retention_days
 }

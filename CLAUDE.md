@@ -87,7 +87,7 @@
 - Prefer S3 lifecycle policies for cost optimization
 - Enable versioning for critical S3 buckets
 - Block public S3 access by default
-- Use DynamoDB locking for Terraform state
+- Use the S3 backend lock file (`use_lockfile = true`) for Terraform state locking; no DynamoDB table
 - Prefer ECR over external container registries for AWS workloads
 - Use ALB/NLB appropriately based on workload requirements
 - Enable access logging for critical services
@@ -101,8 +101,8 @@
 - Use S3 backend for remote Terraform state
 - Enable bucket versioning for state buckets
 - Enable server-side encryption for state storage
-- Use DynamoDB table for state locking
-- Separate state files by environment and workload
+- Use the S3 lock file (`use_lockfile = true`, Terraform 1.10+) for state locking; do not add `dynamodb_table`
+- Separate state files by environment and workload (one key per root under `infrastructure/environments/<env>`)
 - Never manually modify Terraform state files
 - Never commit `.tfstate` files to version control
 - Restrict access to Terraform state buckets
@@ -112,11 +112,11 @@ Example:
 ```hcl
 terraform {
   backend "s3" {
-    bucket         = "project-terraform-state"
-    key            = "prod/network/terraform.tfstate"
-    region         = "eu-central-1"
-    dynamodb_table = "terraform-locks"
-    encrypt        = true
+    bucket       = "project-terraform-state"
+    key          = "environments/dev/terraform.tfstate"
+    region       = "eu-central-1"
+    use_lockfile = true
+    encrypt      = true
   }
 }
 ````

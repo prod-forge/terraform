@@ -9,3 +9,18 @@ variable "environment" {
 variable "region" {
   type = string
 }
+
+variable "owner" {
+  description = "Owner tag"
+  type        = string
+}
+
+variable "cost_center" {
+  description = "CostCenter tag"
+  type        = string
+}
+
+variable "repository" {
+  description = "Repository tag"
+  type        = string
+}

@@ -27,8 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Replace `infrastructure` with environments/dev and environments/prod once they exist.
-        root: [bootstrap, infrastructure]
+        root: [bootstrap, infrastructure/environments/dev, infrastructure/environments/prod]
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
@@ -40,7 +39,7 @@ jobs:
       - run: terraform validate
         working-directory: ${{ matrix.root }}
       # Offline: every run uses mock providers with command = plan.
-      - if: ${{ !cancelled() && steps.init.outcome == 'success' && matrix.root == 'infrastructure' }}
+      - if: ${{ !cancelled() && steps.init.outcome == 'success' && matrix.root == 'infrastructure/environments/prod' }}
         run: terraform test
         working-directory: ${{ matrix.root }}
 

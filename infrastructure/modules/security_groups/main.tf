@@ -3,7 +3,7 @@
 
 resource "aws_security_group" "alb_sg" {
   #checkov:skip=CKV_AWS_260: the ALB is the public entry point; port 80 only redirects to HTTPS when a domain is configured
-  name_prefix = "${var.project}-alb-sg-"
+  name_prefix = "${var.project}-${var.environment}-alb-sg-"
   description = "Public HTTP access to the application load balancer"
   vpc_id      = var.vpc_id
 
@@ -23,12 +23,13 @@ resource "aws_security_group" "alb_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Targets and health checks are the ECS tasks on the application port.
   egress {
-    description = "All outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    description = "Application port to the ECS tasks inside the VPC"
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
   }
 
   lifecycle {
@@ -37,7 +38,7 @@ resource "aws_security_group" "alb_sg" {
 }
 
 resource "aws_security_group" "ecs_sg" {
-  name_prefix = "${var.project}-ecs-sg-"
+  name_prefix = "${var.project}-${var.environment}-ecs-sg-"
   description = "ECS tasks: ingress from the ALB and the monitoring host, egress to HTTPS, RDS and Redis"
   vpc_id      = var.vpc_id
 
@@ -86,7 +87,7 @@ resource "aws_vpc_security_group_egress_rule" "ecs_redis" {
 }
 
 resource "aws_security_group" "rds_sg" {
-  name_prefix = "${var.project}-rds-sg-"
+  name_prefix = "${var.project}-${var.environment}-rds-sg-"
   description = "PostgreSQL access from ECS tasks and the Client VPN"
   vpc_id      = var.vpc_id
 
@@ -101,13 +102,8 @@ resource "aws_security_group" "rds_sg" {
     ]
   }
 
-  egress {
-    description = "All outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # No egress rules: security groups are stateful, so replies to the
+  # allowed ingress need none, and the data stores open no connections.
 
   lifecycle {
     create_before_destroy = true
@@ -115,7 +111,7 @@ resource "aws_security_group" "rds_sg" {
 }
 
 resource "aws_security_group" "vpn_sg" {
-  name_prefix = "${var.project}-client-vpn-sg-"
+  name_prefix = "${var.project}-${var.environment}-client-vpn-sg-"
   description = "Client VPN endpoint network interfaces"
   vpc_id      = var.vpc_id
 
@@ -127,12 +123,13 @@ resource "aws_security_group" "vpn_sg" {
     cidr_blocks = [var.vpc_cidr]
   }
 
+  # The VPN authorizes only the VPC CIDR, so clients never need outbound traffic beyond it.
   egress {
-    description = "All outbound traffic"
+    description = "All traffic to the VPC"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.vpc_cidr]
   }
 
   lifecycle {
@@ -141,7 +138,7 @@ resource "aws_security_group" "vpn_sg" {
 }
 
 resource "aws_security_group" "redis_sg" {
-  name_prefix = "${var.project}-redis-sg-"
+  name_prefix = "${var.project}-${var.environment}-redis-sg-"
   description = "Redis access from ECS tasks and the Client VPN"
   vpc_id      = var.vpc_id
 
@@ -156,13 +153,8 @@ resource "aws_security_group" "redis_sg" {
     ]
   }
 
-  egress {
-    description = "All outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # No egress rules: security groups are stateful, so replies to the
+  # allowed ingress need none, and the data stores open no connections.
 
   lifecycle {
     create_before_destroy = true

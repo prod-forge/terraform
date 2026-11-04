@@ -4,7 +4,7 @@ locals {
 
 resource "aws_lb" "app" {
   #checkov:skip=CKV_AWS_150: deletion protection is enabled when var.environment is prod; dev stays off so it can be destroyed freely
-  name               = "${var.project}-alb"
+  name               = "${var.project}-${var.environment}-alb"
   load_balancer_type = "application"
   subnets            = var.public_subnet_ids
   security_groups    = [var.sg_alb_id]
@@ -20,7 +20,7 @@ resource "aws_lb" "app" {
 }
 
 resource "aws_lb_target_group" "app" {
-  name        = "${var.project}-tg"
+  name        = "${var.project}-${var.environment}-tg"
   port        = 3000
   protocol    = "HTTP"
   vpc_id      = var.vpc_id

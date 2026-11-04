@@ -4,7 +4,7 @@ How the backend service scales on ECS Fargate, which knobs exist, and how to che
 
 ## Capacity model
 
-| Setting | Module default (dev) | Prod (`prod.auto.tfvars`) |
+| Setting | Dev (`environments/dev/terraform.tfvars`) | Prod (`environments/prod/terraform.tfvars`) |
 | --- | --- | --- |
 | Task size (`cpu` / `memory`) | 256 / 512 MiB | 512 / 1024 MiB |
 | Initial `desired_count` | 1 | 2 |
@@ -23,8 +23,8 @@ Both policies are target tracking on the same scalable target (`ecs:service:Desi
 
 | Policy | Metric | Target | Scale-out cooldown | Scale-in cooldown |
 | --- | --- | --- | --- | --- |
-| `<project>-cpu-target-tracking` | `ECSServiceAverageCPUUtilization` | 60% | 60 s | 300 s |
-| `<project>-alb-requests-target-tracking` | `ALBRequestCountPerTarget` (`resource_label` = `<alb arn suffix>/<target group arn suffix>`) | 1000 requests per task per minute | 60 s | 300 s |
+| `<project>-<environment>-cpu-target-tracking` | `ECSServiceAverageCPUUtilization` | 60% | 60 s | 300 s |
+| `<project>-<environment>-alb-requests-target-tracking` | `ALBRequestCountPerTarget` (`resource_label` = `<alb arn suffix>/<target group arn suffix>`) | 1000 requests per task per minute | 60 s | 300 s |
 
 - CPU catches expensive requests; the request count policy catches many cheap requests that do not move CPU much (I/O bound handlers waiting on RDS or Redis).
 - Scale-in is slow on purpose: a task needs up to 60 s to stop (`stopTimeout`, see below), and flapping costs more than a few extra minutes of capacity.

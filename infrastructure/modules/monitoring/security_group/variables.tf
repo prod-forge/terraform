@@ -1,10 +1,22 @@
+variable "project" {
+  description = "Project name, used in resource names"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment name (dev, prod), used in resource names"
+  type        = string
+}
+
 variable "vpc_id" {
   description = "VPC ID"
   type        = string
 }
 
 variable "monitoring_ingress_rules" {
+  description = "Ingress rules of the monitoring host"
   type = list(object({
+    description = string
     from_port   = number
     to_port     = number
     protocol    = string

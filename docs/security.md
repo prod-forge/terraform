@@ -17,7 +17,7 @@ Certificates come from the `acm-certificate` module: one DNS-validated certifica
 
 ### Without a domain (insecure fallback)
 
-HTTPS is enabled only when `domain_name` is set. With `domain_name = ""` (the current default in `prod.auto.tfvars`) Terraform creates no certificate, no 443 listener and no DNS records, and the ALB keeps forwarding plain HTTP on port 80.
+HTTPS is enabled only when `domain_name` is set. With `domain_name = ""` (the current value in both `environments/*/terraform.tfvars`) Terraform creates no certificate, no 443 listener and no DNS records, and the ALB keeps forwarding plain HTTP on port 80.
 
 > **Warning:** in this mode API traffic, including credentials and tokens, crosses the internet unencrypted. It is meant only for a first deployment before a domain is available. Set `domain_name` (and `hosted_zone_name` if the zone is a parent domain) before real users touch the system.
 
@@ -53,7 +53,7 @@ The CloudFront response headers policy (see [Frontend](frontend.md#security-head
 
 - `drop_invalid_header_fields = true`: requests with malformed header names are dropped instead of being passed to the app (request smuggling defense).
 - Deletion protection is on when `environment = "prod"`.
-- Access logs go to the `<project>-access-logs` bucket under `alb/`.
+- Access logs go to the `<project>-<env>-access-logs` bucket under `alb/`.
 
 ## Access logs
 
@@ -68,18 +68,22 @@ The `logs-bucket` module creates one bucket for ALB access logs (`alb/`) and Clo
 
 | Group | Ingress | Egress |
 | --- | --- | --- |
-| ALB | 80 and 443 from `0.0.0.0/0` | all |
-| ECS | 3000 from the ALB group only | 443 anywhere, 5432 to RDS, 6379 to Redis |
-| RDS | 5432 from the ECS and VPN groups | all |
-| Redis | 6379 from the ECS and VPN groups | all |
+| ALB | 80 and 443 from `0.0.0.0/0` | 3000 to the VPC CIDR (targets and health checks) |
+| ECS | 3000 from the ALB group and the monitoring host | 443 anywhere, 5432 to RDS, 6379 to Redis |
+| RDS | 5432 from the ECS and VPN groups | none |
+| Redis | 6379 from the ECS and VPN groups | none |
+| Client VPN | all from the VPC CIDR | all to the VPC CIDR |
+| Monitoring host | 3000 from `admin_cidr_blocks` | all (packages, images, AWS APIs) |
+| VPC endpoints | 443 from the VPC CIDR | none |
 
-The ALB is the only public entry point for the API. ECS tasks run in private subnets without public IPs. Groups use `name_prefix` with `create_before_destroy`, so rule changes never leave dependents without a group.
+The ALB is the only public entry point for the API. ECS tasks run in private subnets without public IPs. RDS and Redis need no egress rules because security groups are stateful. Groups use `name_prefix` (`<project>-<env>-<role>-sg-`) with `create_before_destroy`, so rule changes never leave dependents without a group.
 
 ## IAM
 
-- GitHub Actions authenticate through OIDC (no static keys) and use one role per repository: the backend role gets ECR push and ECS deploy, the frontend role gets the web client deploy (S3 sync and `cloudfront:CreateInvalidation` on the one distribution). Trust is limited to the repository, the `prod` environment and release tags. The ECR repository has immutable tags, scan on push and KMS encryption.
-- The ECS execution role reads only the secrets the task needs (RDS, Redis AUTH, JWT) and decrypts them with the project KMS key.
-- The monitoring EC2 role reads the backend secret, uses SSM Session Manager (`AmazonSSMManagedInstanceCore`) and can optionally read the observability config bucket and the Grafana admin secret.
+- GitHub Actions authenticate through OIDC (no static keys) and use one role per repository: the backend role gets ECR push and ECS deploy, the frontend role gets the web client deploy (S3 sync and `cloudfront:CreateInvalidation` on the one distribution). Trust is limited to the repository and its GitHub environment (`environment:prod` for the prod roles, `environment:dev` for dev). The ECR repository has immutable tags, scan on push and KMS encryption.
+- The ECS execution role reads only the secrets the task needs (RDS, Redis AUTH, JWT, policy `<project>-<env>-ecs-secrets-read`) and decrypts them with the project KMS key, which rotates yearly.
+- The monitoring EC2 role reads the backend secret and the Grafana admin secret, reads the observability config bucket, pulls from ECR (`AmazonEC2ContainerRegistryReadOnly`, attached to this role only) and uses SSM Session Manager (`AmazonSSMManagedInstanceCore`).
+- Every role and policy name starts with `<project>-<env>-`, so the IAM permissions of the Terraform operator can be scoped to that prefix.
 
 ## Monitoring host
 
@@ -90,4 +94,4 @@ The ALB is the only public entry point for the API. ECS tasks run in private sub
 
 ## Known gaps
 
-Tracked in the checkov baseline in [CI](ci.md#baseline-to-be-driven-to-zero): the KMS key has no rotation.
+Checkov reports no failed checks; the accepted exceptions and their reasons are the inline skips listed in [CI](ci.md#baseline).

@@ -1,13 +1,16 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.10 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.35 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.35 |
 
 ## Modules
 
@@ -24,6 +27,8 @@ No modules.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_client_vpn_certificate_arn"></a> [client\_vpn\_certificate\_arn](#input\_client\_vpn\_certificate\_arn) | Client VPN Certificate ARN | `string` | n/a | yes |
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, prod), used in resource names | `string` | n/a | yes |
+| <a name="input_project"></a> [project](#input\_project) | Project name, used in resource names | `string` | n/a | yes |
 | <a name="input_server_vpn_certificate_arn"></a> [server\_vpn\_certificate\_arn](#input\_server\_vpn\_certificate\_arn) | Server VPN Certificate ARN | `string` | n/a | yes |
 | <a name="input_sg_vpn_id"></a> [sg\_vpn\_id](#input\_sg\_vpn\_id) | Security Group VPN ID | `string` | n/a | yes |
 | <a name="input_vpc_main_id"></a> [vpc\_main\_id](#input\_vpc\_main\_id) | VPC Main ID | `string` | n/a | yes |

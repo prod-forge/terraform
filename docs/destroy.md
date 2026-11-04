@@ -6,25 +6,28 @@ Destroying infrastructure is not just running `terraform destroy`. The bootstrap
 
 ## Why Order Matters
 
-The infrastructure (`infrastructure/`) stores its Terraform state in the S3 bucket created by the bootstrap (`bootstrap/`).
+Each environment (`infrastructure/environments/dev`, `infrastructure/environments/prod`) stores its Terraform state in the S3 bucket created by the bootstrap (`bootstrap/`), under its own key.
 
 If you destroy the bootstrap first, you lose the state file. Terraform can no longer track what infrastructure exists, and resources will be left running in AWS with no way to manage them through Terraform.
 
 The correct order is always:
 
 ```text
-1. Destroy infrastructure
+1. Destroy the environments (dev first, then prod)
 2. Unlock and destroy bootstrap
 3. Delete the IAM user
 ```
 
 ## Step 1 — Destroy Infrastructure
 
-Navigate to the `infrastructure/` directory and run:
+Destroy one environment at a time from the repository root:
 
 ```shell
-terraform destroy
+terraform -chdir=infrastructure/environments/dev destroy
+terraform -chdir=infrastructure/environments/prod destroy
 ```
+
+When dev and prod share an AWS account, destroy dev first: it reads the GitHub OIDC provider that prod owns (`create_github_oidc_provider`).
 
 This removes all managed AWS resources:
 
@@ -34,16 +37,17 @@ This removes all managed AWS resources:
 - ECR repository
 - CloudFront distribution and S3 buckets (web client, assets, access logs)
 - WAF web ACLs, ACM certificates and Route 53 records (when a domain is set)
-- GitHub OIDC role
+- GitHub OIDC roles (and, in the environment that owns it, the OIDC provider)
 - Monitoring EC2 instance
-- VPN endpoint
+- VPN endpoint (when `enable_client_vpn = true`)
 
 Review the plan carefully before confirming. Once applied, these resources are gone.
 
-Two edge resources block a plain destroy:
+Some resources block a plain destroy:
 
+- In prod the RDS instance has deletion protection (`rds_deletion_protection = true`). Set it to `false` and apply before destroying; the destroy still takes the final snapshot `<project>-<environment>-final`.
 - In prod the ALB has deletion protection. Disable it first: `aws elbv2 modify-load-balancer-attributes --load-balancer-arn <arn> --attributes Key=deletion_protection.enabled,Value=false`.
-- The web-client and access-logs buckets are versioned and S3 refuses to delete a non-empty bucket. Empty all object versions (S3 console "Empty", or a lifecycle run) before `terraform destroy`.
+- The web-client, assets and access-logs buckets are versioned and S3 refuses to delete a non-empty bucket. Empty all object versions (S3 console "Empty", or a lifecycle run) before `terraform destroy`.
 
 ## Step 2 — Unlock the Bootstrap
 
@@ -66,7 +70,7 @@ resource "aws_s3_bucket" "terraform_state" {
 }
 ```
 
-Then apply the change:
+Then apply the change from `bootstrap/`:
 
 ```shell
 terraform apply
@@ -82,8 +86,7 @@ terraform destroy
 
 This removes:
 
-- the S3 state bucket (and all versioned state files inside it)
-- the DynamoDB lock table
+- the S3 state bucket (and all versioned state files and lock files inside it)
 - the KMS key
 
 ## Step 3 — Delete the IAM User

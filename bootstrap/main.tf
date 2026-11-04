@@ -4,7 +4,6 @@
 
 locals {
   bucket_name = "${var.project}-terraform-state-${var.environment}"
-  lock_table  = "${var.project}-terraform-locks-${var.environment}"
 }
 
 ############################
@@ -113,23 +112,4 @@ resource "aws_s3_bucket_policy" "deny_insecure_transport" {
       }
     ]
   })
-}
-
-############################
-# DynamoDB Lock Table
-############################
-
-resource "aws_dynamodb_table" "terraform_locks" {
-  name         = local.lock_table
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LockID"
-
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-
-  point_in_time_recovery {
-    enabled = true
-  }
 }

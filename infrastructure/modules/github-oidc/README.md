@@ -1,13 +1,16 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.10 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.35 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.35 |
 
 ## Modules
 
@@ -19,12 +22,14 @@ No modules.
 | ---- | ---- |
 | [aws_iam_openid_connect_provider.github](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_openid_connect_provider) | resource |
 | [aws_iam_role.github](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_openid_connect_provider.github](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_openid_connect_provider) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_backend_repo"></a> [backend\_repo](#input\_backend\_repo) | Repository allowed to assume the backend role | `string` | `"backend"` | no |
+| <a name="input_create_oidc_provider"></a> [create\_oidc\_provider](#input\_create\_oidc\_provider) | Create the account-wide GitHub OIDC provider; false reads the existing one | `bool` | `true` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Deployment environment used in role names | `string` | n/a | yes |
 | <a name="input_frontend_repo"></a> [frontend\_repo](#input\_frontend\_repo) | Repository allowed to assume the frontend role | `string` | `"frontend"` | no |
 | <a name="input_github_environment"></a> [github\_environment](#input\_github\_environment) | GitHub environment name that deploy jobs run in | `string` | `"prod"` | no |

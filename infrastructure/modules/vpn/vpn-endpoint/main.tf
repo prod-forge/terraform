@@ -1,5 +1,5 @@
 resource "aws_ec2_client_vpn_endpoint" "vpn" {
-  description            = "client-vpn"
+  description            = "${var.project}-${var.environment}-client-vpn"
   server_certificate_arn = var.server_vpn_certificate_arn
   client_cidr_block      = "10.200.0.0/22"
   dns_servers            = ["10.0.0.2"]

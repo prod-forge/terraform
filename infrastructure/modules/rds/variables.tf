@@ -23,9 +23,6 @@ variable "rds_identifier" {
   type        = string
 }
 
-
-
-
 variable "project" {
   description = "Project name, used in the final snapshot identifier"
   type        = string
@@ -93,4 +90,10 @@ variable "apply_immediately" {
   description = "Apply changes immediately instead of in the maintenance window"
   type        = bool
   default     = false
+}
+
+variable "snapshot_identifier" {
+  description = "Encrypted DB snapshot to create the instance from; null creates an empty database. Ignored after creation"
+  type        = string
+  default     = null
 }

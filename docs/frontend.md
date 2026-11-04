@@ -109,17 +109,17 @@ CloudFront invalidation is eventually consistent. After triggering it, edge loca
 ## Terraform Setup
 
 ```shell
-terraform apply -target=module.frontend
+terraform -chdir=infrastructure/environments/prod apply -target=module.stack.module.frontend
 ```
 
 Outputs needed for GitHub Actions:
 
 ```shell
-terraform output cloudfront_url
-terraform output api_url
-terraform output cloudfront_distribution_id
-terraform output web_client_bucket_name
-terraform output assets_bucket_name
+terraform -chdir=infrastructure/environments/prod output cloudfront_url
+terraform -chdir=infrastructure/environments/prod output api_url
+terraform -chdir=infrastructure/environments/prod output cloudfront_distribution_id
+terraform -chdir=infrastructure/environments/prod output web_client_bucket_name
+terraform -chdir=infrastructure/environments/prod output assets_bucket_name
 ```
 
 Set these as variables or secrets in the frontend GitHub repository.

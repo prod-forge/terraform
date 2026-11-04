@@ -39,7 +39,7 @@ run "acm_certificate_rejects_domain_without_zone" {
   command = plan
 
   module {
-    source = "./modules/acm-certificate"
+    source = "../../modules/acm-certificate"
   }
 
   variables {
@@ -53,7 +53,7 @@ run "load_balancer_rejects_domain_without_certificate" {
   command = plan
 
   module {
-    source = "./modules/load_balancer"
+    source = "../../modules/load_balancer"
   }
 
   variables {
@@ -67,7 +67,7 @@ run "frontend_rejects_domain_without_certificate" {
   command = plan
 
   module {
-    source = "./modules/frontend"
+    source = "../../modules/frontend"
   }
 
   variables {
@@ -81,7 +81,7 @@ run "dns_rejects_domain_without_zone_name" {
   command = plan
 
   module {
-    source = "./modules/dns"
+    source = "../../modules/dns"
   }
 
   variables {
@@ -95,7 +95,7 @@ run "waf_rejects_unknown_scope" {
   command = plan
 
   module {
-    source = "./modules/waf"
+    source = "../../modules/waf"
   }
 
   variables {
@@ -109,7 +109,7 @@ run "waf_rejects_regional_scope_without_resource" {
   command = plan
 
   module {
-    source = "./modules/waf"
+    source = "../../modules/waf"
   }
 
   variables {
@@ -127,7 +127,7 @@ run "acm_certificate_without_domain_creates_nothing" {
   command = plan
 
   module {
-    source = "./modules/acm-certificate"
+    source = "../../modules/acm-certificate"
   }
 
   assert {
@@ -149,7 +149,7 @@ run "load_balancer_without_domain_forwards_http" {
   command = plan
 
   module {
-    source = "./modules/load_balancer"
+    source = "../../modules/load_balancer"
   }
 
   assert {
@@ -177,7 +177,7 @@ run "dns_without_domain_creates_nothing" {
   command = plan
 
   module {
-    source = "./modules/dns"
+    source = "../../modules/dns"
   }
 
   assert {
@@ -200,7 +200,7 @@ run "frontend_without_domain_uses_default_certificate" {
   command = plan
 
   module {
-    source = "./modules/frontend"
+    source = "../../modules/frontend"
   }
 
   assert {
@@ -238,7 +238,7 @@ run "waf_regional_acl_is_associated" {
   command = plan
 
   module {
-    source = "./modules/waf"
+    source = "../../modules/waf"
   }
 
   variables {
@@ -279,7 +279,7 @@ run "waf_cloudfront_acl_has_no_association" {
   command = plan
 
   module {
-    source = "./modules/waf"
+    source = "../../modules/waf"
   }
 
   variables {
@@ -305,7 +305,7 @@ run "acm_certificate_with_domain_is_validated" {
   command = plan
 
   module {
-    source = "./modules/acm-certificate"
+    source = "../../modules/acm-certificate"
   }
 
   variables {
@@ -332,7 +332,7 @@ run "load_balancer_with_domain_serves_https" {
   command = plan
 
   module {
-    source = "./modules/load_balancer"
+    source = "../../modules/load_balancer"
   }
 
   variables {
@@ -373,7 +373,7 @@ run "dns_with_domain_creates_alias_records" {
   command = plan
 
   module {
-    source = "./modules/dns"
+    source = "../../modules/dns"
   }
 
   variables {
@@ -402,7 +402,7 @@ run "frontend_with_domain_uses_acm_certificate" {
   command = plan
 
   module {
-    source = "./modules/frontend"
+    source = "../../modules/frontend"
   }
 
   variables {

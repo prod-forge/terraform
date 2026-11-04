@@ -3,6 +3,11 @@ variable "project" {
   type        = string
 }
 
+variable "environment" {
+  description = "Environment name (dev, prod) used to prefix resource names"
+  type        = string
+}
+
 variable "cidr" {
   description = "VPC CIDR block"
   type        = string

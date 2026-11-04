@@ -37,8 +37,6 @@ No modules.
 | <a name="input_alb_prefix"></a> [alb\_prefix](#input\_alb\_prefix) | Key prefix for ALB access logs | `string` | `"alb"` | no |
 | <a name="input_bucket_name"></a> [bucket\_name](#input\_bucket\_name) | Name of the access-log bucket shared by the ALB and CloudFront | `string` | n/a | yes |
 | <a name="input_cloudfront_prefix"></a> [cloudfront\_prefix](#input\_cloudfront\_prefix) | Key prefix for CloudFront standard logs | `string` | `"cloudfront"` | no |
-| <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, prod) | `string` | n/a | yes |
-| <a name="input_project"></a> [project](#input\_project) | Project Name | `string` | n/a | yes |
 | <a name="input_retention_days"></a> [retention\_days](#input\_retention\_days) | Days to keep access logs before expiry | `number` | `90` | no |
 
 ## Outputs

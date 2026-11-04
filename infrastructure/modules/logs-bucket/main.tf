@@ -7,13 +7,6 @@ data "aws_elb_service_account" "current" {}
 # ACLs enabled, so this bucket deliberately uses neither a CMK nor BucketOwnerEnforced.
 resource "aws_s3_bucket" "logs" {
   bucket = var.bucket_name
-
-  tags = {
-    Project     = var.project
-    Environment = var.environment
-    Owner       = "devops"
-    ManagedBy   = "terraform"
-  }
 }
 
 resource "aws_s3_bucket_public_access_block" "logs" {

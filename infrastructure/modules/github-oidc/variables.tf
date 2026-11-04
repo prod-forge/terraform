@@ -30,3 +30,9 @@ variable "github_environment" {
   type        = string
   default     = "prod"
 }
+
+variable "create_oidc_provider" {
+  description = "Create the account-wide GitHub OIDC provider; false reads the existing one"
+  type        = bool
+  default     = true
+}

@@ -21,7 +21,7 @@ run "backend_role_trusts_only_backend_repo" {
   command = plan
 
   module {
-    source = "./modules/github-oidc"
+    source = "../../modules/github-oidc"
   }
 
   assert {
@@ -49,7 +49,7 @@ run "frontend_role_trusts_only_frontend_repo" {
   command = plan
 
   module {
-    source = "./modules/github-oidc"
+    source = "../../modules/github-oidc"
   }
 
   assert {

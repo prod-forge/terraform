@@ -16,6 +16,8 @@ It is recommended to create the infrastructure in stages:
 - ECS Service
 - Task Definition
 
+Every command runs from the repository root against one environment root, `infrastructure/environments/dev` or `infrastructure/environments/prod` (see [Environments](environments.md)). Module addresses are under `module.stack`, which composes the modules for both environments.
+
 ## Amazon ECR
 
 ECR will be used as the central registry for container images built by the CI/CD pipeline.
@@ -26,7 +28,7 @@ EKS, or other compute services).
 You can initialize ECR first:
 
 ```shell
-terraform apply -target='module.ecr.aws_ecr_repository.prod_forge_repo'
+terraform -chdir=infrastructure/environments/<env> apply -target='module.stack.module.ecr.aws_ecr_repository.prod_forge_repo'
 ```
 
 ### The "Chicken-and-Egg" Dilemma
@@ -116,14 +118,16 @@ If any secrets are already known at this stage of the project, they can be added
 that they are available for the infrastructure and application during deployment.
 
 ```shell
-terraform apply -target='module.secrets_manager.aws_secretsmanager_secret.app_secret'
+terraform -chdir=infrastructure/environments/<env> apply -target='module.stack.module.secrets_manager.aws_secretsmanager_secret.prod_forge_secret'
 ```
+
+The secret is named by `app_secret_name`: `prod_forge/backend/config-v1` in prod and `prod_forge/backend/dev/config-v1` in dev (names are unique per account). The examples use the prod name.
 
 Store secrets using the following command:
 
 ```shell
 aws secretsmanager put-secret-value \
-  --secret-id prod/app/config \
+  --secret-id prod_forge/backend/config-v1 \
   --secret-string '{"SOME_SECRET":"secret"}'
 ```
 
@@ -131,26 +135,27 @@ Retrieve a secret value:
 
 ```shell
 aws secretsmanager get-secret-value \
-  --secret-id prod/app/config \
+  --secret-id prod_forge/backend/config-v1 \
   --query SecretString \
   --output text
 ```
 
 ```shell
 aws secretsmanager get-secret-value \
-  --secret-id prod/app/config \
+  --secret-id prod_forge/backend/config-v1 \
   --query SecretString \
   --output text | jq -r '.SOME_SECRET'
 ```
 
 ### Generated secrets
 
-Terraform generates two secrets with `random_password` (64 characters, no special characters so they are safe in env vars and in the ElastiCache AUTH token) and stores them encrypted with the same KMS key:
+Terraform generates these secrets with `random_password` (64 characters, no special characters so they are safe in env vars and in the ElastiCache AUTH token) and stores them encrypted with the same KMS key:
 
 - `<project>/<environment>/redis-auth` - the Redis AUTH token, injected into the task as `REDIS_PASSWORD`.
 - `<project>/<environment>/jwt-secret` - the JWT signing secret, injected as `JWT_SECRET`. The backend refuses to start without it (at least 32 characters).
+- `<project>/<environment>/grafana-admin` - the Grafana admin password, read by the monitoring host (32 characters).
 
-The task execution role may read both. Values live in Terraform state, so keep the state bucket private and encrypted.
+The task execution role may read the first two. Every secret has `recovery_window_in_days = secret_recovery_window_days`: 30 in prod, 0 in dev so a destroyed dev can be recreated with the same names right away. Values live in Terraform state, so keep the state bucket private and encrypted.
 
 ## GitHub Integration for CI/CD
 
@@ -198,8 +203,10 @@ deploying infrastructure.
 To create the OIDC provider via Terraform, run:
 
 ```shell
-terraform apply -target=module.github_oidc
+terraform -chdir=infrastructure/environments/<env> apply -target=module.stack.module.github_oidc
 ```
+
+The OIDC provider is account-wide: only one may exist per account. Prod creates it (`create_github_oidc_provider = true`); dev in the same account sets `false` and reads it with a data source, so apply prod first.
 
 This step ensures that:
 
@@ -213,22 +220,22 @@ The `github-oidc` module creates one role per repository, so a compromised repos
 
 | Role | Trusted subjects (`sub`) | Permissions |
 | --- | --- | --- |
-| `<project>-<environment>-github-backend-role` | `repo:prod-forge/backend:environment:prod` | ECR push to the application repository, ECS deploy, migration task, rollback |
-| `<project>-<environment>-github-frontend-role` | `repo:prod-forge/frontend:environment:prod` | S3 sync on the web client and assets buckets, CloudFront invalidation |
+| `<project>-<environment>-github-backend-role` | `repo:prod-forge/backend:environment:<environment>` | ECR push to the application repository, ECS deploy, migration task, rollback |
+| `<project>-<environment>-github-frontend-role` | `repo:prod-forge/frontend:environment:<environment>` | S3 sync on the web client and assets buckets, CloudFront invalidation |
 
 Both roles also require `aud = sts.amazonaws.com`. The subject is matched exactly (`StringEquals`), with no wildcard.
 
-Only the `environment:prod` subject is trusted, so deploy jobs must declare `environment: prod`. The environment's protection rules (required reviewers, branch and tag restrictions) are then enforced before AWS hands out credentials. A ref-based subject such as `ref:refs/tags/v*` is deliberately not trusted: any workflow run on a tag without an environment would otherwise bypass those rules.
+Only the `environment:<environment>` subject is trusted (`environment:prod` for the prod roles, `environment:dev` for the dev roles), so deploy jobs must declare that GitHub environment. The environment's protection rules (required reviewers, branch and tag restrictions) are then enforced before AWS hands out credentials. A ref-based subject such as `ref:refs/tags/v*` is deliberately not trusted: any workflow run on a tag without an environment would otherwise bypass those rules.
 
 ### Rollout notes
 
 - **Role names change.** Replace `role/github-actions-ecs-ecr-role` in `role-to-assume` with `role/<project>-<environment>-github-backend-role` in the backend `cd.yml` and `rollback.yml`, and with `role/<project>-<environment>-github-frontend-role` in the frontend `cd.yml`. Until then the workflows fail with `Not authorized to perform sts:AssumeRoleWithWebIdentity`.
 - **ECR tags are immutable.** The backend `cd.yml` pushes only the version tag (`<version>` from the `v*` tag), so a normal release works. Re-running a release for the same tag, or pushing `latest`, is rejected; cut a new tag instead.
-- **ECR is replaced; migrate the images by hand first.** Enabling KMS encryption forces a new repository, and `terraform apply` cannot delete a non-empty repository (`RepositoryNotEmptyException`), so the apply would stop half-way. Before applying:
+- **ECR is replaced; migrate the images by hand first.** Enabling KMS encryption and the per-environment name (`<project>` becomes `<project>-<environment>`) force a new repository, and `terraform apply` cannot delete a non-empty repository (`RepositoryNotEmptyException`), so the apply would stop half-way. Before applying:
   1. List the images: `aws ecr describe-images --repository-name <project> --query 'imageDetails[].imageTags'`.
   2. Note the tags you still need (the running release and the rollback targets). Pull and keep them locally if they cannot be rebuilt.
   3. Delete the images: `aws ecr batch-delete-image --repository-name <project> --image-ids "$(aws ecr list-images --repository-name <project> --query 'imageIds[]' --output json)"` (or delete the whole repository with `aws ecr delete-repository --force`).
-  4. Run `terraform apply`, then re-push the current release tag (and the `initial` image, see above) before ECS starts new tasks, because running tasks cannot pull from the missing repository.
+  4. Run `terraform apply`, then push the current release tag (and the `initial` image, see above) to the new repository (output `ecr_repository_url`) before ECS starts new tasks, because running tasks cannot pull from the missing repository.
 - **Old IAM resources are replaced.** The `github-actions-ecs-ecr-role` role and the `github-actions-*` policies are removed and recreated under the new names.
 
 ### Why OIDC is Recommended
@@ -259,7 +266,7 @@ ECS tasks run in private subnets and get no public IP. Outbound traffic leaves t
 
 - **VPC endpoints.** An S3 gateway endpoint is always on (ECR image layers live in S3). With `enable_vpc_endpoints = true` (prod), interface endpoints for `ecr.api`, `ecr.dkr`, `secretsmanager`, `logs` and `ssmmessages` keep image pulls, secret reads, log delivery and ECS Exec inside the VPC instead of going through NAT.
 - **Security group.** The ECS group allows ingress only on port 3000 from the ALB group. Egress is limited to HTTPS (443, for AWS APIs and external services such as Sentry), PostgreSQL 5432 to the RDS group and Redis 6379 to the Redis group.
-- **Flow logs.** VPC flow logs (all traffic) go to the `/vpc/<project>-flow-logs` log group with 30 days of retention.
+- **Flow logs.** VPC flow logs (all traffic) go to the `/vpc/<project>-<environment>-flow-logs` log group with 30 days of retention.
 
 Without the NAT route or the endpoints, tasks in private subnets cannot pull images from ECR or read secrets from Secrets Manager, and the deployment fails with `CannotPullContainerError` or `ResourceInitializationError`.
 
@@ -331,7 +338,7 @@ Service behavior:
 
 - The **task execution role** (used by the ECS agent) has `AmazonECSTaskExecutionRolePolicy` plus read access to the RDS, Redis AUTH and JWT secrets and `kms:Decrypt` on the project key.
 - The **task role** (used by the application) only allows the `ssmmessages` channel actions needed by ECS Exec.
-- The **GitHub Actions** (backend role) deploy policy is scoped to the cluster, the service, the application and migration task definition families and the cluster's tasks. Only the task definition actions that do not support resource-level permissions (`Register`, `Deregister`, `Describe`, `ListTaskDefinitions`) use `*`. `iam:PassRole` is limited to the task and execution roles and to `ecs-tasks.amazonaws.com` (`iam:PassedToService`).
+- The **GitHub Actions** (backend role) deploy policy is scoped to the cluster, the service, the application and migration task definition families and the cluster's tasks. Only the task definition actions that do not support resource-level permissions (`Register`, `Deregister`, `Describe`, `ListTaskDefinitions`) use `*`. `iam:PassRole` is limited to the ARNs of this environment's task and execution roles and to `ecs-tasks.amazonaws.com` (`iam:PassedToService`).
 
 ## Task Definition
 
@@ -349,7 +356,7 @@ Container settings worth knowing:
 - `stopTimeout = 60`: the backend drains for 10 s and waits up to 20 s for in-flight requests on SIGTERM, so 60 s leaves headroom before SIGKILL. Keep it above the sum of the backend timeouts.
 - `linuxParameters.initProcessEnabled = true`: runs an init process as PID 1, which ECS Exec needs and which reaps zombie processes.
 - `readonlyRootFilesystem = false`: NestJS and Prisma write to the container filesystem at runtime.
-- Logs go to the `/ecs/<project>` log group in the configured region; retention is `log_retention_days` (7 by default, 30 in prod).
+- Logs go to the `/ecs/<project>-<environment>` log group in the configured region; retention is `log_retention_days` (7 by default, 30 in prod).
 
 The task definition also specifies the Docker image that will be deployed.
 
@@ -359,7 +366,7 @@ You can see logs from the container:
 aws logs describe-log-groups
 ```
 
-Find your log group (for example, */ecs/prod-forge-todolist*):
+Find your log group (for example, */ecs/prod-forge-todolist-prod*):
 
 ```shell
 aws logs tail <LOG_GROUP> --since 10h
@@ -367,13 +374,13 @@ aws logs tail <LOG_GROUP> --since 10h
 
 ## Redis
 
-Redis runs as an `aws_elasticache_replication_group` with two nodes (primary plus replica), Multi-AZ and automatic failover. A single `aws_elasticache_cluster` node has no failover: a node or AZ failure means downtime. A replication group promotes the replica automatically and exposes a stable primary endpoint, which the backend uses as `REDIS_HOST`.
+Redis runs as an `aws_elasticache_replication_group`. Prod has two nodes (primary plus replica), Multi-AZ and automatic failover; dev runs one node (`redis_num_cache_clusters = 1`), which turns Multi-AZ and failover off. A single `aws_elasticache_cluster` node has no failover: a node or AZ failure means downtime. A replication group promotes the replica automatically and exposes a stable primary endpoint, which the backend uses as `REDIS_HOST`.
 
 - **Encryption.** At-rest encryption uses the project KMS key. In-transit encryption (TLS) is on, so the backend sets `REDIS_TLS=true`. TLS costs some CPU and a little latency for the handshake and per-message encryption; on `cache.t4g.*` nodes this is negligible for a cache of this size.
 - **AUTH.** The token comes from the `redis-auth` secret and reaches the container as `REDIS_PASSWORD`. AUTH requires transit encryption.
 - **Snapshots.** Daily snapshots (7 days of retention in prod, 1 by default). Maintenance and snapshot windows do not overlap.
 - **Sizing.** Prod uses `cache.t4g.small`, the module default is `cache.t4g.micro`.
-- **Rotating the AUTH token.** Change the `random_password` (for example `terraform apply -replace=module.secrets_manager.random_password.redis`) and apply. ElastiCache applies the new token in place, but running tasks still hold the old value, so force a new ECS deployment right after the apply to pick up the new secret.
+- **Rotating the AUTH token.** Change the `random_password` (for example `terraform -chdir=infrastructure/environments/prod apply -replace=module.stack.module.secrets_manager.random_password.redis`) and apply. ElastiCache applies the new token in place, but running tasks still hold the old value, so force a new ECS deployment right after the apply to pick up the new secret.
 - **Migration note.** Replacing the old `aws_elasticache_cluster` with a replication group recreates Redis. Cached data is lost, which is acceptable for a cache; expect a short window with no Redis during the apply.
 
 ## One-Run ECS Tasks

@@ -3,6 +3,10 @@ resource "aws_acm_certificate" "vpn_client" {
   certificate_body = var.certificate_body
 
   tags = {
-    Name = "client-vpn-ca"
+    Name = "${var.project}-${var.environment}-client-vpn-ca"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }

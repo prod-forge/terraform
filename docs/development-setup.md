@@ -82,14 +82,12 @@ Do not attach `AdministratorAccess`. Create a permission set named `TerraformOpe
 | `iam:CreateServiceLinkedRole` with `iam:AWSServiceName` in `ecs.amazonaws.com`, `elasticloadbalancing.amazonaws.com`, `rds.amazonaws.com`, `elasticache.amazonaws.com`, `ecs.application-autoscaling.amazonaws.com` | Service-linked roles AWS creates on first use |
 | `sts:GetCallerIdentity` | Account lookups |
 
-IAM ARNs this repository creates (account `<account-id>`):
+IAM ARNs this repository creates (account `<account-id>`; `<prefix>` is `<project>-<environment>`, for example `prod-forge-todolist-prod`):
 
-- roles: `role/<project>-*` (GitHub roles, VPC flow logs, e.g. `<project>-vpc-flow-logs-role`), `role/ecs-task-role`, `role/ecs-task-execution-role`, `role/ec2-ecr-role`, `role/<rds-identifier>-enhanced-monitoring`
-- policies: `policy/<project>-*` (GitHub deploy policies), `policy/allow-rds-secret-access`, `policy/ec2-secrets-access`
-- instance profile: `instance-profile/ec2-instance-profile`
-- OIDC provider: `oidc-provider/token.actions.githubusercontent.com`
-
-Several of these names are not project-prefixed yet; the Task 9 renames make the patterns uniform, after which only `<project>-*` remains.
+- roles: `role/<prefix>-*` (GitHub roles, ECS task and task execution roles, monitoring host, VPC flow logs) and `role/<prefix>-postgres-enhanced-monitoring`
+- policies: `policy/<prefix>-*` (GitHub deploy policies, ECS secrets read, monitoring secrets read)
+- instance profile: `instance-profile/<prefix>-monitoring-profile`
+- OIDC provider: `oidc-provider/token.actions.githubusercontent.com` (one per account, created by prod; dev in the same account reads it)
 
 Narrow `Resource` to the project prefix wherever the service supports it. The one-off bootstrap (state bucket) can use a separate, short-lived permission set.
 
@@ -154,22 +152,31 @@ This can corrupt the infrastructure state and cause unpredictable results.
 
 To prevent this, Terraform supports state locking.
 
-In AWS environments, this is typically implemented using:
+This project uses the S3 backend's native lock file (`use_lockfile = true`, Terraform 1.10+):
 
-- **S3** - for storing state
-- **DynamoDB** - for state locking
+- **S3** stores the state (`<key>`) and, while an operation runs, a lock object next to it (`<key>.tflock`), created with a conditional write so only one writer can hold it.
+- No DynamoDB table is needed. The `dynamodb_table` backend argument is deprecated and is not used.
 
-State locking ensures that only one Terraform operation can run at a time.
+State locking ensures that only one Terraform operation can run at a time. A crashed run can leave the lock behind; remove it with `terraform force-unlock <lock-id>` only after confirming nobody else is running Terraform.
+
+Each root has its own state key in the bucket created by the bootstrap:
+
+| Root | State key |
+| --- | --- |
+| `infrastructure/environments/prod` | `infrastructure/terraform.tfstate` (the key of the former `infrastructure/` root, kept so the live state is migrated in place) |
+| `infrastructure/environments/dev` | `environments/dev/terraform.tfstate` |
 
 ## Bootstrap Infrastructure
 
-Because the Terraform backend itself requires infrastructure (S3 bucket and DynamoDB table), it is common to create a
+Because the Terraform backend itself requires infrastructure (the S3 bucket), it is common to create a
 small bootstrap Terraform project.
 
 This bootstrap configuration is responsible for:
 
-- creating the S3 bucket for Terraform state
-- creating the DynamoDB table for state locking
+- creating the S3 bucket for Terraform state (versioned, KMS-encrypted, TLS-only, public access blocked)
+- creating the KMS key that encrypts it
 - preparing the initial infrastructure required for the main Terraform project
 
-Once the bootstrap infrastructure is created, the main Terraform project can safely use the remote backend.
+The bootstrap keeps its own state locally (it creates the bucket the other roots use). Once it is applied, the environment roots can safely use the remote backend.
+
+Earlier versions of the bootstrap also created a DynamoDB lock table. If your bootstrap state still has it, `terraform apply` in `bootstrap/` now destroys it (`aws_dynamodb_table.terraform_locks`). That is safe once no backend configuration references `dynamodb_table`, which is the case for every root in this repository; see [migration-to-environments.md](migration-to-environments.md#1-bootstrap-drop-the-dynamodb-lock-table).

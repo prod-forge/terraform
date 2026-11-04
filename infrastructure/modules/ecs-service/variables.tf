@@ -98,3 +98,13 @@ variable "service_discovery_arn" {
   type        = string
   default     = null
 }
+
+variable "environment" {
+  description = "Environment name (dev, prod), used in resource names"
+  type        = string
+}
+
+variable "task_role_arns" {
+  description = "Task and task execution role ARNs the backend CD may pass to ECS"
+  type        = list(string)
+}

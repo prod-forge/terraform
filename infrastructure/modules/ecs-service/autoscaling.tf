@@ -11,7 +11,7 @@ resource "aws_appautoscaling_target" "ecs" {
 }
 
 resource "aws_appautoscaling_policy" "cpu" {
-  name               = "${var.project}-cpu-target-tracking"
+  name               = "${var.project}-${var.environment}-cpu-target-tracking"
   policy_type        = "TargetTrackingScaling"
   service_namespace  = aws_appautoscaling_target.ecs.service_namespace
   resource_id        = aws_appautoscaling_target.ecs.resource_id
@@ -29,7 +29,7 @@ resource "aws_appautoscaling_policy" "cpu" {
 }
 
 resource "aws_appautoscaling_policy" "requests" {
-  name               = "${var.project}-alb-requests-target-tracking"
+  name               = "${var.project}-${var.environment}-alb-requests-target-tracking"
   policy_type        = "TargetTrackingScaling"
   service_namespace  = aws_appautoscaling_target.ecs.service_namespace
   resource_id        = aws_appautoscaling_target.ecs.resource_id

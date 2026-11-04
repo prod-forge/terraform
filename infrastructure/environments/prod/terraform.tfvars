@@ -1,16 +1,27 @@
-project        = "prod-forge-todolist"
-environment    = "prod"
-region         = "eu-central-1"
-rds_identifier = "prod-forge-database"
-rds_username   = "new_username"
-rds_db_name    = "todolist"
+project     = "prod-forge-todolist"
+environment = "prod"
+region      = "eu-central-1"
+owner       = "devops"
+cost_center = "prod-forge"
+repository  = "github.com/prod-forge/terraform"
+
+app_secret_name             = "prod_forge/backend/config-v1"
+secret_recovery_window_days = 30
+# prod owns the account-wide GitHub OIDC provider; dev in the same account reads it.
+create_github_oidc_provider = true
+
+rds_username = "new_username"
+rds_db_name  = "todolist"
 
 rds_instance_class          = "db.t4g.medium"
 rds_multi_az                = true
 rds_backup_retention_period = 7
 rds_deletion_protection     = true
+# About 80% of max_connections for db.t4g.medium.
+rds_max_connections_alarm = 320
 
 redis_node_type                = "cache.t4g.small"
+redis_num_cache_clusters       = 2
 redis_snapshot_retention_limit = 7
 
 vpc_nat_per_az       = true
@@ -27,6 +38,10 @@ ecs_log_retention_days = 30
 domain_name      = ""
 hosted_zone_name = ""
 api_subdomain    = "api"
+enable_waf       = true
+
+# Reads server.crt, server.key, ca.crt and ca.key from infrastructure/vpn-key (see docs/debugging.md).
+enable_client_vpn = true
 
 # Replace with the real on-call mailbox: alarms and budget notifications go here (the subscription must be confirmed).
 alert_email        = "alerts@example.com"
@@ -35,5 +50,3 @@ monthly_budget_usd = 400
 monitoring_instance_type = "t3.small"
 # Grafana is reachable only from these CIDRs. Empty keeps it closed; use SSM port forwarding.
 admin_cidr_blocks = []
-# About 80% of max_connections for db.t4g.medium.
-rds_max_connections_alarm = 320

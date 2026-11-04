@@ -9,6 +9,10 @@ terraform {
   }
 }
 
+# No backend: the bootstrap state is local because it creates the state bucket.
+# State locking for the other roots is the S3 lock file (use_lockfile), so no
+# DynamoDB table is needed.
+
 provider "aws" {
   region = var.region
 
@@ -16,7 +20,10 @@ provider "aws" {
     tags = {
       Project     = var.project
       Environment = var.environment
-      ManagedBy   = "Terraform"
+      Owner       = var.owner
+      CostCenter  = var.cost_center
+      ManagedBy   = "terraform"
+      Repository  = var.repository
     }
   }
 }

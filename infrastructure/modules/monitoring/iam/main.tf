@@ -1,5 +1,9 @@
+locals {
+  prefix = "${var.project}-${var.environment}"
+}
+
 resource "aws_iam_role" "ec2_role" {
-  name = "ec2-ecr-role"
+  name = "${local.prefix}-monitoring-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -15,7 +19,7 @@ resource "aws_iam_role" "ec2_role" {
 }
 
 resource "aws_iam_policy" "secrets_access" {
-  name = "ec2-secrets-access"
+  name = "${local.prefix}-monitoring-secrets-read"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -39,10 +43,10 @@ resource "aws_iam_policy" "secrets_access" {
   })
 }
 
+# Not conditional on the ARN: a count derived from a not-yet-created bucket
+# cannot be planned on a fresh environment.
 resource "aws_iam_role_policy" "observability_config" {
-  count = var.observability_config_bucket_arn == "" ? 0 : 1
-
-  name = "ec2-observability-config-read"
+  name = "${local.prefix}-observability-config-read"
   role = aws_iam_role.ec2_role.id
 
   policy = jsonencode({
@@ -62,19 +66,25 @@ resource "aws_iam_role_policy" "observability_config" {
   })
 }
 
+moved {
+  from = aws_iam_role_policy.observability_config[0]
+  to   = aws_iam_role_policy.observability_config
+}
+
 resource "aws_iam_role_policy_attachment" "ssm" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-resource "aws_iam_policy_attachment" "ec2_ecr_policy" {
-  name       = "ec2-ecr-policy"
-  roles      = [aws_iam_role.ec2_role.name]
+# A role attachment, not aws_iam_policy_attachment: that resource owns every
+# attachment of the managed policy in the account and would detach other environments.
+resource "aws_iam_role_policy_attachment" "ecr_read" {
+  role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
 resource "aws_iam_instance_profile" "ec2_instance_profile" {
-  name = "ec2-instance-profile"
+  name = "${local.prefix}-monitoring-profile"
   role = aws_iam_role.ec2_role.name
 }
 

@@ -27,9 +27,9 @@ A restore always creates a new instance. The original is left untouched so it ca
 1. Find the restore point.
 
    ```bash
-   aws rds describe-db-instances --db-instance-identifier prod-forge-database \
+   aws rds describe-db-instances --db-instance-identifier prod-forge-todolist-prod-postgres \
      --query 'DBInstances[0].LatestRestorableTime'
-   aws rds describe-db-snapshots --db-instance-identifier prod-forge-database \
+   aws rds describe-db-snapshots --db-instance-identifier prod-forge-todolist-prod-postgres \
      --query 'DBSnapshots[].[DBSnapshotIdentifier,SnapshotCreateTime]' --output table
    ```
 
@@ -38,8 +38,8 @@ A restore always creates a new instance. The original is left untouched so it ca
    ```bash
    # Point in time
    aws rds restore-db-instance-to-point-in-time \
-     --source-db-instance-identifier prod-forge-database \
-     --target-db-instance-identifier prod-forge-database-restore \
+     --source-db-instance-identifier prod-forge-todolist-prod-postgres \
+     --target-db-instance-identifier prod-forge-todolist-prod-postgres-restore \
      --restore-time 2026-01-01T10:00:00Z \
      --db-subnet-group-name <subnet-group> --vpc-security-group-ids <rds-sg-id> \
      --db-parameter-group-name <parameter-group>
@@ -47,7 +47,7 @@ A restore always creates a new instance. The original is left untouched so it ca
    # From a snapshot (use the `<project>-<env>-final` snapshot after a deletion)
    aws rds restore-db-instance-from-db-snapshot \
      --db-snapshot-identifier <snapshot-id> \
-     --db-instance-identifier prod-forge-database-restore \
+     --db-instance-identifier prod-forge-todolist-prod-postgres-restore \
      --db-subnet-group-name <subnet-group> --vpc-security-group-ids <rds-sg-id> \
      --db-parameter-group-name <parameter-group>
    ```
@@ -55,11 +55,11 @@ A restore always creates a new instance. The original is left untouched so it ca
 3. Wait until the instance is available.
 
    ```bash
-   aws rds wait db-instance-available --db-instance-identifier prod-forge-database-restore
+   aws rds wait db-instance-available --db-instance-identifier prod-forge-todolist-prod-postgres-restore
    ```
 
 4. Verify the data through the VPN (see [Debugging](debugging.md)) with `psql`: row counts and the newest records of the main tables.
-5. Switch the application to the restored instance. Prefer reconciling Terraform instead of editing the endpoint by hand: either import the restored instance under the module address (`terraform import`) after removing the broken one from state, or point the `rds_identifier` input at the restored instance. Review the plan before applying.
+5. Switch the application to the restored instance. Prefer reconciling Terraform instead of editing the endpoint by hand: either import the restored instance under the module address (`terraform import`) after removing the broken one from state, or rename the restored instance to the identifier Terraform expects (`<project>-<environment>-postgres`). Review the plan before applying.
 6. Keep the old instance until the application is confirmed healthy, then remove it (turn off deletion protection first, and keep its final snapshot).
 
 The restored instance gets its own master user secret only if `manage_master_user_password` is set in the restore call; otherwise reuse the existing credentials and rotate them afterwards.

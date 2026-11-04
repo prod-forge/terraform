@@ -56,6 +56,11 @@ Built around a simple Todo API, but designed as a real-world production system.
     - [Production Environment (prod)](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#production-environment-prod)
     - [Why Not Use Pre-Production?](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#why-not-use-pre-production)
   - [Key Principle](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#key-principle)
+  - [Layout in the Code](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#layout-in-the-code)
+    - [Differences Between dev and prod](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#differences-between-dev-and-prod)
+    - [One AWS Account or Two](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#one-aws-account-or-two)
+  - [Creating dev](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#creating-dev)
+  - [Cost per Environment](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#cost-per-environment)
 
 <!-- -->
 
@@ -147,8 +152,9 @@ Built around a simple Todo API, but designed as a real-world production system.
   - [Jobs](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#jobs)
   - [Reproducibility](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#reproducibility)
   - [Running locally](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#running-locally)
+  - [Tests](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#tests)
   - [Why there is no terraform plan in CI yet](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#why-there-is-no-terraform-plan-in-ci-yet)
-  - [Baseline](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#baseline-to-be-driven-to-zero)
+  - [Baseline](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#baseline)
 
 <!-- -->
 
@@ -180,6 +186,22 @@ Built around a simple Todo API, but designed as a real-world production system.
   - [Security groups](https://github.com/prod-forge/terraform/blob/main/docs/security.md#security-groups)
   - [IAM](https://github.com/prod-forge/terraform/blob/main/docs/security.md#iam)
   - [Known gaps](https://github.com/prod-forge/terraform/blob/main/docs/security.md#known-gaps)
+
+<!-- -->
+
+- [12. Cost](https://github.com/prod-forge/terraform/blob/main/docs/cost.md)
+  - [Monthly Estimate](https://github.com/prod-forge/terraform/blob/main/docs/cost.md#monthly-estimate)
+  - [Main Levers](https://github.com/prod-forge/terraform/blob/main/docs/cost.md#main-levers)
+
+<!-- -->
+
+- [13. Migration to the Environments Layout](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md)
+  - [What Stays the Same](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md#what-stays-the-same)
+  - [Moved Addresses](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md#moved-addresses)
+  - [What Is Replaced](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md#what-is-replaced)
+  - [Rollout](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md#rollout)
+  - [Expected Downtime](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md#expected-downtime)
+  - [Rollback](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md#rollback)
 
 # Conclusion
 
