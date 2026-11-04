@@ -10,6 +10,10 @@
 
 ## Open
 
+See also the [prod-forge organization](https://github.com/prod-forge).
+
 - Bootstrap: team management (not started; today access is set up by hand, see [Development Setup](docs/development-setup.md))
 - Blue/Green Deployment: would replace the ECS rolling deployment with CodeDeploy shifting traffic between two ALB target groups, giving instant rollback at the cost of a second target group and a CD workflow change (design note in [docs/blue-green.md](docs/blue-green.md), not implemented)
 - EKS: would replace the ECS cluster, service and task definition modules with a Kubernetes cluster, node groups or Fargate profiles and Helm releases, and move Cloud Map discovery to Kubernetes service discovery; the VPC, RDS, Redis, frontend and security modules would stay
+- Terraform plan on pull requests: CI runs fmt, validate, tflint, checkov and terraform-docs but no `terraform plan`
+- Pin GitHub Actions to commit SHAs
