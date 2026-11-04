@@ -47,7 +47,7 @@ If a managed rule blocks legitimate traffic, override that single rule to `count
 
 ## Response headers
 
-The CloudFront response headers policy (see [Frontend](frontend.md#security-headers)) sets HSTS for two years with `includeSubDomains`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin` and the full `Content-Security-Policy` (the enforced source of truth; the web client `index.html` meta tag is only the local-dev fallback and cannot carry `frame-ancestors`, see [Frontend](frontend.md#security-headers)). HSTS `preload` stays off because leaving the preload list takes months; enable it only once every subdomain serves HTTPS.
+The CloudFront response headers policy (see [Frontend](frontend.md#security-headers)) sets HSTS for two years with `includeSubDomains`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin` and the full `Content-Security-Policy` (the enforced source of truth; the web client `index.html` meta tag is only the local-dev fallback and cannot carry `frame-ancestors`, see [Frontend](frontend.md#security-headers)). Without a domain the API origin is plain HTTP on the ALB, which an HTTPS page cannot call (mixed content); that setup is for infrastructure smoke tests only. HSTS `preload` stays off because leaving the preload list takes months; enable it only once every subdomain serves HTTPS.
 
 ## Load balancer hardening
 

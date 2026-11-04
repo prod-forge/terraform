@@ -20,7 +20,7 @@ variable "frontend_role_name" {
 }
 
 variable "api_origin" {
-  description = "Origin of the API (scheme and host, no path) allowed in the CSP connect-src: https://api.<domain>, or http://<alb-dns> without a domain"
+  description = "Origin of the API (scheme and host, no path) allowed in the CSP connect-src: https://api.<domain>, or http://<alb-dns> without a domain (smoke tests only: an HTTPS page cannot call it, mixed content)"
   type        = string
 
   validation {

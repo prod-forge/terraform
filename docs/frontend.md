@@ -50,6 +50,8 @@ A CloudFront response headers policy is attached to every cache behavior: `Stric
 
 The header is the enforced source of truth for the CSP. The web client `index.html` carries the same policy in a `<meta>` tag as a fallback for local development (the Vite dev server has no CloudFront). Only the header can carry `frame-ancestors`; browsers ignore it in a meta tag. The only variable part is the API origin in `connect-src`, passed to the module as `api_origin`: `https://api.<domain>` with a domain, `http://<alb-dns>` without one (the stack passes its `api_url` output). The web client assets are served by the same distribution under `/assets`, so `'self'` covers them. `https://*.sentry.io` covers the Sentry ingest host. There is no `unsafe-eval`.
 
+The no-domain setup (`domain_name = ""`) is for infrastructure smoke tests only: the page is served over HTTPS on `*.cloudfront.net` while the API origin is plain HTTP on the ALB, so browsers block those calls as mixed content regardless of the CSP. A working web client needs a real domain (HTTPS on the ALB).
+
 The policy is asserted in `infrastructure/environments/prod/tests/edge.tftest.hcl` for both branches (with and without a domain). The frontend repo asserts the same string against `index.html` (`apps/web-client/index-csp.test.ts`); change both together.
 
 ## SPA Routing
