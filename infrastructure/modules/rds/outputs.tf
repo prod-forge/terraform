@@ -17,3 +17,7 @@ output "db_name" {
 output "host" {
   value = aws_db_instance.postgres.address
 }
+
+output "kms_key_arn" {
+  value = var.kms_key_arn
+}

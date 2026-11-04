@@ -146,6 +146,15 @@ Built around a simple Todo API, but designed as a real-world production system.
   - [Why there is no terraform plan in CI yet](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#why-there-is-no-terraform-plan-in-ci-yet)
   - [Baseline](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#baseline-to-be-driven-to-zero)
 
+<!-- -->
+
+- [9. Backup and Disaster Recovery](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md)
+  - [Protection in place](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md#protection-in-place)
+  - [Objectives](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md#objectives)
+  - [Restore procedure](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md#restore-procedure)
+  - [Quarterly restore drill](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md#quarterly-restore-drill)
+  - [Not covered](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md#not-covered)
+
 # Conclusion
 
 Building software is not just about writing code.

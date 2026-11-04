@@ -129,6 +129,15 @@ module "rds" {
 
   username = var.rds_username
   db_name  = var.rds_db_name
+
+  project     = var.project
+  environment = var.environment
+  kms_key_arn = module.secrets_manager.kms_arn
+
+  instance_class          = var.rds_instance_class
+  multi_az                = var.rds_multi_az
+  backup_retention_period = var.rds_backup_retention_period
+  deletion_protection     = var.rds_deletion_protection
 }
 
 ############################

@@ -21,3 +21,19 @@ variable "rds_username" {
 variable "rds_db_name" {
   type = string
 }
+
+variable "rds_instance_class" {
+  type = string
+}
+
+variable "rds_multi_az" {
+  type = bool
+}
+
+variable "rds_backup_retention_period" {
+  type = number
+}
+
+variable "rds_deletion_protection" {
+  type = bool
+}
