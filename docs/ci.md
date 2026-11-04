@@ -63,7 +63,7 @@ A plan needs to read real state and refresh live resources, so the job needs AWS
 - `terraform_required_providers` (21): modules do not declare the `aws` (and, in `secrets_manager`, `random`) provider constraint. New modules (`acm-certificate`, `alarms`, `dns`, `logs-bucket`, `waf`) and `frontend` have a `versions.tf`.
 - `terraform_typed_variables`: fixed (`vpc` `cidr`).
 
-### Checkov: 13 failed, 258 passed, 17 skipped inline
+### Checkov: 13 failed, 264 passed, 17 skipped inline
 
 | ID | Check | Resources |
 | --- | --- | --- |

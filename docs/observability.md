@@ -41,6 +41,8 @@ The stack is provisioned by Terraform:
 - The `service-discovery` module creates the Cloud Map namespace `<project>.local` and the `backend` service (A records, TTL 10). The ECS service registers every task there; Prometheus resolves `backend.<project>.local` with `dns_sd_configs` and scrapes port 3000 (job `nestjs-app`). The ECS security group allows port 3000 from the monitoring security group.
 - Grafana (3000) is open only to `admin_cidr_blocks`. Prometheus is bound to `127.0.0.1:9090` on the host and is not exposed; the admin user is `admin`.
 
+Adding `service_registries` to the already running ECS service is an in-place update, not a replacement: in the locked AWS provider (6.47.0) the argument has no `ForceNew`, and the update handler sends it through `UpdateService`. The service keeps running and ECS registers the running tasks in Cloud Map on the update's new deployment. Prometheus finds no targets until that deployment has finished.
+
 ### Rolling out configuration changes
 
 The host pulls configuration only at boot and when the sync script runs. After `terraform apply` updates the bucket, a running host keeps the old configuration until it is re-synced (or the instance is replaced). Re-sync through SSM, with no SSH:

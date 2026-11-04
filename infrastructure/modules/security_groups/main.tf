@@ -38,23 +38,25 @@ resource "aws_security_group" "alb_sg" {
 
 resource "aws_security_group" "ecs_sg" {
   name_prefix = "${var.project}-ecs-sg-"
-  description = "ECS tasks: ingress from the ALB, egress to HTTPS, RDS and Redis"
+  description = "ECS tasks: ingress from the ALB and the monitoring host, egress to HTTPS, RDS and Redis"
   vpc_id      = var.vpc_id
-
-  ingress {
-    description     = "Application port from the ALB"
-    from_port       = 3000
-    to_port         = 3000
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb_sg.id]
-  }
 
   lifecycle {
     create_before_destroy = true
   }
 }
 
-# Egress rules are separate resources because RDS and Redis groups reference ecs_sg in their ingress.
+# Rules of ecs_sg are separate resources: the monitoring ingress rule is added from the root, and inline
+# rules cannot be mixed with standalone ones. Egress is split because RDS and Redis reference ecs_sg too.
+
+resource "aws_vpc_security_group_ingress_rule" "ecs_from_alb" {
+  security_group_id            = aws_security_group.ecs_sg.id
+  description                  = "Application port from the ALB"
+  ip_protocol                  = "tcp"
+  from_port                    = 3000
+  to_port                      = 3000
+  referenced_security_group_id = aws_security_group.alb_sg.id
+}
 
 resource "aws_vpc_security_group_egress_rule" "ecs_https" {
   security_group_id = aws_security_group.ecs_sg.id
