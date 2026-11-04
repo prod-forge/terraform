@@ -62,3 +62,32 @@ variable "jwt_secret_arn" {
   description = "JWT signing secret ARN"
   type        = string
 }
+
+variable "region" {
+  description = "AWS region for the awslogs driver"
+  type        = string
+}
+
+variable "image_tag" {
+  description = "Image tag of the initial task definition revision; also exposed as APP_VERSION"
+  type        = string
+  default     = "initial"
+}
+
+variable "cpu" {
+  description = "Task CPU units"
+  type        = number
+  default     = 256
+}
+
+variable "memory" {
+  description = "Task memory (MiB)"
+  type        = number
+  default     = 512
+}
+
+variable "log_retention_days" {
+  description = "CloudWatch retention for application and migration logs"
+  type        = number
+  default     = 7
+}

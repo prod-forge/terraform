@@ -40,7 +40,11 @@ module "secrets_manager" {
 ############################
 
 module "vpc" {
-  source = "./modules/vpc"
+  source  = "./modules/vpc"
+  project = var.project
+
+  nat_per_az           = var.vpc_nat_per_az
+  enable_vpc_endpoints = var.vpc_enable_endpoints
 }
 
 ############################
@@ -61,8 +65,10 @@ module "iam" {
 ############################
 
 module "security_groups" {
-  source = "./modules/security_groups"
-  vpc_id = module.vpc.vpc_id
+  source   = "./modules/security_groups"
+  vpc_id   = module.vpc.vpc_id
+  vpc_cidr = module.vpc.vpc_cidr
+  project  = var.project
 }
 
 ############################
@@ -93,14 +99,24 @@ module "ecs_cluster" {
 module "ecs_service" {
   source                   = "./modules/ecs-service"
   ecs_cluster_id           = module.ecs_cluster.ecs_cluster_id
+  ecs_cluster_name         = module.ecs_cluster.ecs_cluster_name
   ecs_task_definition_arn  = module.task_definition.ecs_task_definition_arn
-  public_subnet_ids        = module.vpc.public_subnet_ids
+  private_subnet_ids       = module.vpc.private_subnet_ids
   sg_ecs_id                = module.security_groups.sg_ecs_id
   lb_target_group_arn      = module.load_balancer.lb_target_group_arn
   depends_on               = [module.load_balancer.lb_listener]
   project                  = var.project
   github_actions_role_name = module.github_oidc.github_actions_role_name
   aws_account_id           = data.aws_caller_identity.current.account_id
+
+  task_definition_family           = module.task_definition.task_definition_family
+  migration_task_definition_family = "${var.project}-migration-task"
+  lb_arn_suffix                    = module.load_balancer.lb_arn_suffix
+  lb_target_group_arn_suffix       = module.load_balancer.lb_target_group_arn_suffix
+
+  desired_count = var.ecs_desired_count
+  min_capacity  = var.ecs_min_capacity
+  max_capacity  = var.ecs_max_capacity
 }
 
 ############################
@@ -122,6 +138,11 @@ module "task_definition" {
   redis_auth_secret_arn   = module.secrets_manager.redis_auth_secret_arn
   jwt_secret_arn          = module.secrets_manager.jwt_secret_arn
   project                 = var.project
+  region                  = var.region
+
+  cpu                = var.ecs_task_cpu
+  memory             = var.ecs_task_memory
+  log_retention_days = var.ecs_log_retention_days
 }
 
 ############################

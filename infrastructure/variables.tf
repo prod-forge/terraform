@@ -45,3 +45,35 @@ variable "redis_node_type" {
 variable "redis_snapshot_retention_limit" {
   type = number
 }
+
+variable "vpc_nat_per_az" {
+  type = bool
+}
+
+variable "vpc_enable_endpoints" {
+  type = bool
+}
+
+variable "ecs_desired_count" {
+  type = number
+}
+
+variable "ecs_min_capacity" {
+  type = number
+}
+
+variable "ecs_max_capacity" {
+  type = number
+}
+
+variable "ecs_task_cpu" {
+  type = number
+}
+
+variable "ecs_task_memory" {
+  type = number
+}
+
+variable "ecs_log_retention_days" {
+  type = number
+}

@@ -2,15 +2,28 @@ resource "aws_ecs_task_definition" "app" {
   family                   = "${var.project}-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256"
-  memory                   = "512"
+  cpu                      = var.cpu
+  memory                   = var.memory
   execution_role_arn       = var.task_execution_role_arn
   task_role_arn            = var.task_role_arn
 
   container_definitions = jsonencode([
     {
       name  = var.project
-      image = "${var.repository_url}:initial"
+      image = "${var.repository_url}:${var.image_tag}"
+
+      # The backend drains for 10s and then waits up to 20s for in-flight requests,
+      # so 60s leaves headroom before ECS sends SIGKILL.
+      stopTimeout = 60
+
+      # NestJS and Prisma write to the filesystem at runtime (temp files, engine cache).
+      readonlyRootFilesystem = false
+
+      # Required by ECS Exec and reaps zombie processes.
+      linuxParameters = {
+        initProcessEnabled = true
+      }
+
       portMappings = [
         {
           containerPort = 3000
@@ -20,8 +33,12 @@ resource "aws_ecs_task_definition" "app" {
 
       environment = [
         {
-          name  = "NODE_TLS_REJECT_UNAUTHORIZED"
-          value = "0"
+          name  = "NODE_ENV"
+          value = "production"
+        },
+        {
+          name  = "APP_VERSION"
+          value = var.image_tag
         },
         {
           name  = "DATABASE_USER"
@@ -80,7 +97,7 @@ resource "aws_ecs_task_definition" "app" {
         logDriver = "awslogs"
         options = {
           awslogs-group         = "/ecs/${var.project}"
-          awslogs-region        = "eu-central-1"
+          awslogs-region        = var.region
           awslogs-stream-prefix = "ecs"
         }
       }
@@ -89,11 +106,15 @@ resource "aws_ecs_task_definition" "app" {
 }
 
 resource "aws_cloudwatch_log_group" "ecs" {
+  #checkov:skip=CKV_AWS_158: encrypted at rest with the CloudWatch Logs service key; a dedicated CMK for logs is not provisioned yet
+  #checkov:skip=CKV_AWS_338: application logs are operational, not audit records; retention is set by var.log_retention_days to bound cost
   name              = "/ecs/${var.project}"
-  retention_in_days = 7
+  retention_in_days = var.log_retention_days
 }
 
 resource "aws_cloudwatch_log_group" "ecs_migration" {
+  #checkov:skip=CKV_AWS_158: encrypted at rest with the CloudWatch Logs service key; a dedicated CMK for logs is not provisioned yet
+  #checkov:skip=CKV_AWS_338: migration logs are operational, not audit records; retention is set by var.log_retention_days to bound cost
   name              = "/ecs/${var.project}-task-migration"
-  retention_in_days = 3
+  retention_in_days = var.log_retention_days
 }

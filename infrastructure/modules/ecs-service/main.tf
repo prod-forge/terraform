@@ -2,6 +2,17 @@
 # GitHub Actions ECS Permissions
 ############################################################
 
+data "aws_region" "current" {}
+
+locals {
+  ecs_arn_prefix = "arn:aws:ecs:${data.aws_region.current.region}:${var.aws_account_id}"
+
+  task_definition_family_arns = [
+    "${local.ecs_arn_prefix}:task-definition/${var.task_definition_family}:*",
+    "${local.ecs_arn_prefix}:task-definition/${var.migration_task_definition_family}:*",
+  ]
+}
+
 resource "aws_iam_policy" "ecs_deploy" {
   name = "github-actions-ecs-policy"
 
@@ -9,23 +20,50 @@ resource "aws_iam_policy" "ecs_deploy" {
     Version = "2012-10-17"
     Statement = [
       {
+        Sid      = "Cluster"
+        Effect   = "Allow"
+        Action   = ["ecs:DescribeClusters"]
+        Resource = var.ecs_cluster_id
+      },
+      {
+        Sid      = "Service"
+        Effect   = "Allow"
+        Action   = ["ecs:UpdateService", "ecs:DescribeServices"]
+        Resource = aws_ecs_service.app.id
+      },
+      {
+        Sid      = "RunTask"
+        Effect   = "Allow"
+        Action   = ["ecs:RunTask", "ecs:TagResource"]
+        Resource = local.task_definition_family_arns
+      },
+      {
+        Sid      = "Tasks"
+        Effect   = "Allow"
+        Action   = ["ecs:DescribeTasks"]
+        Resource = "${local.ecs_arn_prefix}:task/${var.ecs_cluster_name}/*"
+      },
+      {
+        Sid      = "ListTasks"
+        Effect   = "Allow"
+        Action   = ["ecs:ListTasks"]
+        Resource = "${local.ecs_arn_prefix}:container-instance/${var.ecs_cluster_name}/*"
+        Condition = {
+          ArnEquals = { "ecs:cluster" = var.ecs_cluster_id }
+        }
+      },
+      {
+        # These actions do not support resource-level permissions.
+        Sid    = "TaskDefinitions"
         Effect = "Allow"
         Action = [
-          "ecs:RunTask",
-          "ecs:DeregisterTaskDefinition",
-          "ecs:DescribeClusters",
-          "ecs:DescribeTaskDefinition",
           "ecs:RegisterTaskDefinition",
-          "ecs:UpdateService",
-          "ecs:DescribeServices",
-          "ecs:ListTasks",
-          "ecs:DescribeTasks",
+          "ecs:DeregisterTaskDefinition",
+          "ecs:DescribeTaskDefinition",
           "ecs:ListTaskDefinitions",
-          "ecs:TagResource",
-          "rds:DescribeDBInstances",
         ]
         Resource = "*"
-      }
+      },
     ]
   })
 }
@@ -67,20 +105,23 @@ resource "aws_ecs_service" "app" {
   cluster         = var.ecs_cluster_id
   task_definition = var.ecs_task_definition_arn
 
-  desired_count = 1
+  desired_count = var.desired_count
 
   lifecycle {
-    ignore_changes = [task_definition]
+    # task_definition is rolled by CD; desired_count is owned by Application Auto Scaling.
+    ignore_changes = [task_definition, desired_count]
   }
 
+  # Changing launch_type forces a new service, so it stays FARGATE; see docs/scaling.md for Spot.
   launch_type = "FARGATE"
 
   enable_execute_command = true
+  propagate_tags         = "SERVICE"
 
   network_configuration {
-    subnets          = var.public_subnet_ids
+    subnets          = var.private_subnet_ids
     security_groups  = [var.sg_ecs_id]
-    assign_public_ip = true
+    assign_public_ip = false
   }
 
   load_balancer {
@@ -89,6 +130,24 @@ resource "aws_ecs_service" "app" {
     container_port   = 3000
   }
 
+  dynamic "service_registries" {
+    for_each = var.service_discovery_arn == null ? [] : [var.service_discovery_arn]
+
+    content {
+      registry_arn = service_registries.value
+    }
+  }
+
+  deployment_controller {
+    type = "ECS"
+  }
+
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
+  health_check_grace_period_seconds  = 60
   deployment_minimum_healthy_percent = 100
   deployment_maximum_percent         = 200
 }

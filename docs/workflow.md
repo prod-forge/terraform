@@ -226,6 +226,19 @@ AWS Console → ECS → Clusters
 
 The cluster will be used to run our backend services using AWS Fargate.
 
+- **Container Insights** runs in `enhanced` mode, so per-task CPU, memory, network and restart metrics show up in CloudWatch → Container Insights.
+- **Capacity providers.** `FARGATE` and `FARGATE_SPOT` are registered, and the default strategy is 100% `FARGATE`. See [Scaling](scaling.md#fargate-spot-trade-off) for when Spot makes sense.
+
+### Networking
+
+ECS tasks run in private subnets and get no public IP. Outbound traffic leaves through NAT gateways (one per AZ in prod, one shared NAT gateway by default) via a private route table per AZ with `0.0.0.0/0` → NAT.
+
+- **VPC endpoints.** An S3 gateway endpoint is always on (ECR image layers live in S3). With `enable_vpc_endpoints = true` (prod), interface endpoints for `ecr.api`, `ecr.dkr`, `secretsmanager`, `logs` and `ssmmessages` keep image pulls, secret reads, log delivery and ECS Exec inside the VPC instead of going through NAT.
+- **Security group.** The ECS group allows ingress only on port 3000 from the ALB group. Egress is limited to HTTPS (443, for AWS APIs and external services such as Sentry), PostgreSQL 5432 to the RDS group and Redis 6379 to the Redis group.
+- **Flow logs.** VPC flow logs (all traffic) go to the `/vpc/<project>-flow-logs` log group with 30 days of retention.
+
+Without the NAT route or the endpoints, tasks in private subnets cannot pull images from ECR or read secrets from Secrets Manager, and the deployment fails with `CannotPullContainerError` or `ResourceInitializationError`.
+
 ## Application Load Balancer (ALB)
 
 Once the Application Load Balancer is created, you can verify it using the AWS CLI:
@@ -280,20 +293,37 @@ This will show information such as:
 - deployment status
 - load balancer configuration
 
+Service behavior:
+
+- **Auto scaling.** Application Auto Scaling keeps between `min_capacity` and `max_capacity` tasks (prod: 2 to 10) with target tracking on CPU (60%) and on ALB requests per target (1000). Terraform ignores `desired_count` after creation. Details and load test steps are in [Scaling](scaling.md).
+- **Deployment circuit breaker** with automatic rollback: a deployment whose tasks keep failing is rolled back to the previous task definition.
+- **Health check grace period** of 60 seconds before ALB health checks can mark a new task unhealthy.
+- **Tags** from the service are propagated to its tasks (`propagate_tags = "SERVICE"`).
+- **Service discovery** (`service_discovery_arn`) is off until a Cloud Map namespace exists.
+
+### IAM
+
+- The **task execution role** (used by the ECS agent) has `AmazonECSTaskExecutionRolePolicy` plus read access to the RDS, Redis AUTH and JWT secrets and `kms:Decrypt` on the project key.
+- The **task role** (used by the application) only allows the `ssmmessages` channel actions needed by ECS Exec.
+- The **GitHub Actions** deploy policy is scoped to the cluster, the service, the application and migration task definition families and the cluster's tasks. Only the task definition actions that do not support resource-level permissions (`Register`, `Deregister`, `Describe`, `ListTaskDefinitions`) use `*`.
+
 ## Task Definition
 
 A Task Definition describes how our backend application should run inside ECS.
 
 When using AWS Fargate, we define the compute resources allocated to the container.
 
-Example configuration:
-
-```shell
-cpu    = "256"
-memory = "512"
-```
+Task size is set by the `cpu` and `memory` module variables: 256 / 512 MiB by default, 512 / 1024 MiB in prod.
 
 This defines the virtual machine resources that will be allocated to the containerized service.
+
+Container settings worth knowing:
+
+- `NODE_ENV=production` and `APP_VERSION` (the image tag of the revision) are set in the environment. TLS certificate verification is never disabled.
+- `stopTimeout = 60`: the backend drains for 10 s and waits up to 20 s for in-flight requests on SIGTERM, so 60 s leaves headroom before SIGKILL. Keep it above the sum of the backend timeouts.
+- `linuxParameters.initProcessEnabled = true`: runs an init process as PID 1, which ECS Exec needs and which reaps zombie processes.
+- `readonlyRootFilesystem = false`: NestJS and Prisma write to the container filesystem at runtime.
+- Logs go to the `/ecs/<project>` log group in the configured region; retention is `log_retention_days` (7 by default, 30 in prod).
 
 The task definition also specifies the Docker image that will be deployed.
 
@@ -357,3 +387,5 @@ CI/CD → run migration task → apply schema changes → deploy new application
 ```
 
 Because database migrations follow a forward-only strategy, running them before application deployment is safe.
+
+The migration task runs in the same private subnets and security group as the service, so it needs no public IP. The backend `ecs/migration-task.json` run must use `assignPublicIp=DISABLED`.

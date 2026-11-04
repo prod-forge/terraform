@@ -72,8 +72,10 @@ Built around a simple Todo API, but designed as a real-world production system.
     - [Terraform Setup](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#terraform-setup)
     - [Why OIDC is Recommended](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#why-oidc-is-recommended)
   - [ECS Cluster](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#ecs-cluster)
+    - [Networking](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#networking)
   - [Application Load Balancer (ALB)](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#application-load-balancer-alb)
   - [ECS Service](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#ecs-service)
+    - [IAM](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#iam)
   - [Task Definition](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#task-definition)
   - [One-Run ECS Tasks](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#one-run-ecs-tasks)
 
@@ -154,6 +156,15 @@ Built around a simple Todo API, but designed as a real-world production system.
   - [Restore procedure](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md#restore-procedure)
   - [Quarterly restore drill](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md#quarterly-restore-drill)
   - [Not covered](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md#not-covered)
+
+<!-- -->
+
+- [10. Scaling](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md)
+  - [Capacity model](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md#capacity-model)
+  - [Scaling policies](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md#scaling-policies)
+  - [Deployments and shutdown](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md#deployments-and-shutdown)
+  - [How to load-test the policies](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md#how-to-load-test-the-policies)
+  - [Fargate Spot trade-off](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md#fargate-spot-trade-off)
 
 # Conclusion
 

@@ -34,6 +34,8 @@ No modules.
 
 | Name | Description |
 | ---- | ----------- |
+| <a name="output_lb_arn_suffix"></a> [lb\_arn\_suffix](#output\_lb\_arn\_suffix) | n/a |
 | <a name="output_lb_listener"></a> [lb\_listener](#output\_lb\_listener) | n/a |
 | <a name="output_lb_target_group_arn"></a> [lb\_target\_group\_arn](#output\_lb\_target\_group\_arn) | n/a |
+| <a name="output_lb_target_group_arn_suffix"></a> [lb\_target\_group\_arn\_suffix](#output\_lb\_target\_group\_arn\_suffix) | n/a |
 <!-- END_TF_DOCS -->
