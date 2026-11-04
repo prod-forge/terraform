@@ -123,12 +123,12 @@ terraform -chdir=infrastructure/environments/<env> apply -target='module.stack.m
 
 The secret is named by `app_secret_name`: `prod_forge/backend/config-v1` in prod and `prod_forge/backend/dev/config-v1` in dev (names are unique per account). The examples use the prod name.
 
-Store secrets using the following command:
+The task definition reads one key from this secret: `SENTRY_DSN`, and only when `backend_config.sentry_enabled = true` (the backend sends events only when `SENTRY_ENABLED=true` and a DSN is set). The database password, Redis AUTH token and JWT secret are not stored here; they come from the RDS-managed secret and the generated secrets below. Store the value before enabling Sentry, otherwise new tasks fail to start:
 
 ```shell
 aws secretsmanager put-secret-value \
   --secret-id prod_forge/backend/config-v1 \
-  --secret-string '{"SOME_SECRET":"secret"}'
+  --secret-string '{"SENTRY_DSN":"https://<public-key>@<org>.ingest.sentry.io/<project-id>"}'
 ```
 
 Retrieve a secret value:
@@ -144,7 +144,7 @@ aws secretsmanager get-secret-value \
 aws secretsmanager get-secret-value \
   --secret-id prod_forge/backend/config-v1 \
   --query SecretString \
-  --output text | jq -r '.SOME_SECRET'
+  --output text | jq -r '.SENTRY_DSN'
 ```
 
 ### Generated secrets
@@ -336,7 +336,7 @@ Service behavior:
 
 ### IAM
 
-- The **task execution role** (used by the ECS agent) has `AmazonECSTaskExecutionRolePolicy` plus read access to the RDS, Redis AUTH and JWT secrets and `kms:Decrypt` on the project key.
+- The **task execution role** (used by the ECS agent) has `AmazonECSTaskExecutionRolePolicy` plus read access to the RDS, Redis AUTH and JWT secrets and the app config secret (`app_secret_name`, `SENTRY_DSN`), and `kms:Decrypt` on the project key.
 - The **task role** (used by the application) only allows the `ssmmessages` channel actions needed by ECS Exec.
 - The **GitHub Actions** (backend role) deploy policy is scoped to the cluster, the service, the application and migration task definition families and the cluster's tasks. Only the task definition actions that do not support resource-level permissions (`Register`, `Deregister`, `Describe`, `ListTaskDefinitions`) use `*`. `iam:PassRole` is limited to the ARNs of this environment's task and execution roles and to `ecs-tasks.amazonaws.com` (`iam:PassedToService`).
 
@@ -353,12 +353,59 @@ This defines the virtual machine resources that will be allocated to the contain
 Container settings worth knowing:
 
 - `NODE_ENV=production` is set in the environment. The reported app version comes from the image's `package.json`, not from the task definition, because CD only swaps the image when it registers a new revision. TLS certificate verification is never disabled.
+- The image contains no `.env` files, so the task definition sets every variable the backend validates (see [Backend configuration](#backend-configuration)).
 - `stopTimeout = 60`: the backend drains for 10 s and waits up to 20 s for in-flight requests on SIGTERM, so 60 s leaves headroom before SIGKILL. Keep it above the sum of the backend timeouts.
 - `linuxParameters.initProcessEnabled = true`: runs an init process as PID 1, which ECS Exec needs and which reaps zombie processes.
 - `readonlyRootFilesystem = false`: NestJS and Prisma write to the container filesystem at runtime.
 - Logs go to the `/ecs/<project>-<environment>` log group in the configured region; retention is `log_retention_days` (7 by default, 30 in prod).
 
 The task definition also specifies the Docker image that will be deployed.
+
+### Backend configuration
+
+The backend validates its configuration at startup (`src/config/*.config.ts` in the backend repository) and runs on the defaults of any variable that is not set. The task definition sets all of them except `APP_NAME`, `APP_DESCRIPTION` and `APP_VERSION`, which come from the image's `package.json`. The migration task (`ecs/migration-task.json` in the backend repository) is rendered by CD from the `environment` and `secrets` of the current application task definition, so it gets the same set.
+
+Fixed by the infrastructure (module constants):
+
+| Variable | Value | Why |
+| --- | --- | --- |
+| `NODE_ENV` | `production` | |
+| `APP_HOST`, `APP_PORT` | `0.0.0.0`, `3000` | container port, target group and Prometheus scrape port |
+| `API_PREFIX` | `api` | the web and mobile clients call `/api/v1` |
+| `API_ALLOWED_ORIGINS` | `["https://<domain_name>", "https://<cloudfront domain>"]` | CORS for the web client; the custom domain only when `domain_name` is set |
+| `TRUST_PROXY` | `1` | one hop (the ALB), so throttling and logs use the client address |
+| `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER` | RDS outputs | |
+| `DATABASE_SSL` | `true` | RDS enforces TLS; the backend image trusts the RDS CA bundle (`NODE_EXTRA_CA_CERTS`) |
+| `REDIS_ENABLED`, `REDIS_HOST`, `REDIS_PORT`, `REDIS_TLS` | `true`, replication group endpoint, `6379`, `true` | |
+| `LOG_PRETTY` | `false` | JSON lines for CloudWatch Logs |
+| `SWAGGER_ENABLED` | `false` | the backend never serves API docs with `NODE_ENV=production` |
+
+Tunables, set per environment in `backend_config` (`terraform.tfvars`); an omitted attribute uses the backend default:
+
+| `backend_config` attribute | Variable | Default | prod | dev |
+| --- | --- | --- | --- | --- |
+| `log_level` | `LOG_LEVEL` | `info` | `info` | `trace` |
+| `log_exclude_endpoints` | `LOG_EXCLUDE_ENDPOINTS` | `[]` | default | default |
+| `database_log_levels` | `DATABASE_LOG_LEVELS` | `[]` | `["warn","error"]` | `["warn","error"]` |
+| `database_pool_max` | `DATABASE_POOL_MAX` | `10` | `10` | `5` |
+| `database_connect_timeout_ms` | `DATABASE_CONNECT_TIMEOUT_MS` | `5000` | default | default |
+| `database_statement_timeout_ms` | `DATABASE_STATEMENT_TIMEOUT_MS` | `5000` | default | default |
+| `database_fail_fast` | `DATABASE_FAIL_FAST` | `true` | default | default |
+| `jwt_ttl` | `JWT_TTL` (seconds) | `3600` | `3600` | `3600` |
+| `throttle_enabled` | `THROTTLE_ENABLED` | `true` | `true` | `true` |
+| `throttle_limit` | `THROTTLE_LIMIT` | `60` | `60` | `60` |
+| `throttle_ttl` | `THROTTLE_TTL` (ms) | `60000` | `60000` | `60000` |
+| `shutdown_drain_ms` | `SHUTDOWN_DRAIN_MS` | `10000` | `10000` | `10000` |
+| `shutdown_inflight_timeout_ms` | `SHUTDOWN_INFLIGHT_TIMEOUT_MS` | `20000` | `20000` | `20000` |
+| `health_check_trigger_ms` | `HEALTH_CHECK_TRIGGER_MS` | `15000` | default | default |
+| `api_allowed_non_browser_origins` | `API_ALLOWED_NON_BROWSER_ORIGINS` | `true` | default | default |
+| `sentry_enabled` | `SENTRY_ENABLED` (and the `SENTRY_DSN` secret) | `false` | `false` | `false` |
+| `sentry_ignored_errors` | `SENTRY_IGNORED_ERRORS` | `[]` | default | default |
+| `otel_exporter_otlp_endpoint` | `OTEL_EXPORTER_OTLP_ENDPOINT` (omitted when empty) | `""` | default | default |
+
+The two shutdown values must stay below the 60 s `stopTimeout` (validated). Secrets (`secrets`, never `environment`): `DATABASE_PASSWORD` from the RDS-managed master secret (`password` key), `REDIS_PASSWORD` from `redis-auth`, `JWT_SECRET` from `jwt-secret`, and `SENTRY_DSN` from the app config secret when Sentry is enabled.
+
+A changed environment takes effect with the next backend release: the ECS service ignores `task_definition` (CD owns it), and CD registers each release from the latest revision of the family, so it carries the new environment with the new image.
 
 You can see logs from the container:
 

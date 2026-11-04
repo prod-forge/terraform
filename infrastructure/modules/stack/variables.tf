@@ -93,6 +93,31 @@ variable "ecs_log_retention_days" {
   type = number
 }
 
+variable "backend_config" {
+  description = "Backend tunables for the task environment; omitted attributes use the backend defaults (modules/task_definition)"
+  type = object({
+    log_level                       = optional(string)
+    log_exclude_endpoints           = optional(list(string))
+    database_log_levels             = optional(list(string))
+    database_pool_max               = optional(number)
+    database_connect_timeout_ms     = optional(number)
+    database_statement_timeout_ms   = optional(number)
+    database_fail_fast              = optional(bool)
+    jwt_ttl                         = optional(number)
+    throttle_enabled                = optional(bool)
+    throttle_limit                  = optional(number)
+    throttle_ttl                    = optional(number)
+    shutdown_drain_ms               = optional(number)
+    shutdown_inflight_timeout_ms    = optional(number)
+    health_check_trigger_ms         = optional(number)
+    api_allowed_non_browser_origins = optional(bool)
+    sentry_enabled                  = optional(bool)
+    sentry_ignored_errors           = optional(list(string))
+    otel_exporter_otlp_endpoint     = optional(string)
+  })
+  default = {}
+}
+
 variable "domain_name" {
   description = "Web client domain (for example example.com). Empty keeps HTTP on the ALB and the default CloudFront certificate"
   type        = string

@@ -20,7 +20,8 @@ resource "aws_iam_role" "ecs_task_execution_role" {
 }
 
 # Read access to every secret injected into the task definition (database
-# password, Redis AUTH token, JWT signing secret) and their KMS key.
+# password, Redis AUTH token, JWT signing secret, the app config secret that
+# holds SENTRY_DSN) and their KMS key.
 resource "aws_iam_policy" "secrets_read" {
   name = "${local.prefix}-ecs-secrets-read"
 
@@ -32,7 +33,7 @@ resource "aws_iam_policy" "secrets_read" {
         Action = [
           "secretsmanager:GetSecretValue"
         ]
-        Resource = [var.db_secret_arn, var.redis_auth_secret_arn, var.jwt_secret_arn]
+        Resource = [var.db_secret_arn, var.redis_auth_secret_arn, var.jwt_secret_arn, var.app_secret_arn]
       },
       {
         Effect = "Allow"

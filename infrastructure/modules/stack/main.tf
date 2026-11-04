@@ -8,6 +8,12 @@ locals {
   name             = "${var.project}-${var.environment}"
   hosted_zone_name = var.hosted_zone_name != "" ? var.hosted_zone_name : var.domain_name
   api_domain_name  = var.domain_name != "" ? "${var.api_subdomain}.${var.domain_name}" : ""
+
+  # CORS origins of the web client: the custom domain (when set) and the CloudFront domain.
+  api_allowed_origins = concat(
+    var.domain_name != "" ? ["https://${var.domain_name}"] : [],
+    ["https://${module.frontend.cloudfront_domain_name}"],
+  )
 }
 
 ############################
@@ -73,6 +79,7 @@ module "iam" {
 
   redis_auth_secret_arn = module.secrets_manager.redis_auth_secret_arn
   jwt_secret_arn        = module.secrets_manager.jwt_secret_arn
+  app_secret_arn        = module.secrets_manager.secret_arn
 }
 
 ############################
@@ -244,6 +251,7 @@ module "task_definition" {
   redis_port              = module.redis.redis_port
   redis_auth_secret_arn   = module.secrets_manager.redis_auth_secret_arn
   jwt_secret_arn          = module.secrets_manager.jwt_secret_arn
+  app_secret_arn          = module.secrets_manager.secret_arn
   project                 = var.project
   environment             = var.environment
   region                  = var.region
@@ -252,6 +260,9 @@ module "task_definition" {
   cpu                = var.ecs_task_cpu
   memory             = var.ecs_task_memory
   log_retention_days = var.ecs_log_retention_days
+
+  api_allowed_origins = local.api_allowed_origins
+  backend_config      = var.backend_config
 }
 
 ############################

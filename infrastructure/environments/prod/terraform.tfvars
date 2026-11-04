@@ -37,6 +37,22 @@ ecs_task_cpu           = 512
 ecs_task_memory        = 1024
 ecs_log_retention_days = 30
 
+# Backend tunables (task environment). Omitted attributes use the backend defaults.
+# Sentry: put {"SENTRY_DSN":"<dsn>"} into the app_secret_name secret first, then set sentry_enabled = true.
+backend_config = {
+  log_level           = "info"
+  database_log_levels = ["warn", "error"]
+  # ecs_max_capacity (10) x 10 stays well below max_connections of db.t4g.medium.
+  database_pool_max            = 10
+  jwt_ttl                      = 3600
+  throttle_enabled             = true
+  throttle_limit               = 60
+  throttle_ttl                 = 60000
+  shutdown_drain_ms            = 10000
+  shutdown_inflight_timeout_ms = 20000
+  sentry_enabled               = false
+}
+
 # Set to the owned domain to enable HTTPS on the ALB, the CloudFront custom domain and DNS records.
 domain_name       = ""
 hosted_zone_name  = ""

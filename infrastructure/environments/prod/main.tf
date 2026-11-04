@@ -61,6 +61,7 @@ module "stack" {
   ecs_task_cpu           = var.ecs_task_cpu
   ecs_task_memory        = var.ecs_task_memory
   ecs_log_retention_days = var.ecs_log_retention_days
+  backend_config         = var.backend_config
 
   domain_name      = var.domain_name
   hosted_zone_name = var.hosted_zone_name

@@ -31,6 +31,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_app_secret_arn"></a> [app\_secret\_arn](#input\_app\_secret\_arn) | Manually filled application config secret ARN (SENTRY\_DSN) | `string` | n/a | yes |
 | <a name="input_db_secret_arn"></a> [db\_secret\_arn](#input\_db\_secret\_arn) | ARN of the RDS-managed master user secret | `string` | n/a | yes |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, prod), used in resource names | `string` | n/a | yes |
 | <a name="input_jwt_secret_arn"></a> [jwt\_secret\_arn](#input\_jwt\_secret\_arn) | JWT signing secret ARN | `string` | n/a | yes |

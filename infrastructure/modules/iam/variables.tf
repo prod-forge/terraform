@@ -27,3 +27,8 @@ variable "jwt_secret_arn" {
   description = "JWT signing secret ARN"
   type        = string
 }
+
+variable "app_secret_arn" {
+  description = "Manually filled application config secret ARN (SENTRY_DSN)"
+  type        = string
+}

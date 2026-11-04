@@ -1,5 +1,91 @@
 locals {
   prefix = "${var.project}-${var.environment}"
+  cfg    = var.backend_config
+
+  # The image has no .env files: every var the backend validates is set here. APP_NAME,
+  # APP_DESCRIPTION and APP_VERSION keep their package.json defaults from the image.
+  environment = {
+    NODE_ENV = "production"
+
+    APP_HOST                     = "0.0.0.0"
+    APP_PORT                     = "3000"
+    SHUTDOWN_DRAIN_MS            = tostring(local.cfg.shutdown_drain_ms)
+    SHUTDOWN_INFLIGHT_TIMEOUT_MS = tostring(local.cfg.shutdown_inflight_timeout_ms)
+
+    API_PREFIX                      = "api"
+    API_ALLOWED_ORIGINS             = jsonencode(var.api_allowed_origins)
+    API_ALLOWED_NON_BROWSER_ORIGINS = tostring(local.cfg.api_allowed_non_browser_origins)
+    # One hop: the ALB. Without it every client shares the ALB address and one throttle bucket.
+    TRUST_PROXY = "1"
+
+    JWT_TTL = tostring(local.cfg.jwt_ttl)
+
+    DATABASE_HOST = var.db_host
+    DATABASE_PORT = var.db_port
+    DATABASE_NAME = var.db_name
+    DATABASE_USER = var.db_username
+    # RDS enforces TLS (rds.force_ssl); the image trusts the RDS CA bundle via NODE_EXTRA_CA_CERTS.
+    DATABASE_SSL                  = "true"
+    DATABASE_POOL_MAX             = tostring(local.cfg.database_pool_max)
+    DATABASE_CONNECT_TIMEOUT_MS   = tostring(local.cfg.database_connect_timeout_ms)
+    DATABASE_STATEMENT_TIMEOUT_MS = tostring(local.cfg.database_statement_timeout_ms)
+    DATABASE_FAIL_FAST            = tostring(local.cfg.database_fail_fast)
+    DATABASE_LOG_LEVELS           = jsonencode(local.cfg.database_log_levels)
+
+    # JSON lines for CloudWatch Logs.
+    LOG_PRETTY            = "false"
+    LOG_LEVEL             = local.cfg.log_level
+    LOG_EXCLUDE_ENDPOINTS = jsonencode(local.cfg.log_exclude_endpoints)
+
+    HEALTH_CHECK_TRIGGER_MS = tostring(local.cfg.health_check_trigger_ms)
+
+    REDIS_ENABLED = "true"
+    REDIS_HOST    = var.redis_host
+    REDIS_PORT    = var.redis_port
+    REDIS_TLS     = "true"
+
+    # Sentry also needs SENTRY_DSN, injected from the app secret when enabled.
+    SENTRY_ENABLED        = tostring(local.cfg.sentry_enabled)
+    SENTRY_IGNORED_ERRORS = jsonencode(local.cfg.sentry_ignored_errors)
+
+    # The backend never serves API docs in production; explicit for clarity.
+    SWAGGER_ENABLED = "false"
+
+    THROTTLE_ENABLED = tostring(local.cfg.throttle_enabled)
+    THROTTLE_LIMIT   = tostring(local.cfg.throttle_limit)
+    THROTTLE_TTL     = tostring(local.cfg.throttle_ttl)
+  }
+
+  container_environment = concat(
+    [for name, value in local.environment : { name = name, value = value }],
+    local.cfg.otel_exporter_otlp_endpoint == "" ? [] : [
+      { name = "OTEL_EXPORTER_OTLP_ENDPOINT", value = local.cfg.otel_exporter_otlp_endpoint },
+    ],
+  )
+
+  container_secrets = concat(
+    [
+      {
+        name      = "DATABASE_PASSWORD"
+        valueFrom = "${var.rds_secrets_arn}:password::"
+      },
+      {
+        name      = "REDIS_PASSWORD"
+        valueFrom = var.redis_auth_secret_arn
+      },
+      {
+        name      = "JWT_SECRET"
+        valueFrom = var.jwt_secret_arn
+      },
+    ],
+    # Referenced only when enabled, so the app secret needs no SENTRY_DSN key otherwise.
+    local.cfg.sentry_enabled ? [
+      {
+        name      = "SENTRY_DSN"
+        valueFrom = "${var.app_secret_arn}:SENTRY_DSN::"
+      },
+    ] : [],
+  )
 }
 
 resource "aws_ecs_task_definition" "app" {
@@ -36,55 +122,8 @@ resource "aws_ecs_task_definition" "app" {
         }
       ]
 
-      environment = [
-        {
-          name  = "NODE_ENV"
-          value = "production"
-        },
-        {
-          name  = "DATABASE_USER"
-          value = var.db_username
-        },
-        {
-          name  = "DATABASE_HOST"
-          value = var.db_host
-        },
-        {
-          name  = "DATABASE_NAME"
-          value = var.db_name
-        },
-        {
-          name  = "DATABASE_PORT"
-          value = var.db_port
-        },
-        {
-          name  = "REDIS_HOST"
-          value = var.redis_host
-        },
-        {
-          name  = "REDIS_PORT"
-          value = var.redis_port
-        },
-        {
-          name  = "REDIS_TLS"
-          value = "true"
-        },
-      ]
-
-      secrets = [
-        {
-          name      = "DATABASE_PASSWORD"
-          valueFrom = "${var.rds_secrets_arn}:password::"
-        },
-        {
-          name      = "REDIS_PASSWORD"
-          valueFrom = var.redis_auth_secret_arn
-        },
-        {
-          name      = "JWT_SECRET"
-          valueFrom = var.jwt_secret_arn
-        },
-      ]
+      environment = local.container_environment
+      secrets     = local.container_secrets
 
       healthCheck = {
         command     = ["CMD", "node", "-e", "fetch('http://localhost:'+(process.env.APP_PORT||3000)+'/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]

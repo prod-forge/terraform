@@ -37,6 +37,22 @@ ecs_task_cpu           = 256
 ecs_task_memory        = 512
 ecs_log_retention_days = 7
 
+# Backend tunables (task environment). Omitted attributes use the backend defaults.
+# Sentry: put {"SENTRY_DSN":"<dsn>"} into the app_secret_name secret first, then set sentry_enabled = true.
+backend_config = {
+  log_level           = "trace"
+  database_log_levels = ["warn", "error"]
+  # ecs_max_capacity (2) x 5 stays well below max_connections of db.t4g.micro.
+  database_pool_max            = 5
+  jwt_ttl                      = 3600
+  throttle_enabled             = true
+  throttle_limit               = 60
+  throttle_ttl                 = 60000
+  shutdown_drain_ms            = 10000
+  shutdown_inflight_timeout_ms = 20000
+  sentry_enabled               = false
+}
+
 domain_name       = ""
 hosted_zone_name  = ""
 api_subdomain     = "api"
