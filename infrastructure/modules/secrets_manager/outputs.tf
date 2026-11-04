@@ -17,9 +17,11 @@ output "redis_auth_token" {
 output "redis_auth_secret_arn" {
   description = "Redis AUTH token secret ARN"
   value       = aws_secretsmanager_secret.redis_auth.arn
+  depends_on  = [aws_secretsmanager_secret_version.redis_auth]
 }
 
 output "jwt_secret_arn" {
   description = "JWT signing secret ARN"
   value       = aws_secretsmanager_secret.jwt.arn
+  depends_on  = [aws_secretsmanager_secret_version.jwt]
 }
