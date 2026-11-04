@@ -1,39 +1,26 @@
 <p align="center">
-  <img alt="Logo" src="docs/assets/prod-forge-logo.png" width="264px" height="243px">
+  <img alt="Prod Forge" src="https://raw.githubusercontent.com/prod-forge/.github/main/assets/prod-forge-logo.png" width="264px" height="243px">
 </p>
 
-AI made writing backend code easy - running it in production is still hard.
+_AI made writing the code easy. Running it in production is still hard._
 
-**Prod Forge** is an open-source reference that shows how to build and operate a production-ready backend: CI/CD,
-infrastructure, observability, migrations, and rollback.
+This repository describes the AWS infrastructure for Prod Forge as Terraform code: environments, networking, ECS, RDS, ElastiCache, the frontend hosting and the observability stack. It answers: how do I run all of it on AWS with code, not clicks?
 
-Built around a simple Todo API, but designed as a real-world production system.
-
----
-
-## Project structure
-
-| Repository                                                | Description                                     |
-| --------------------------------------------------------- | ----------------------------------------------- |
-| [Frontend](https://github.com/prod-forge/frontend)        | React Web and React Mobile apps + Design System |
-| [Backend](https://github.com/prod-forge/backend)          | NestJS API - the main guide                     |
-| [Infrastructure](https://github.com/prod-forge/terraform) | Terraform on AWS                                |
+Part of Prod Forge — start with the organization overview: https://github.com/prod-forge
 
 ## Stack
 
-<p align="center">
-  <img alt="Architecture" src="docs/assets/architecture_diagram.png">
-</p>
-
 | Layer          | Tools                                            |
 | -------------- | ------------------------------------------------ |
-| Web Client     | React · Vite · Redux Toolkit · Tailwind CSS · NX |
-| Mobile Client  | Expo · React Native · Redux Toolkit              |
 | Deploy         | AWS S3 · CloudFront · ECR · ECS                  |
-| Backend        | NestJS · Prisma · PostgreSQL · Redis · Docker    |
 | Infrastructure | Terraform · AWS · RDS · ElastiCache              |
 | Observability  | Prometheus · Grafana · Loki · Promtail · Tempo   |
-| Quality        | ESLint · Prettier · Husky · Commitlint · CI/CD   |
+
+The full stack table is on the organization page: https://github.com/prod-forge
+
+## Getting started
+
+Start with the [Development Setup](docs/development-setup.md).
 
 # Table of contents
 
@@ -223,57 +210,6 @@ Built around a simple Todo API, but designed as a real-world production system.
   - [What changes in the service](docs/blue-green.md#what-changes-in-the-service)
   - [What changes in the CD workflow](docs/blue-green.md#what-changes-in-the-cd-workflow)
   - [Trade-offs](docs/blue-green.md#trade-offs)
-
-# Conclusion
-
-Building software is not just about writing code.
-
-Most engineers learn the craft of coding early in their careers. But the gap between writing working code and running a
-reliable system in production is wide - and rarely documented in one place.
-
-This project is an attempt to close that gap.
-
-Not by providing a magic template you can clone and ship. But by walking through every decision that happens before,
-during, and after the code is written.
-
-The stack used here - NestJS, Postgres, Redis, Terraform, AWS - is not the point. These are just tools. The principles
-behind them apply to almost any production backend, regardless of language or cloud provider.
-
-What matters is the thinking:
-
-- Why does repository structure affect team velocity?
-- Why does commit discipline make releases safer?
-- Why does observability matter before something breaks?
-- Why does a rollback plan need to exist before you need it?
-
-These are not advanced topics. They are basic requirements for any system that real users depend on.
-The goal of Prod Forge is to make these practices visible, understandable, and reusable.
-
-## What comes next
-
-This project is actively evolving.
-Planned additions include:
-
-- Mobile App repository with the same level of production treatment
-- Blue/Green deployments for ECS (design note in [docs/blue-green.md](docs/blue-green.md))
-- Kubernetes-based infrastructure as an alternative to ECS
-
-The frontend repository already exists and is deployed by this Terraform (see [Frontend Deployment](docs/frontend.md)).
-
-If there is something missing that you would find valuable, open an issue or start a discussion.
-
-## A final thought
-
-The best time to set up these practices is at the beginning of a project.
-
-The second best time is now.
-
-A system without observability is a system you cannot debug under pressure. A team without a defined workflow is a team
-that slows down as it grows. A deployment without a rollback plan is a deployment that will eventually cause an incident
-with no recovery path.
-
-None of these things are difficult to set up. They are just easy to skip.
-This project exists as a reminder not to skip them.
 
 # Contributing
 
