@@ -85,11 +85,11 @@ Triggered on every `v*` tag push. Steps:
 3. Upload the build to `releases/<version>/` in the web-client bucket (versioned archive)
 4. Sync to the bucket root (active version), overriding `index.html` with no-cache headers
 5. Invalidate CloudFront cache
-6. Remove old releases, keeping the last 10
+6. Remove old releases, keeping the last `KEEP` (a GitHub variable, default 10)
 
 ```shell
 # Active version lives at the root
-aws s3 sync apps/web-client/dist s3://<WEB_CLIENT_BUCKET>/ --delete
+aws s3 sync apps/web-client/dist s3://<WEB_CLIENT_BUCKET>/ --delete --exclude "releases/*"
 
 # Versioned archive is kept for rollback
 s3://<WEB_CLIENT_BUCKET>/releases/v1.2.3/

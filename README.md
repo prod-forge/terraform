@@ -13,10 +13,10 @@ Built around a simple Todo API, but designed as a real-world production system.
 
 ## Project structure
 
-| Repository                                         | Description                                     |
-|----------------------------------------------------|-------------------------------------------------|
-| [Frontend](https://github.com/prod-forge/frontend) | React Web and React Mobile apps + Design System |
-| [Backend](https://github.com/prod-forge/backend)   | NestJS API - the main guide                     |
+| Repository                                                | Description                                     |
+| --------------------------------------------------------- | ----------------------------------------------- |
+| [Frontend](https://github.com/prod-forge/frontend)        | React Web and React Mobile apps + Design System |
+| [Backend](https://github.com/prod-forge/backend)          | NestJS API - the main guide                     |
 | [Infrastructure](https://github.com/prod-forge/terraform) | Terraform on AWS                                |
 
 ## Stack
@@ -25,14 +25,15 @@ Built around a simple Todo API, but designed as a real-world production system.
   <img alt="Architecture" src="docs/assets/architecture_diagram.png">
 </p>
 
-| Layer          | Tools                                                              |
-| -------------- | ------------------------------------------------------------------ |
-| web-client     | React · Vite · Redux Toolkit · Tailwind CSS · NX                  |
-| Deploy         | AWS S3 · CloudFront · ECR · ECS                                   |
-| Backend        | NestJS · Prisma · PostgreSQL · Redis · Docker                     |
-| Infrastructure | Terraform · AWS · RDS · ElastiCache                              |
-| Observability  | Prometheus · Grafana · Loki · Promtail · Tempo                    |
-| Quality        | ESLint · Prettier · Husky · Commitlint · CI/CD                    |
+| Layer          | Tools                                            |
+| -------------- | ------------------------------------------------ |
+| Web Client     | React · Vite · Redux Toolkit · Tailwind CSS · NX |
+| Mobile Client  | Expo · React Native · Redux Toolkit              |
+| Deploy         | AWS S3 · CloudFront · ECR · ECS                  |
+| Backend        | NestJS · Prisma · PostgreSQL · Redis · Docker    |
+| Infrastructure | Terraform · AWS · RDS · ElastiCache              |
+| Observability  | Prometheus · Grafana · Loki · Promtail · Tempo   |
+| Quality        | ESLint · Prettier · Husky · Commitlint · CI/CD   |
 
 # Table of contents
 
