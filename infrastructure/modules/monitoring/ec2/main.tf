@@ -20,13 +20,15 @@ resource "aws_instance" "monitoring" {
     repository_url = var.repository_url
     secret_id      = var.secret_id
     region         = var.region
+    bucket         = var.observability_bucket
+    grafana_secret = var.grafana_admin_secret_arn
   })
   user_data_replace_on_change = true
 
   # No key pair: the host is reached only through SSM Session Manager.
   # The security group controls which ports (Grafana) are reachable by IP.
   vpc_security_group_ids = [var.sg_monitoring_id]
-  # Connect EC2 to ECR, Secrets Manager and SSM
+  # Connect EC2 to ECR, Secrets Manager, S3 config and SSM
   iam_instance_profile = var.monitoring_ec2_instance_profile_name
 
   metadata_options {

@@ -195,6 +195,18 @@ module "ecs_service" {
   desired_count = var.ecs_desired_count
   min_capacity  = var.ecs_min_capacity
   max_capacity  = var.ecs_max_capacity
+
+  service_discovery_arn = module.service_discovery.backend_service_arn
+}
+
+############################
+# Service discovery (Cloud Map)
+############################
+
+module "service_discovery" {
+  source  = "./modules/service-discovery"
+  project = var.project
+  vpc_id  = module.vpc.vpc_id
 }
 
 ############################
@@ -303,10 +315,21 @@ module "vpn_rules" {
 # Monitoring
 ############################
 
+module "observability_config" {
+  source      = "./modules/observability-config"
+  project     = var.project
+  environment = var.environment
+  source_dir  = "${path.module}/observability"
+  kms_key_arn = module.secrets_manager.kms_arn
+}
+
 module "monitoring_iam" {
   source      = "./modules/monitoring/iam"
   secret_arn  = module.secrets_manager.secret_arn
   kms_key_arn = module.secrets_manager.kms_arn
+
+  grafana_admin_secret_arn        = module.secrets_manager.grafana_admin_secret_arn
+  observability_config_bucket_arn = module.observability_config.bucket_arn
 }
 
 module "monitoring_sg" {
@@ -339,6 +362,19 @@ module "monitoring_ec2" {
   repository_url                       = module.ecr.repository_url
   secret_id                            = module.secrets_manager.secret_arn
   region                               = var.region
+
+  observability_bucket     = module.observability_config.bucket_name
+  grafana_admin_secret_arn = module.secrets_manager.grafana_admin_secret_arn
+}
+
+# Prometheus on the monitoring host scrapes the backend tasks on the app port.
+resource "aws_vpc_security_group_ingress_rule" "ecs_from_monitoring" {
+  security_group_id            = module.security_groups.sg_ecs_id
+  description                  = "Prometheus scrape of the application port from the monitoring host"
+  ip_protocol                  = "tcp"
+  from_port                    = 3000
+  to_port                      = 3000
+  referenced_security_group_id = module.monitoring_sg.sg_monitoring_id
 }
 
 ############################

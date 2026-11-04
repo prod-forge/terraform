@@ -1,0 +1,18 @@
+# Rendered by the observability-config module; the project name comes from Terraform.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs:
+  - job_name: nestjs-app
+    metrics_path: /metrics
+    # Cloud Map registers one A record per running ECS task.
+    dns_sd_configs:
+      - names:
+          - backend.${project}.local
+        type: A
+        port: 3000
+        refresh_interval: 15s

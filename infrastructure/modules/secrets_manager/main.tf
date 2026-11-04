@@ -45,3 +45,18 @@ resource "aws_secretsmanager_secret_version" "jwt" {
   secret_id     = aws_secretsmanager_secret.jwt.id
   secret_string = random_password.jwt.result
 }
+
+resource "random_password" "grafana_admin" {
+  length  = 32
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "grafana_admin" {
+  name       = "${var.project}/${var.environment}/grafana-admin"
+  kms_key_id = aws_kms_key.this.arn
+}
+
+resource "aws_secretsmanager_secret_version" "grafana_admin" {
+  secret_id     = aws_secretsmanager_secret.grafana_admin.id
+  secret_string = random_password.grafana_admin.result
+}

@@ -25,3 +25,9 @@ output "jwt_secret_arn" {
   value       = aws_secretsmanager_secret.jwt.arn
   depends_on  = [aws_secretsmanager_secret_version.jwt]
 }
+
+output "grafana_admin_secret_arn" {
+  description = "Grafana admin password secret ARN"
+  value       = aws_secretsmanager_secret.grafana_admin.arn
+  depends_on  = [aws_secretsmanager_secret_version.grafana_admin]
+}

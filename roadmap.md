@@ -1,8 +1,4 @@
 - Bootsrtap: Team management
 - Assets s3
-- Shared s3 (observability configs)
 - Blue/Green Deployment
 - EKS
-- Observability setup
-  - Prometheus
-  - Grafana endpoint

@@ -1,0 +1,191 @@
+{
+  "title": "Prisma Database Performance",
+  "tags": ["nestjs", "prisma", "database", "prometheus"],
+  "timezone": "browser",
+  "schemaVersion": 37,
+  "version": 3,
+  "refresh": "5s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Queries per second",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(prisma_queries_total[1m]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Avg query latency",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(prisma_query_duration_seconds_sum[1m])) / sum(rate(prisma_query_duration_seconds_count[1m]))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "title": "P95 query latency",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(prisma_query_duration_seconds_bucket[5m])) by (le))",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Avg queries per request",
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(prisma_queries_per_request_sum[5m])) / sum(rate(prisma_queries_per_request_count[5m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Query latency P50 / P95 / P99",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.5, sum(rate(prisma_query_duration_seconds_bucket[5m])) by (le))",
+          "refId": "A",
+          "legendFormat": "P50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(prisma_query_duration_seconds_bucket[5m])) by (le))",
+          "refId": "B",
+          "legendFormat": "P95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(prisma_query_duration_seconds_bucket[5m])) by (le))",
+          "refId": "C",
+          "legendFormat": "P99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Queries per request distribution (N+1 detector)",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(prisma_queries_per_request_bucket[5m])) by (le))",
+          "refId": "A",
+          "legendFormat": "P95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(prisma_queries_per_request_bucket[5m])) by (le))",
+          "refId": "B",
+          "legendFormat": "P99"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Load vs latency",
+      "gridPos": {
+        "x": 12,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(prisma_queries_total[1m]))",
+          "refId": "A",
+          "legendFormat": "Queries per second"
+        },
+        {
+          "expr": "sum(rate(prisma_query_duration_seconds_sum[1m])) / sum(rate(prisma_query_duration_seconds_count[1m]))",
+          "refId": "B",
+          "legendFormat": "Avg latency (s)"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Slowest queries by mean time (pg_stat_statements)",
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "topk(10, db_slow_query_mean_ms)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      }
+    }
+  ]
+}

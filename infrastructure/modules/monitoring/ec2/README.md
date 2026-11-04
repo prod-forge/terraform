@@ -24,8 +24,10 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_grafana_admin_secret_arn"></a> [grafana\_admin\_secret\_arn](#input\_grafana\_admin\_secret\_arn) | Secrets Manager ARN of the Grafana admin password | `string` | n/a | yes |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instance type of the monitoring host | `string` | `"t3.small"` | no |
 | <a name="input_monitoring_ec2_instance_profile_name"></a> [monitoring\_ec2\_instance\_profile\_name](#input\_monitoring\_ec2\_instance\_profile\_name) | IAM Monitoring Instance Profile Name | `string` | n/a | yes |
+| <a name="input_observability_bucket"></a> [observability\_bucket](#input\_observability\_bucket) | S3 bucket holding the observability stack configuration | `string` | n/a | yes |
 | <a name="input_public_subnet_id"></a> [public\_subnet\_id](#input\_public\_subnet\_id) | Public Subnet ID | `string` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | AWS region | `string` | n/a | yes |
 | <a name="input_repository_url"></a> [repository\_url](#input\_repository\_url) | ECR URL | `string` | n/a | yes |

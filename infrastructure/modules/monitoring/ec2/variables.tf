@@ -33,3 +33,13 @@ variable "region" {
   description = "AWS region"
   type        = string
 }
+
+variable "observability_bucket" {
+  description = "S3 bucket holding the observability stack configuration"
+  type        = string
+}
+
+variable "grafana_admin_secret_arn" {
+  description = "Secrets Manager ARN of the Grafana admin password"
+  type        = string
+}
