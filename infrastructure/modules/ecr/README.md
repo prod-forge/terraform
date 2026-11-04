@@ -36,5 +36,6 @@ No modules.
 
 | Name | Description |
 | ---- | ----------- |
+| <a name="output_repository_name"></a> [repository\_name](#output\_repository\_name) | ECR repository name |
 | <a name="output_repository_url"></a> [repository\_url](#output\_repository\_url) | n/a |
 <!-- END_TF_DOCS -->

@@ -9,6 +9,9 @@ locals {
   hosted_zone_name = var.hosted_zone_name != "" ? var.hosted_zone_name : var.domain_name
   api_domain_name  = var.domain_name != "" ? "${var.api_subdomain}.${var.domain_name}" : ""
 
+  # Registered by backend CD, not by Terraform; the deploy role may only run this family.
+  migration_task_definition_family = "${local.name}-migration-task"
+
   # CORS origins of the web client: the custom domain (when set) and the CloudFront domain.
   api_allowed_origins = concat(
     var.domain_name != "" ? ["https://${var.domain_name}"] : [],
@@ -211,7 +214,7 @@ module "ecs_service" {
   task_role_arns          = [module.iam.task_role_arn, module.iam.task_execution_role_arn]
 
   task_definition_family           = module.task_definition.task_definition_family
-  migration_task_definition_family = "${local.name}-migration-task"
+  migration_task_definition_family = local.migration_task_definition_family
   lb_arn_suffix                    = module.load_balancer.lb_arn_suffix
   lb_target_group_arn_suffix       = module.load_balancer.lb_target_group_arn_suffix
 

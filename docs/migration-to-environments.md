@@ -240,11 +240,13 @@ curl -fsS "$(terraform -chdir=infrastructure/environments/prod output -raw api_u
 
 ### 8. Point the pipelines at the new names
 
+The workflows read every name from GitHub variables; set them from `terraform output` as listed in [Deploy workflow variables](workflow.md#deploy-workflow-variables).
+
 | Repository | Change |
 | --- | --- |
-| backend `cd.yml`, `rollback.yml` | `role-to-assume` `<project>-prod-github-backend-role`; ECR repository `prod-forge-todolist-prod`; cluster `prod-forge-todolist-prod-cluster`; service `prod-forge-todolist-prod-service`; task definition family `prod-forge-todolist-prod-task` |
-| backend `ecs/migration-task.json` | family `prod-forge-todolist-prod-migration-task` (the only migration family the deploy role may run), log group `/ecs/prod-forge-todolist-prod-task-migration`, private subnets, `assignPublicIp=DISABLED` |
-| frontend `cd.yml` | `role-to-assume` `<project>-prod-github-frontend-role`; buckets `prod-forge-todolist-prod-web-client` and `prod-forge-todolist-prod-assets`; without a domain, rebuild with the new `api_url` (the ALB DNS name changed) |
+| backend `cd.yml`, `rollback.yml`, `show-ecs-revisions.yml` | `AWS_DEPLOY_ROLE_ARN` = `github_backend_role_arn` (`<project>-prod-github-backend-role`); `ECR_REPOSITORY` `prod-forge-todolist-prod`; `ECS_CLUSTER` `prod-forge-todolist-prod-cluster`; `ECS_SERVICE` `prod-forge-todolist-prod-service`; `ECS_TASK_FAMILY` `prod-forge-todolist-prod-task` |
+| backend migration task (`cd.yml`) | `ECS_MIGRATION_TASK_FAMILY` `prod-forge-todolist-prod-migration-task` (the only migration family the deploy role may run), `ECS_MIGRATION_LOG_GROUP` `/ecs/prod-forge-todolist-prod-task-migration`, `PRIVATE_SUBNET_IDS`, `ECS_SECURITY_GROUP_ID`; the run uses `assignPublicIp=DISABLED` |
+| frontend `cd.yml`, `rollback.yml`, `show-web-client-versions.yml` | `AWS_DEPLOY_ROLE_ARN` = `github_frontend_role_arn` (`<project>-prod-github-frontend-role`); `S3_WEB_CLIENT_BUCKET` `prod-forge-todolist-prod-web-client`; `S3_ASSETS_BUCKET` `prod-forge-todolist-prod-assets`; `CLOUDFRONT_DISTRIBUTION_ID`; without a domain, set `VITE_API_BASE_URL` from the new `api_url` and rebuild (the ALB DNS name changed) |
 
 ### 9. Clean up
 

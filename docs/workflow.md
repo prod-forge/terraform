@@ -229,7 +229,7 @@ Only the `environment:<environment>` subject is trusted (`environment:prod` for 
 
 ### Rollout notes
 
-- **Role names change.** Replace `role/github-actions-ecs-ecr-role` in `role-to-assume` with `role/<project>-<environment>-github-backend-role` in the backend `cd.yml` and `rollback.yml`, and with `role/<project>-<environment>-github-frontend-role` in the frontend `cd.yml`. Until then the workflows fail with `Not authorized to perform sts:AssumeRoleWithWebIdentity`.
+- **Role names change.** The workflows take the role from the `AWS_DEPLOY_ROLE_ARN` repository variable (see [Deploy workflow variables](#deploy-workflow-variables)): set it to `github_backend_role_arn` in the backend repository and to `github_frontend_role_arn` in the frontend repository. A stale value (the old `github-actions-ecs-ecr-role`) fails with `Not authorized to perform sts:AssumeRoleWithWebIdentity`.
 - **ECR tags are immutable.** The backend `cd.yml` pushes only the version tag (`<version>` from the `v*` tag), so a normal release works. Re-running a release for the same tag, or pushing `latest`, is rejected; cut a new tag instead.
 - **ECR is replaced; migrate the images by hand first.** Enabling KMS encryption and the per-environment name (`<project>` becomes `<project>-<environment>`) force a new repository, and `terraform apply` cannot delete a non-empty repository (`RepositoryNotEmptyException`), so the apply would stop half-way. Before applying:
   1. List the images: `aws ecr describe-images --repository-name <project> --query 'imageDetails[].imageTags'`.
@@ -237,6 +237,48 @@ Only the `environment:<environment>` subject is trusted (`environment:prod` for 
   3. Delete the images: `aws ecr batch-delete-image --repository-name <project> --image-ids "$(aws ecr list-images --repository-name <project> --query 'imageIds[]' --output json)"`. `batch-delete-image` accepts at most 100 image ids per call, so for a larger repository delete in batches (loop over `list-images --max-items 100`), or delete the whole repository instead: `aws ecr delete-repository --repository-name <project> --force`.
   4. Run `terraform apply`, then push the current release tag (and the `initial` image, see above) to the new repository (output `ecr_repository_url`) before ECS starts new tasks, because running tasks cannot pull from the missing repository.
 - **Old IAM resources are replaced.** The `github-actions-ecs-ecr-role` role and the `github-actions-*` policies are removed and recreated under the new names.
+
+### Deploy workflow variables
+
+The backend and frontend workflows hard-code no AWS names: every name and network id comes from a GitHub variable of the `prod` environment (or the repository), filled from `terraform output` of the environment root. Re-run the commands after an apply that changes a name.
+
+Backend repository (`cd.yml`, `rollback.yml`, `show-ecs-revisions.yml`):
+
+| Variable | Terraform output | prod value |
+| --- | --- | --- |
+| `AWS_DEPLOY_ROLE_ARN` | `github_backend_role_arn` | `arn:aws:iam::<account>:role/prod-forge-todolist-prod-github-backend-role` |
+| `ECR_REPOSITORY` | `ecr_repository_name` | `prod-forge-todolist-prod` |
+| `ECS_CLUSTER` | `ecs_cluster_name` | `prod-forge-todolist-prod-cluster` |
+| `ECS_SERVICE` | `ecs_service_name` | `prod-forge-todolist-prod-service` |
+| `ECS_TASK_FAMILY` | `ecs_task_definition_family` | `prod-forge-todolist-prod-task` |
+| `ECS_MIGRATION_TASK_FAMILY` | `ecs_migration_task_definition_family` | `prod-forge-todolist-prod-migration-task` |
+| `ECS_MIGRATION_LOG_GROUP` | `ecs_migration_log_group_name` | `/ecs/prod-forge-todolist-prod-task-migration` |
+| `PRIVATE_SUBNET_IDS` | `private_subnet_ids` (comma-joined) | `subnet-0aaa,subnet-0bbb,subnet-0ccc` |
+| `ECS_SECURITY_GROUP_ID` | `ecs_security_group_id` | `sg-0123456789abcdef0` |
+
+Frontend repository (`cd.yml`, `rollback.yml`, `show-web-client-versions.yml`):
+
+| Variable | Terraform output | prod value |
+| --- | --- | --- |
+| `AWS_DEPLOY_ROLE_ARN` | `github_frontend_role_arn` | `arn:aws:iam::<account>:role/prod-forge-todolist-prod-github-frontend-role` |
+| `S3_WEB_CLIENT_BUCKET` | `web_client_bucket_name` | `prod-forge-todolist-prod-web-client` |
+| `S3_ASSETS_BUCKET` | `assets_bucket_name` | `prod-forge-todolist-prod-assets` |
+| `CLOUDFRONT_DISTRIBUTION_ID` | `cloudfront_distribution_id` | `E1ABCDEFGHIJKL` |
+| `CLOUDFRONT_URL` | `cloudfront_url` | `https://<domain_name>` or `https://<id>.cloudfront.net` |
+| `VITE_API_BASE_URL` | `api_url` + `/api/v1/` | `https://api.<domain_name>/api/v1/` |
+
+With the GitHub CLI, from the repository root of this project (`<repo>` is `prod-forge/backend` or `prod-forge/frontend`):
+
+```shell
+out() { terraform -chdir=infrastructure/environments/prod output -raw "$1"; }
+
+gh variable set AWS_DEPLOY_ROLE_ARN --env prod --repo prod-forge/backend --body "$(out github_backend_role_arn)"
+gh variable set ECS_CLUSTER --env prod --repo prod-forge/backend --body "$(out ecs_cluster_name)"
+gh variable set PRIVATE_SUBNET_IDS --env prod --repo prod-forge/backend \
+  --body "$(terraform -chdir=infrastructure/environments/prod output -json private_subnet_ids | jq -r 'join(",")')"
+```
+
+The migration task runs with `assignPublicIp=DISABLED` in `PRIVATE_SUBNET_IDS` and `ECS_SECURITY_GROUP_ID`, the same network as the service; it reaches ECR, Secrets Manager and CloudWatch Logs through the NAT gateways or the VPC endpoints. The deploy role may run only the `ECS_MIGRATION_TASK_FAMILY` family, so a different family fails with `AccessDeniedException` on `ecs:RunTask`.
 
 ### Why OIDC is Recommended
 
@@ -468,4 +510,4 @@ CI/CD → run migration task → apply schema changes → deploy new application
 
 Because database migrations follow a forward-only strategy, running them before application deployment is safe.
 
-The migration task runs in the same private subnets and security group as the service, so it needs no public IP. The backend `ecs/migration-task.json` run must use `assignPublicIp=DISABLED`.
+The migration task runs in the same private subnets and security group as the service, so it needs no public IP: backend `cd.yml` starts it with `assignPublicIp=DISABLED` in `PRIVATE_SUBNET_IDS` and `ECS_SECURITY_GROUP_ID` (see [Deploy workflow variables](#deploy-workflow-variables)).

@@ -110,8 +110,17 @@
 | <a name="output_assets_bucket_name"></a> [assets\_bucket\_name](#output\_assets\_bucket\_name) | n/a |
 | <a name="output_cloudfront_distribution_id"></a> [cloudfront\_distribution\_id](#output\_cloudfront\_distribution\_id) | n/a |
 | <a name="output_cloudfront_url"></a> [cloudfront\_url](#output\_cloudfront\_url) | n/a |
+| <a name="output_ecr_repository_name"></a> [ecr\_repository\_name](#output\_ecr\_repository\_name) | ECR repository the backend image is pushed to |
 | <a name="output_ecr_repository_url"></a> [ecr\_repository\_url](#output\_ecr\_repository\_url) | n/a |
+| <a name="output_ecs_cluster_name"></a> [ecs\_cluster\_name](#output\_ecs\_cluster\_name) | ECS cluster name |
+| <a name="output_ecs_log_group_name"></a> [ecs\_log\_group\_name](#output\_ecs\_log\_group\_name) | CloudWatch log group of the application task |
+| <a name="output_ecs_migration_log_group_name"></a> [ecs\_migration\_log\_group\_name](#output\_ecs\_migration\_log\_group\_name) | CloudWatch log group of the migration task |
+| <a name="output_ecs_migration_task_definition_family"></a> [ecs\_migration\_task\_definition\_family](#output\_ecs\_migration\_task\_definition\_family) | Task definition family of the one-off migration task registered by backend CD |
+| <a name="output_ecs_security_group_id"></a> [ecs\_security\_group\_id](#output\_ecs\_security\_group\_id) | Security group of the ECS service, reused by the migration task |
+| <a name="output_ecs_service_name"></a> [ecs\_service\_name](#output\_ecs\_service\_name) | ECS service name |
+| <a name="output_ecs_task_definition_family"></a> [ecs\_task\_definition\_family](#output\_ecs\_task\_definition\_family) | Task definition family of the application |
 | <a name="output_github_backend_role_arn"></a> [github\_backend\_role\_arn](#output\_github\_backend\_role\_arn) | n/a |
 | <a name="output_github_frontend_role_arn"></a> [github\_frontend\_role\_arn](#output\_github\_frontend\_role\_arn) | n/a |
+| <a name="output_private_subnet_ids"></a> [private\_subnet\_ids](#output\_private\_subnet\_ids) | Private subnets the ECS service and the migration task run in |
 | <a name="output_web_client_bucket_name"></a> [web\_client\_bucket\_name](#output\_web\_client\_bucket\_name) | n/a |
 <!-- END_TF_DOCS -->

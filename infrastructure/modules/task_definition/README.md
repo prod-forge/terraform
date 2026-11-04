@@ -56,5 +56,7 @@ No modules.
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_ecs_task_definition_arn"></a> [ecs\_task\_definition\_arn](#output\_ecs\_task\_definition\_arn) | n/a |
+| <a name="output_log_group_name"></a> [log\_group\_name](#output\_log\_group\_name) | CloudWatch log group of the application task |
+| <a name="output_migration_log_group_name"></a> [migration\_log\_group\_name](#output\_migration\_log\_group\_name) | CloudWatch log group of the migration task that backend CD registers |
 | <a name="output_task_definition_family"></a> [task\_definition\_family](#output\_task\_definition\_family) | n/a |
 <!-- END_TF_DOCS -->

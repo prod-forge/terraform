@@ -78,6 +78,50 @@ run "prod_plans_without_vpn_key_files" {
   }
 }
 
+# Backend CD reads these names from GitHub repository variables filled from the outputs.
+run "prod_outputs_the_names_backend_cd_uses" {
+  command = plan
+
+  variables {
+    enable_client_vpn = false
+  }
+
+  assert {
+    condition     = output.ecr_repository_name == "prod-forge-todolist-prod"
+    error_message = "ECR repository must be <project>-<environment>."
+  }
+
+  assert {
+    condition     = output.ecs_cluster_name == "prod-forge-todolist-prod-cluster"
+    error_message = "ECS cluster must be <project>-<environment>-cluster."
+  }
+
+  assert {
+    condition     = output.ecs_service_name == "prod-forge-todolist-prod-service"
+    error_message = "ECS service must be <project>-<environment>-service."
+  }
+
+  assert {
+    condition     = output.ecs_task_definition_family == "prod-forge-todolist-prod-task"
+    error_message = "App task family must be <project>-<environment>-task."
+  }
+
+  assert {
+    condition     = output.ecs_migration_task_definition_family == "prod-forge-todolist-prod-migration-task"
+    error_message = "Migration task family must be <project>-<environment>-migration-task."
+  }
+
+  assert {
+    condition     = output.ecs_log_group_name == "/ecs/prod-forge-todolist-prod"
+    error_message = "App log group must be /ecs/<project>-<environment>."
+  }
+
+  assert {
+    condition     = output.ecs_migration_log_group_name == "/ecs/prod-forge-todolist-prod-task-migration"
+    error_message = "Migration log group must be /ecs/<project>-<environment>-task-migration."
+  }
+}
+
 run "dev_switches_disable_waf_vpn_and_oidc_provider" {
   command = plan
 

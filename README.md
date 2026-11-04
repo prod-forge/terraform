@@ -75,6 +75,7 @@ Built around a simple Todo API, but designed as a real-world production system.
       - [1. Dedicated AWS User](docs/workflow.md#1-dedicated-aws-user)
       - [2. OpenID Connect (OIDC) - Recommended](docs/workflow.md#2-openid-connect-oidc---recommended)
     - [Terraform Setup](docs/workflow.md#terraform-setup)
+    - [Deploy workflow variables](docs/workflow.md#deploy-workflow-variables)
     - [Why OIDC is Recommended](docs/workflow.md#why-oidc-is-recommended)
   - [ECS Cluster](docs/workflow.md#ecs-cluster)
     - [Networking](docs/workflow.md#networking)

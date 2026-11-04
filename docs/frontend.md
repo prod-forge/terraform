@@ -135,6 +135,8 @@ A dedicated IAM policy grants only what is needed:
 - `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject`, `s3:ListBucket` on both buckets
 - `cloudfront:CreateInvalidation` on the distribution
 
+The workflows take the role ARN, the bucket names and the distribution id from GitHub variables filled from `terraform output`; see [Deploy workflow variables](workflow.md#deploy-workflow-variables).
+
 ## Advantages
 
 **No servers.** S3 and CloudFront handle availability, durability, and scaling. Nothing to patch, restart, or monitor.

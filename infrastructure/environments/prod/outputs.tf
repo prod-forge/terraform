@@ -30,3 +30,39 @@ output "api_url" {
   description = "Public API base URL"
   value       = module.stack.api_url
 }
+
+output "ecr_repository_name" {
+  value = module.stack.ecr_repository_name
+}
+
+output "ecs_cluster_name" {
+  value = module.stack.ecs_cluster_name
+}
+
+output "ecs_service_name" {
+  value = module.stack.ecs_service_name
+}
+
+output "ecs_task_definition_family" {
+  value = module.stack.ecs_task_definition_family
+}
+
+output "ecs_migration_task_definition_family" {
+  value = module.stack.ecs_migration_task_definition_family
+}
+
+output "ecs_log_group_name" {
+  value = module.stack.ecs_log_group_name
+}
+
+output "ecs_migration_log_group_name" {
+  value = module.stack.ecs_migration_log_group_name
+}
+
+output "private_subnet_ids" {
+  value = module.stack.private_subnet_ids
+}
+
+output "ecs_security_group_id" {
+  value = module.stack.ecs_security_group_id
+}
