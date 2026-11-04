@@ -76,10 +76,11 @@ Do not attach `AdministratorAccess`. Create a permission set named `TerraformOpe
 | `s3:*`, `cloudfront:*`, `wafv2:*`, `acm:*`, `route53:*` | Frontend buckets, distribution, WAF, certificates, DNS |
 | `kms:*`, `secretsmanager:*` | Encryption keys and application secrets |
 | `logs:*`, `cloudwatch:*`, `sns:*`, `budgets:*` | Log groups, alarms, notifications, budget |
+| `cloudtrail:*`, `guardduty:*`, `access-analyzer:*` | Account security baseline (trail, detector, analyzer) |
 | `ssm:*` | Monitoring host access (Session Manager) and AMI parameters |
 | `iam:*Role*`, `iam:*RolePolicy*`, `iam:*Policy*`, `iam:*InstanceProfile*`, `iam:PassRole` limited to the ARNs below | Roles and policies created by the modules; deny `iam:*User*` and `iam:*AccessKey*` |
 | `iam:*OpenIDConnectProvider*` on `oidc-provider/token.actions.githubusercontent.com` | GitHub OIDC provider |
-| `iam:CreateServiceLinkedRole` with `iam:AWSServiceName` in `ecs.amazonaws.com`, `elasticloadbalancing.amazonaws.com`, `rds.amazonaws.com`, `elasticache.amazonaws.com`, `ecs.application-autoscaling.amazonaws.com` | Service-linked roles AWS creates on first use |
+| `iam:CreateServiceLinkedRole` with `iam:AWSServiceName` in `ecs.amazonaws.com`, `elasticloadbalancing.amazonaws.com`, `rds.amazonaws.com`, `elasticache.amazonaws.com`, `ecs.application-autoscaling.amazonaws.com`, `guardduty.amazonaws.com`, `access-analyzer.amazonaws.com` | Service-linked roles AWS creates on first use |
 | `sts:GetCallerIdentity` | Account lookups |
 
 IAM ARNs this repository creates (account `<account-id>`; `<prefix>` is `<project>-<environment>`, for example `prod-forge-todolist-prod`):

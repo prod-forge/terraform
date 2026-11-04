@@ -92,6 +92,25 @@ The ALB is the only public entry point for the API. ECS tasks run in private sub
 - IMDSv2 required, encrypted gp3 root volume, detailed monitoring, EBS optimized, AMI resolved from the Canonical SSM parameter.
 - Alarm notifications go through a KMS-encrypted SNS topic (see [observability](observability.md#alarms)).
 
+## Account security baseline
+
+The `security-baseline` module turns on the account-wide detective controls. They exist once per account, so exactly one environment owns them: `enable_account_security_services = true` in prod, `false` in dev while both share an account (set it to `true` for a dev in its own account).
+
+| Service | Resource | Configuration |
+| --- | --- | --- |
+| CloudTrail | `<project>-<env>-trail` | Multi-region, global service events (IAM, STS), log file validation (digest files), encrypted with a dedicated rotating CMK, a notification per delivered log file to the KMS-encrypted SNS topic `<project>-<env>-cloudtrail` |
+| CloudTrail bucket | `<project>-<env>-cloudtrail` | Versioned, SSE-KMS with the trail key, ACLs disabled, public access blocked, TLS only, writes only from this trail (`aws:SourceArn`); log files move to Glacier Instant Retrieval after 90 days and expire after 365 (`cloudtrail_archive_after_days`, `cloudtrail_retention_days`) |
+| GuardDuty | detector in the deployment region | Enabled, findings published every 15 minutes; analyzes CloudTrail management events, VPC flow logs and DNS logs. The optional protection plans (S3, EKS, RDS, malware, runtime) stay off to bound cost |
+| IAM Access Analyzer | `<project>-<env>-access-analyzer` | Account zone of trust: reports S3 buckets, KMS keys, IAM roles, secrets and other resources shared outside the account |
+
+Where to look:
+
+- **CloudTrail:** Console → CloudTrail → Event history covers 90 days without the trail; the bucket keeps a year. Verify integrity with `aws cloudtrail validate-logs --trail-arn <arn> --start-time <time>`.
+- **GuardDuty:** Console → GuardDuty → Findings. Findings are not routed to the alerts SNS topic yet; check them weekly or add an EventBridge rule (`source = aws.guardduty`, severity 7 and above) that targets a topic.
+- **Access Analyzer:** Console → IAM → Access analyzer. Archive findings that describe intended sharing; anything else is a resource reachable from outside the account.
+
+GuardDuty and Access Analyzer are regional: they cover the deployment region only. The trail covers all regions.
+
 ## Known gaps
 
-Checkov reports no failed checks; the accepted exceptions and their reasons are the inline skips listed in [CI](ci.md#baseline).
+Checkov reports no failed checks; the accepted exceptions and their reasons are the inline skips listed in [CI](ci.md#baseline). GuardDuty findings are not paged yet (see above), and AWS Config is not enabled.

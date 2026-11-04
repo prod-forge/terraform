@@ -18,7 +18,8 @@ Approximate monthly cost of each environment in `eu-central-1`, at on-demand lis
 | Public IPv4 addresses | 15 | 18 | NAT, ALB and monitoring host addresses at 0.005 USD per hour |
 | CloudWatch (logs, alarms, Container Insights) | 8 | 25 | grows with VPC flow log and application log volume |
 | Secrets Manager, KMS, S3, CloudFront | 7 | 10 | 4 secrets, 2 to 3 CMKs, low-traffic buckets and distribution |
-| **Total** | **about 150** | **about 570** | |
+| CloudTrail, GuardDuty, Access Analyzer | 0 | 10 | first trail copy of management events is free; GuardDuty bills analyzed events and flow/DNS log volume; the account analyzer is free; prod owns them for the shared account |
+| **Total** | **about 150** | **about 580** | |
 
 The prod estimate is above the 400 USD `monthly_budget_usd` in `environments/prod/terraform.tfvars`; that budget is a starting guess, so raise it (or apply the levers below) before the 80% alert becomes noise. Dev uses a 200 USD budget.
 
@@ -32,4 +33,5 @@ The prod estimate is above the 400 USD `monthly_budget_usd` in `environments/pro
 - **Fargate Spot.** Up to about 70% cheaper for interruption-tolerant tasks; see [Scaling](scaling.md#fargate-spot-trade-off).
 - **Stop dev when idle.** Scale the ECS service to 0 and stop the RDS instance (AWS restarts it after 7 days), or `terraform destroy` dev entirely; it recreates under the same names.
 - **Log volume.** Flow logs capture all traffic; shorter `flow_logs_retention_days` and `ecs_log_retention_days` cap storage, ingestion is billed per GB.
+- **GuardDuty volume.** Its cost follows CloudTrail events and VPC flow/DNS log volume; the 30-day free trial on a new account shows the expected bill under GuardDuty → Usage.
 - **Tags.** `CostCenter`, `Environment` and `Project` come from `default_tags`; activate them as cost allocation tags in Billing to split Cost Explorer by environment.

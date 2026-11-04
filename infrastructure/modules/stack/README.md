@@ -36,6 +36,7 @@
 | <a name="module_rds"></a> [rds](#module\_rds) | ../rds | n/a |
 | <a name="module_redis"></a> [redis](#module\_redis) | ../redis | n/a |
 | <a name="module_secrets_manager"></a> [secrets\_manager](#module\_secrets\_manager) | ../secrets_manager | n/a |
+| <a name="module_security_baseline"></a> [security\_baseline](#module\_security\_baseline) | ../security-baseline | n/a |
 | <a name="module_security_groups"></a> [security\_groups](#module\_security\_groups) | ../security_groups | n/a |
 | <a name="module_server_vpn_certificate"></a> [server\_vpn\_certificate](#module\_server\_vpn\_certificate) | ../vpn/certificates/server | n/a |
 | <a name="module_service_discovery"></a> [service\_discovery](#module\_service\_discovery) | ../service-discovery | n/a |
@@ -70,6 +71,7 @@
 | <a name="input_ecs_min_capacity"></a> [ecs\_min\_capacity](#input\_ecs\_min\_capacity) | n/a | `number` | n/a | yes |
 | <a name="input_ecs_task_cpu"></a> [ecs\_task\_cpu](#input\_ecs\_task\_cpu) | n/a | `number` | n/a | yes |
 | <a name="input_ecs_task_memory"></a> [ecs\_task\_memory](#input\_ecs\_task\_memory) | n/a | `number` | n/a | yes |
+| <a name="input_enable_account_security_services"></a> [enable\_account\_security\_services](#input\_enable\_account\_security\_services) | Create the account-level CloudTrail trail, GuardDuty detector and IAM Access Analyzer; exactly one environment per account owns them | `bool` | n/a | yes |
 | <a name="input_enable_client_vpn"></a> [enable\_client\_vpn](#input\_enable\_client\_vpn) | Create the Client VPN endpoint; requires the four vpn\_* PEM inputs | `bool` | n/a | yes |
 | <a name="input_enable_waf"></a> [enable\_waf](#input\_enable\_waf) | Attach WAF web ACLs to the ALB and the CloudFront distribution | `bool` | n/a | yes |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, prod), the second part of every resource name | `string` | n/a | yes |

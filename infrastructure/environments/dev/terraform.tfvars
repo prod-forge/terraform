@@ -10,6 +10,8 @@ app_secret_name = "prod_forge/backend/dev/config-v1"
 secret_recovery_window_days = 0
 # The OIDC provider is account-wide and owned by prod. Set true when dev has its own AWS account.
 create_github_oidc_provider = false
+# Covered by prod in a shared account. Set true when dev has its own AWS account.
+enable_account_security_services = false
 
 rds_username = "new_username"
 rds_db_name  = "todolist"

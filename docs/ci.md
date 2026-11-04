@@ -58,6 +58,8 @@ All test files live in `infrastructure/environments/prod/tests/` and run with `t
 - the regional ACL has one ALB association and the CloudFront ACL none; the rule set and the 2000/5 min rate limit;
 - variable validations reject a domain without a zone or certificate and an unknown WAF scope.
 
+`security-baseline.tftest.hcl` checks the multi-region, validated, KMS-encrypted trail with its bucket lifecycle, the GuardDuty detector and the Access Analyzer, that every switch off creates nothing, and that a retention shorter than the archive age is rejected.
+
 `github-oidc.tftest.hcl` checks that each GitHub role trusts only its own repository and environment; `observability.tftest.hcl` checks the observability config upload and the Cloud Map namespace.
 
 The environment roots read the VPN key files with `fileexists()`, so `terraform validate` and `terraform test` work in a fresh clone without them; the root wiring is covered by `validate` in CI for both environments and by `stack.tftest.hcl`. The module-level tests keep targeting modules directly because `module.stack` declares `configuration_aliases` for the us-east-1 provider and cannot be the `module` of a run block.
@@ -88,5 +90,7 @@ Both scanners are at zero: `tflint --recursive` reports no issues (every module 
 | CKV_AWS_374 | module.frontend.aws_cloudfront_distribution.web_client | The web client is public worldwide; no geo-blocking requirement |
 | CKV_AWS_88 | module.monitoring_ec2.aws_instance.monitoring | Grafana is reached by IP from `admin_cidr_blocks`; SSH is gone and the host is otherwise managed through SSM |
 | CKV_AWS_259 | module.frontend.aws_cloudfront_response_headers_policy.security | HSTS `preload` is a hard-to-revert commitment; off until the owner opts in |
+
+The CloudTrail checks CKV_AWS_35 (KMS), CKV_AWS_36 (log file validation), CKV_AWS_67 (all regions) and CKV_AWS_252 (SNS topic) pass on `module.security_baseline`. CKV2_AWS_3 (GuardDuty) does not exist in Checkov 3.4.3; its GuardDuty check is CKV_AWS_238 (detector enabled), which passes.
 
 `.checkov.yaml` keeps `skip-check` empty. A new finding must be fixed, or skipped inline with `#checkov:skip=<ID>: <reason>` and a real reason, and added to this table.

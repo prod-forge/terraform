@@ -198,3 +198,8 @@ variable "vpn_ca_private_key" {
   default     = ""
   sensitive   = true
 }
+
+variable "enable_account_security_services" {
+  description = "Create the account-level CloudTrail trail, GuardDuty detector and IAM Access Analyzer; exactly one environment per account owns them"
+  type        = bool
+}

@@ -9,6 +9,8 @@ app_secret_name             = "prod_forge/backend/config-v1"
 secret_recovery_window_days = 30
 # prod owns the account-wide GitHub OIDC provider; dev in the same account reads it.
 create_github_oidc_provider = true
+# prod owns the account-level CloudTrail trail, GuardDuty detector and Access Analyzer.
+enable_account_security_services = true
 
 rds_username = "new_username"
 rds_db_name  = "todolist"

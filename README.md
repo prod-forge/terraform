@@ -185,6 +185,7 @@ Built around a simple Todo API, but designed as a real-world production system.
   - [Access logs](https://github.com/prod-forge/terraform/blob/main/docs/security.md#access-logs)
   - [Security groups](https://github.com/prod-forge/terraform/blob/main/docs/security.md#security-groups)
   - [IAM](https://github.com/prod-forge/terraform/blob/main/docs/security.md#iam)
+  - [Account security baseline](https://github.com/prod-forge/terraform/blob/main/docs/security.md#account-security-baseline)
   - [Known gaps](https://github.com/prod-forge/terraform/blob/main/docs/security.md#known-gaps)
 
 <!-- -->

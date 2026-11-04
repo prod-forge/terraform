@@ -54,6 +54,7 @@ A `moved` block fixes an address, not a name. Every resource whose name, identif
 | 7 | `module.monitoring_ec2.aws_instance.monitoring` | No key pair, new bootstrap (`user_data_replace_on_change`) | Prometheus, Loki and Grafana data on the old root volume |
 | 7 | `module.monitoring_ssh` key pair | Removed (SSM only) | none |
 | 7 | Generated secrets `<project>/prod/redis-auth`, `jwt-secret`, `grafana-admin`, WAF ACLs, certificates and DNS (with a domain), logs bucket, alarms, SNS, budget, Cloud Map, observability config bucket | New | none |
+| 7 | `module.security_baseline`: CloudTrail trail, its bucket, KMS key and SNS topic, GuardDuty detector, IAM Access Analyzer | New. If the account already has a GuardDuty detector in the region, import it first: `terraform import 'module.stack.module.security_baseline.aws_guardduty_detector.this[0]' <detector-id>` | none |
 
 Updated in place: the VPC and subnets (`Name` tags, the AZs stay `eu-central-1a`/`eu-central-1b`), the internet gateway, the public route table, the OIDC provider (thumbprints dropped), the secrets KMS key (rotation on, description), `prod_forge/backend/config-v1` (recovery window), the Client VPN endpoint (description, security group), its certificates (tags) and association, the CloudFront distribution (new origins, WAF, logging), the OACs (names), and the tags of every resource that gains `CostCenter` and `Repository` from `default_tags`.
 

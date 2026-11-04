@@ -128,6 +128,7 @@ terraform -chdir=infrastructure/environments/dev apply
 | Log retention (ECS) | 7 days | 30 days |
 | Secret recovery window | 0 days (immediate delete) | 30 days |
 | GitHub OIDC provider | read (`create_github_oidc_provider = false`) | created |
+| CloudTrail, GuardDuty, Access Analyzer | covered by prod | created |
 | GitHub environment trusted by the deploy roles | `dev` | `prod` |
 | Monthly budget | 200 USD | 400 USD |
 | State key | `environments/dev/terraform.tfstate` | `infrastructure/terraform.tfstate` |
@@ -136,7 +137,8 @@ terraform -chdir=infrastructure/environments/dev apply
 
 The defaults assume dev and prod share one account. Some things exist only once per account, so prod owns them and dev reads or skips them:
 
-- the GitHub OIDC provider (`create_github_oidc_provider`).
+- the GitHub OIDC provider (`create_github_oidc_provider`);
+- the CloudTrail trail, the GuardDuty detector and the IAM Access Analyzer (`enable_account_security_services`, see [Security](security.md#account-security-baseline)).
 
 With a separate dev account, run the bootstrap there too, point the dev backend at that bucket and set those switches to `true` in `environments/dev/terraform.tfvars`.
 
@@ -170,4 +172,4 @@ Approximate monthly cost in `eu-central-1` at list prices, before data transfer 
 | Environment | Estimate (USD / month) | Biggest items |
 | --- | --- | --- |
 | dev | about 150 | single NAT gateway, ALB, monitoring host, small RDS and Redis, public IPv4 |
-| prod | about 570 | Multi-AZ RDS, two NAT gateways, five interface endpoints in two AZs, Client VPN, Redis pair, WAF |
+| prod | about 580 | Multi-AZ RDS, two NAT gateways, five interface endpoints in two AZs, Client VPN, Redis pair, WAF |

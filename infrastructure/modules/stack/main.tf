@@ -461,3 +461,17 @@ module "frontend" {
   logs_bucket_domain_name = module.logs_bucket.bucket_domain_name
   logs_prefix             = module.logs_bucket.cloudfront_prefix
 }
+
+############################
+# Account security baseline
+############################
+
+module "security_baseline" {
+  source      = "../security-baseline"
+  project     = var.project
+  environment = var.environment
+
+  enable_cloudtrail      = var.enable_account_security_services
+  enable_guardduty       = var.enable_account_security_services
+  enable_access_analyzer = var.enable_account_security_services
+}
