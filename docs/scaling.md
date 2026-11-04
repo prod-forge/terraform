@@ -37,6 +37,10 @@ Both policies are target tracking on the same scalable target (`ecs:service:Desi
 - `health_check_grace_period_seconds = 60` gives the app time to boot before failing ALB health checks count.
 - `stopTimeout = 60`: on SIGTERM the backend drains for 10 s, then waits up to 20 s for in-flight requests before exiting. 60 s covers those 30 s with headroom before ECS sends SIGKILL. If the backend drain or in-flight timeouts grow, `stopTimeout` must stay above their sum (Fargate allows at most 120 s). ECS deregisters the task from the ALB target group (`deregistration_delay = 30` s on the target group, matching the backend drain of about 30 s) before it sends SIGTERM, so the delay lengthens deployments slightly but does not cut requests. Keep the delay at or below `stopTimeout`.
 
+## Health checks: liveness vs readiness
+
+The ECS container health check runs `node -e fetch(...)` against `/health/live` (liveness: the process is up and serving). It must not depend on RDS or Redis, otherwise a dependency outage would make ECS kill every task. The image has no curl, so the check uses Node. The ALB target group checks `/health` (readiness, returns 503 when dependencies are down) and only takes unready tasks out of rotation without restarting them.
+
 ## How to load-test the policies
 
 Run against a non-production environment, or against prod only in a maintenance window.

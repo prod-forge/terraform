@@ -3,6 +3,7 @@ locals {
 }
 
 resource "aws_ecs_task_definition" "app" {
+  #checkov:skip=CKV_AWS_336: the Node image writes to its filesystem at runtime; a read-only root with tmpfs mounts is a separate hardening task
   family                   = "${local.prefix}-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
@@ -86,7 +87,7 @@ resource "aws_ecs_task_definition" "app" {
       ]
 
       healthCheck = {
-        command     = ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+        command     = ["CMD", "node", "-e", "fetch('http://localhost:'+(process.env.APP_PORT||3000)+'/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
         interval    = 30
         timeout     = 5
         retries     = 3

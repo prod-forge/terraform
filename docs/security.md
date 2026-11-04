@@ -57,7 +57,7 @@ The CloudFront response headers policy (see [Frontend](frontend.md#security-head
 
 ## Metrics endpoints
 
-The backend serves `/metrics` and `/metrics/database` without authentication. A listener rule with priority 1 returns a fixed 404 for the path pattern `/metrics*` on the forwarding listener (443 with a domain, 80 without), so they are not reachable through the ALB. Prometheus scrapes the task IPs on port 3000 directly and is not affected.
+The backend serves `/metrics` and `/metrics/database` (older builds also `/api/metrics`) without authentication. The primary control is in the backend, which rejects metrics requests that came through the ALB (`X-Forwarded-For` present). As defence in depth, a listener rule with priority 1 returns a fixed 404 for the path patterns `/metrics*` and `/api/metrics*` on the forwarding listener (443 with a domain, 80 without). ALB path matching is case-sensitive, so the rule alone is not a complete barrier. Prometheus scrapes the task IPs on port 3000 directly and is not affected.
 
 ## Access logs
 

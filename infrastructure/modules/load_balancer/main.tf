@@ -109,7 +109,7 @@ resource "aws_lb_listener_rule" "block_metrics" {
 
   condition {
     path_pattern {
-      values = ["/metrics*"]
+      values = ["/metrics*", "/api/metrics*"]
     }
   }
 }
