@@ -27,8 +27,8 @@ terraform providers lock -platform=linux_amd64 -platform=darwin_arm64
 terraform fmt -check -recursive
 (cd bootstrap && terraform init -backend=false && terraform validate)
 (cd infrastructure && terraform init -backend=false && terraform validate)
-docker run --rm -v "$PWD":/data -w /data ghcr.io/terraform-linters/tflint:latest --init
-docker run --rm -v "$PWD":/data -w /data ghcr.io/terraform-linters/tflint:latest --recursive
+docker run --rm -v "$PWD":/data -w /data ghcr.io/terraform-linters/tflint:v0.65.0 --init
+docker run --rm -v "$PWD":/data -w /data ghcr.io/terraform-linters/tflint:v0.65.0 --recursive
 checkov --config-file .checkov.yaml --quiet --compact
 for d in $(find infrastructure/modules -name '*.tf' -exec dirname {} \; | sort -u); do
   terraform-docs -c "$PWD/.terraform-docs.yml" "$d"
@@ -36,7 +36,7 @@ done
 actionlint
 ```
 
-The baseline below was recorded with TFLint 0.65.0 (AWS ruleset 0.38.0) and Checkov 3.4.3.
+Local tool versions: Terraform 1.11.2, TFLint 0.65.0 (AWS ruleset 0.38.0), terraform-docs 0.24.0, Checkov 3.4.3. CI pins the same Terraform, TFLint and terraform-docs versions. The baseline below was recorded with them.
 
 ## Why there is no `terraform plan` in CI yet
 
