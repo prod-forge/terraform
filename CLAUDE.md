@@ -28,10 +28,10 @@
 ## Terraform Rules
 
 - Use the latest stable Terraform version supported by the project
-- Use strict version pinning for Terraform and providers
+- Pin Terraform with `required_version = ">= 1.10"` and providers with a `~>` constraint; the committed `.terraform.lock.hcl` fixes the exact provider versions
 - Prefer `required_providers` and `required_version`
 - Use remote state for all environments
-- Never store Terraform state locally for shared environments
+- Never store Terraform state locally for shared environments (the `bootstrap/` root is the one exception: it creates the state bucket, so its own state is local and git-ignored)
 - Prefer explicit variable types
 - Avoid `any` types
 - Use `locals` to reduce duplication
@@ -46,13 +46,7 @@
 - Keep plans predictable and readable
 - Avoid resource recreation unless explicitly intended
 - Always run `terraform fmt` and `terraform validate`
-- Keep Terraform files logically separated:
-  - `main.tf`
-  - `variables.tf`
-  - `outputs.tf`
-  - `providers.tf`
-  - `versions.tf`
-  - `locals.tf`
+- Keep Terraform files logically separated: `main.tf`, `variables.tf`, `outputs.tf` and `versions.tf` in every root and module. Providers, backend and `default_tags` live in the environment root's `versions.tf`; a separate `providers.tf` or `locals.tf` is not used (not applicable)
 
 ---
 
@@ -71,12 +65,7 @@
 - Store secrets in:
   - AWS Secrets Manager
   - AWS Systems Manager Parameter Store
-- Tag all resources consistently:
-  - Environment
-  - Project
-  - Owner
-  - ManagedBy
-  - CostCenter
+- Tag all resources consistently through the provider `default_tags` of each environment root: `Project`, `Environment`, `Owner`, `CostCenter`, `ManagedBy` and `Repository`
 - Prefer private subnets for internal services
 - Avoid public exposure unless required
 - Use Security Groups instead of overly permissive networking
@@ -91,7 +80,7 @@
 - Prefer ECR over external container registries for AWS workloads
 - Use ALB/NLB appropriately based on workload requirements
 - Enable access logging for critical services
-- Prefer Graviton instances when cost-effective and supported
+- Prefer Graviton instances when cost-effective and supported (RDS and ElastiCache use `t4g`; Fargate tasks stay x86_64 because the images are built for `linux/amd64`)
 - Use Infrastructure as Code for all AWS resources
 
 ---
@@ -119,7 +108,7 @@ terraform {
     encrypt      = true
   }
 }
-````
+```
 
 ---
 
@@ -133,24 +122,24 @@ terraform {
 * Document required inputs and outputs
 * Avoid provider configuration inside reusable modules
 * Prefer reusable infrastructure patterns
-* Version shared modules
+* Version shared modules (not applicable: all modules live in this repository and change together with the roots)
 * Avoid circular module dependencies
 
 Example structure:
 
 ```text
-modules/
+infrastructure/modules/
   vpc/
   ecs-service/
   rds/
-  iam-role/
+  iam/
 ```
 
 ---
 
 ## Networking Rules
 
-* Prefer dedicated VPCs per environment when appropriate
+* Use a dedicated VPC per environment
 * Use private/public subnet separation
 * Avoid overly permissive CIDR ranges
 * Minimize inbound access
@@ -172,19 +161,19 @@ modules/
 * Store container images in ECR
 * Pin container image versions
 * Avoid using `latest` tags
-* Configure autoscaling policies
+* Configure autoscaling policies (see `docs/scaling.md`)
 * Keep secrets outside container images
 
 ---
 
 ## CI/CD Rules
 
-* All infrastructure changes must go through CI/CD
-* Never apply production changes manually
+* All infrastructure changes must go through CI/CD (checks run in CI; apply is manual for now)
+* Never apply production changes manually (target state; today applies are manual because there is no write-capable CI role, see `docs/ci.md`)
 * Run `terraform fmt -check`
 * Run `terraform validate`
 * Run `terraform plan` in CI before apply (not yet: CI is offline, see `docs/ci.md`)
-* Require manual approval for production applies
+* Require manual approval for production applies (not applicable yet: CI never applies; applies are run by hand from an environment root)
 * Store CI/CD secrets securely
 * Prefer GitHub Actions, GitLab CI, or AWS CodePipeline
 * Keep pipelines deterministic and reproducible
@@ -211,17 +200,13 @@ Target CI steps once a read-only OIDC role exists:
 * Rotate credentials regularly
 * Enable CloudTrail in all AWS accounts
 * Enable GuardDuty for production environments
-* Enable AWS Config where compliance is required
+* Enable AWS Config where compliance is required (not applicable: no compliance framework applies)
 * Prefer private networking
 * Restrict SSH access
 * Prefer SSM Session Manager over bastion hosts
-* Scan Terraform code with security tools:
-
-    * tfsec
-    * checkov
-    * terrascan
+* Scan Terraform code with `checkov` (used in CI); `tfsec` and `terrascan` are not used
 * Review IAM changes carefully
-* Enable MFA for privileged access
+* Enable MFA for privileged access (IAM Identity Center, see `docs/development-setup.md`)
 
 ---
 
@@ -249,7 +234,7 @@ Target CI steps once a read-only OIDC role exists:
 * Right-size infrastructure resources
 * Shut down non-production resources when unused
 * Use autoscaling where appropriate
-* Prefer Spot instances for fault-tolerant workloads
+* Prefer Spot instances for fault-tolerant workloads (Fargate Spot trade-off in `docs/scaling.md`)
 * Review unused resources regularly
 * Use S3 lifecycle management
 * Avoid unnecessary NAT Gateways
@@ -266,48 +251,48 @@ Target CI steps once a read-only OIDC role exists:
 * Prefer automated infrastructure validation
 * Test modules in isolation when possible
 * Mock external dependencies only when necessary
-* Use staging environments before production rollout
+* Use the `dev` environment before production rollout; there is no separate staging environment (see `docs/environments.md`)
 
 ### Validation Commands
 
 ```bash
-terraform fmt -check
-terraform validate
-terraform plan
+terraform fmt -check -recursive
+terraform -chdir=infrastructure/environments/prod init -backend=false
+terraform -chdir=infrastructure/environments/prod validate
+terraform -chdir=infrastructure/environments/prod test
 ```
 
-### Optional Tooling
+`terraform plan` needs AWS credentials and runs by hand, not in CI.
+
+### Tooling
 
 ```bash
-tflint
-tfsec
-checkov
-terrascan
+tflint --recursive
+checkov -d infrastructure
+terraform-docs
 ```
 
 ---
 
 ## Repository Structure Rules
 
-Example structure:
+Actual structure:
 
 ```text
 terraform/
-  environments/
-    dev/
-    stage/
-    prod/
-
-  modules/
-    vpc/
-    ecs-service/
-    rds/
-    iam/
-
-  global/
-    state/
-    networking/
+  bootstrap/                      state bucket and KMS key (local state)
+  infrastructure/
+    environments/
+      dev/                        root: backend, provider, variables, tests
+      prod/
+    modules/
+      stack/                      composition shared by both roots
+      vpc/ rds/ redis/ ...        single-purpose modules
+    observability/                Prometheus, Grafana and Loki templates
+  docs/
 ```
+
+There is no `stage` environment and no `global/` layer.
 
 ---
 
@@ -320,6 +305,7 @@ Ignore:
 * .terraform
 * .terraform.lock.hcl
 * terraform.tfstate
+* infrastructure/vpn-key, infrastructure/openvpn, infrastructure/ssh (git-ignored key material)
 * terraform.tfstate.backup
 * crash.log
 * *.tfvars

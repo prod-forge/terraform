@@ -62,7 +62,7 @@ The `logs-bucket` module creates one bucket for ALB access logs (`alb/`) and Clo
 - objects expire after 90 days (`retention_days`), noncurrent versions after 1 day;
 - SSE-S3 encryption, because ALB log delivery does not support SSE-KMS;
 - object ownership `BucketOwnerPreferred`, because CloudFront standard logging writes through the `awslogsdelivery` ACL grant;
-- public access blocked, a bucket policy that allows only ELB log delivery to write and denies non-TLS requests.
+- public access blocked, a bucket policy that grants write only to ELB log delivery (CloudFront writes through its ACL grant instead) and denies non-TLS requests.
 
 ## Security groups
 

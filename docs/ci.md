@@ -37,6 +37,8 @@ done
 actionlint
 ```
 
+`terraform test` uses `override_during` in `override_data`/`override_resource` blocks, which needs Terraform 1.11 or newer, while `required_version` stays `>= 1.10` for plain `plan`/`apply`. CI pins 1.11.2, so run the tests with 1.11 or newer locally.
+
 Local tool versions: Terraform 1.11.2, TFLint 0.65.0 (AWS ruleset 0.38.0), terraform-docs 0.24.0, Checkov 3.4.3. CI pins the same Terraform, TFLint and terraform-docs versions. The baseline below was recorded with them.
 
 ## Tests

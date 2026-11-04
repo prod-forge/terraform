@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing.
 
-Prod Forge is an open-source guide to building production-ready backend systems. Contributions that improve the quality, clarity, and completeness of that guide are welcome.
+This repository is the Terraform part of Prod Forge, an open-source guide to building and operating a production-ready backend on AWS. Contributions that improve the quality, clarity, and completeness of the infrastructure code and its documentation are welcome.
 
 ---
 
@@ -17,10 +17,10 @@ Prod Forge is an open-source guide to building production-ready backend systems.
 
 ### Code contributions
 
-- Improvements to the backend application
-- Infrastructure improvements
-- CI/CD pipeline improvements
-- New test coverage
+- Improvements to the Terraform modules and the `dev` and `prod` roots
+- CI workflow improvements (`.github/workflows/terraform-ci.yml`)
+- New `terraform test` coverage (`infrastructure/environments/prod/tests/`)
+- Fixes to the commands and addresses in `docs/`
 
 ### Other contributions
 
@@ -33,7 +33,7 @@ Prod Forge is an open-source guide to building production-ready backend systems.
 
 ## What we are NOT looking for
 
-- Suggestions to switch the core stack without strong justification
+- Suggestions to switch the core stack (Terraform, AWS, ECS Fargate) without strong justification
 - Changes that make the project more like a boilerplate
 - New features that increase complexity without educational value
 - Opinionated changes that reflect personal preference rather than industry practice
@@ -73,7 +73,20 @@ docs/short-description
 
 Keep changes focused. One pull request should address one thing.
 
-If you are adding a new section to the README, follow the existing writing style:
+Run the checks before opening a pull request (CI runs the same ones, none needs AWS credentials):
+
+```shell
+terraform fmt -check -recursive
+terraform -chdir=infrastructure/environments/prod init -backend=false
+terraform -chdir=infrastructure/environments/prod validate
+terraform -chdir=infrastructure/environments/prod test
+tflint --recursive
+checkov -d infrastructure
+```
+
+Never run `terraform apply` against a shared account as part of a contribution, and never commit state files, keys or `.ovpn` files. A change to a module needs the matching update in `docs/` in the same pull request; see [CI for Infrastructure](docs/ci.md) for the full list of checks.
+
+If you are adding a new section to the README or the docs, follow the existing writing style:
 
 - short paragraphs
 - plain language
@@ -86,9 +99,9 @@ If you are adding a new section to the README, follow the existing writing style
 Follow the conventional commit format:
 
 ```text
-docs(readme): add section on feature flags
+docs(security): describe the CloudTrail bucket policy
 fix(ci): correct workflow trigger condition
-feat(observability): add alerting configuration example
+feat(alarms): add an RDS free storage alarm
 ```
 
 ### 6. Open a pull request

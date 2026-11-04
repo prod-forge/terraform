@@ -42,15 +42,26 @@ A restore always creates a new instance. The original is left untouched so it ca
      --target-db-instance-identifier prod-forge-todolist-prod-postgres-restore \
      --restore-time 2026-01-01T10:00:00Z \
      --db-subnet-group-name <subnet-group> --vpc-security-group-ids <rds-sg-id> \
-     --db-parameter-group-name <parameter-group>
+     --db-instance-class <instance-class> --db-parameter-group-name <parameter-group> \
+     --multi-az --no-publicly-accessible --enable-cloudwatch-logs-exports postgresql
 
    # From a snapshot (use the `<project>-<env>-final` snapshot after a deletion)
    aws rds restore-db-instance-from-db-snapshot \
      --db-snapshot-identifier <snapshot-id> \
      --db-instance-identifier prod-forge-todolist-prod-postgres-restore \
      --db-subnet-group-name <subnet-group> --vpc-security-group-ids <rds-sg-id> \
-     --db-parameter-group-name <parameter-group>
+     --db-instance-class <instance-class> --db-parameter-group-name <parameter-group> \
+     --multi-az --no-publicly-accessible --enable-cloudwatch-logs-exports postgresql
    ```
+
+   A restore does not copy the instance class, parameter group, Multi-AZ, public access or log exports from the source, so pass them explicitly. Read the real values first; use the same subnet group and security group:
+
+   ```bash
+   aws rds describe-db-instances --db-instance-identifier prod-forge-todolist-prod-postgres \
+     --query 'DBInstances[0].[DBInstanceClass,DBParameterGroups[0].DBParameterGroupName,DBSubnetGroup.DBSubnetGroupName,VpcSecurityGroups[].VpcSecurityGroupId]'
+   ```
+
+   In dev, drop `--multi-az`.
 
 3. Wait until the instance is available.
 
@@ -59,10 +70,22 @@ A restore always creates a new instance. The original is left untouched so it ca
    ```
 
 4. Verify the data through the VPN (see [Debugging](debugging.md)) with `psql`: row counts and the newest records of the main tables.
-5. Switch the application to the restored instance. Prefer reconciling Terraform instead of editing the endpoint by hand: either import the restored instance under the module address (`terraform import`) after removing the broken one from state, or rename the restored instance to the identifier Terraform expects (`<project>-<environment>-postgres`). Review the plan before applying.
+5. Switch the application to the restored instance and reconcile Terraform instead of editing the endpoint by hand. Remove the broken instance from state (`terraform -chdir=infrastructure/environments/prod state rm module.stack.module.rds.aws_db_instance.postgres`), rename the restored instance to the identifier Terraform expects (`aws rds modify-db-instance --db-instance-identifier <restore-id> --new-db-instance-identifier prod-forge-todolist-prod-postgres --apply-immediately`, after the original is renamed or deleted), then `terraform -chdir=infrastructure/environments/prod import module.stack.module.rds.aws_db_instance.postgres prod-forge-todolist-prod-postgres` and review the plan before applying. Changing `rds_identifier` alone does not adopt the restored instance: Terraform would create another one.
 6. Keep the old instance until the application is confirmed healthy, then remove it (turn off deletion protection first, and keep its final snapshot).
 
-The restored instance gets its own master user secret only if `manage_master_user_password` is set in the restore call; otherwise reuse the existing credentials and rotate them afterwards.
+The restored instance does not reuse the old managed master secret. Pass `--manage-master-user-password` in the restore call to get a new RDS-managed secret, or keep the existing credentials and rotate them afterwards. After the import, `manage_master_user_password = true` in Terraform expects the managed secret, so use the flag when the instance is going to be imported.
+
+### Second destroy or replacement: the final snapshot name is taken
+
+The final snapshot id is fixed (`<project>-<env>-final`). RDS refuses to create it again, so a second destroy or replacement of the instance fails with `DBSnapshotAlreadyExists` and nothing is deleted. Before destroying again, keep the old snapshot under another name and delete the original:
+
+```bash
+aws rds copy-db-snapshot --source-db-snapshot-identifier prod-forge-todolist-prod-final \
+  --target-db-snapshot-identifier prod-forge-todolist-prod-final-$(date +%Y%m%d) --kms-key-id <kms-key-arn>
+aws rds delete-db-snapshot --db-snapshot-identifier prod-forge-todolist-prod-final
+```
+
+Delete the copy only when it is no longer needed as a recovery point.
 
 ## Quarterly restore drill
 

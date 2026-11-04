@@ -9,7 +9,7 @@ After the above preparation, we can begin setting up the infrastructure.
 It is recommended to create the infrastructure in stages:
 
 - ECR
-- StateManager
+- Secrets Manager
 - GitHub OIDC
 - ECS Cluster
 - ALB
@@ -234,7 +234,7 @@ Only the `environment:<environment>` subject is trusted (`environment:prod` for 
 - **ECR is replaced; migrate the images by hand first.** Enabling KMS encryption and the per-environment name (`<project>` becomes `<project>-<environment>`) force a new repository, and `terraform apply` cannot delete a non-empty repository (`RepositoryNotEmptyException`), so the apply would stop half-way. Before applying:
   1. List the images: `aws ecr describe-images --repository-name <project> --query 'imageDetails[].imageTags'`.
   2. Note the tags you still need (the running release and the rollback targets). Pull and keep them locally if they cannot be rebuilt.
-  3. Delete the images: `aws ecr batch-delete-image --repository-name <project> --image-ids "$(aws ecr list-images --repository-name <project> --query 'imageIds[]' --output json)"` (or delete the whole repository with `aws ecr delete-repository --force`).
+  3. Delete the images: `aws ecr batch-delete-image --repository-name <project> --image-ids "$(aws ecr list-images --repository-name <project> --query 'imageIds[]' --output json)"`. `batch-delete-image` accepts at most 100 image ids per call, so for a larger repository delete in batches (loop over `list-images --max-items 100`), or delete the whole repository instead: `aws ecr delete-repository --repository-name <project> --force`.
   4. Run `terraform apply`, then push the current release tag (and the `initial` image, see above) to the new repository (output `ecr_repository_url`) before ECS starts new tasks, because running tasks cannot pull from the missing repository.
 - **Old IAM resources are replaced.** The `github-actions-ecs-ecr-role` role and the `github-actions-*` policies are removed and recreated under the new names.
 

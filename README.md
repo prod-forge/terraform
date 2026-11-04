@@ -17,7 +17,7 @@ Built around a simple Todo API, but designed as a real-world production system.
 |----------------------------------------------------|-------------------------------------------------|
 | [Frontend](https://github.com/prod-forge/frontend) | React Web and React Mobile apps + Design System |
 | [Backend](https://github.com/prod-forge/backend)   | NestJS API - the main guide                     |
-| [Infrastructure](https://github.com/prod-forge/terraform)                              | Terraform on AWS                                |
+| [Infrastructure](https://github.com/prod-forge/terraform) | Terraform on AWS                                |
 
 ## Stack
 
@@ -30,180 +30,188 @@ Built around a simple Todo API, but designed as a real-world production system.
 | web-client     | React · Vite · Redux Toolkit · Tailwind CSS · NX                  |
 | Deploy         | AWS S3 · CloudFront · ECR · ECS                                   |
 | Backend        | NestJS · Prisma · PostgreSQL · Redis · Docker                     |
-| Infrastructure | AWS · RDS · ElasticCache                                          |
+| Infrastructure | AWS · RDS · ElastiCache                                          |
 | Observability  | Prometheus · Grafana · Loki · Promtail                            |
 | Quality        | ESLint · Prettier · Husky · Commitlint · CI/CD                    |
 
 # Table of contents
 
-- [1. Development Setup](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md)
-  - [IDE Setup (WebStorm)](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md#ide-setup-webstorm)
-    - [Install Terraform plugin](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md#install-terraform-plugin)
-    - [Configure Terraform formatting watcher](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md#configure-terraform-formatting-watcher)
-  - [Preparing AWS Access](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md#preparing-aws-access)
-    - [Setting up IAM Identity Center](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md#setting-up-iam-identity-center)
-    - [Configure Local AWS Profile](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md#configure-local-aws-profile)
-  - [Verify AWS Connection](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md#verify-aws-connection)
-  - [Global Terraform State](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md#global-terraform-state)
-  - [State Locking](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md#state-locking)
-  - [Bootstrap Infrastructure](https://github.com/prod-forge/terraform/blob/main/docs/development-setup.md#bootstrap-infrastructure)
+- [1. Development Setup](docs/development-setup.md)
+  - [IDE Setup (WebStorm)](docs/development-setup.md#ide-setup-webstorm)
+    - [Install Terraform plugin](docs/development-setup.md#install-terraform-plugin)
+    - [Configure Terraform formatting watcher](docs/development-setup.md#configure-terraform-formatting-watcher)
+  - [Preparing AWS Access](docs/development-setup.md#preparing-aws-access)
+    - [Setting up IAM Identity Center](docs/development-setup.md#setting-up-iam-identity-center)
+    - [Configure Local AWS Profile](docs/development-setup.md#configure-local-aws-profile)
+  - [Verify AWS Connection](docs/development-setup.md#verify-aws-connection)
+  - [Global Terraform State](docs/development-setup.md#global-terraform-state)
+  - [State Locking](docs/development-setup.md#state-locking)
+  - [Bootstrap Infrastructure](docs/development-setup.md#bootstrap-infrastructure)
 
 <!-- -->
 
-- [2. Environments](https://github.com/prod-forge/terraform/blob/main/docs/environments.md)
-  - [Environment Strategy](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#environment-strategy)
-    - [Development Environment (dev)](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#development-environment-dev)
-    - [Production Environment (prod)](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#production-environment-prod)
-    - [Why Not Use Pre-Production?](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#why-not-use-pre-production)
-  - [Key Principle](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#key-principle)
-  - [Layout in the Code](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#layout-in-the-code)
-    - [Differences Between dev and prod](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#differences-between-dev-and-prod)
-    - [One AWS Account or Two](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#one-aws-account-or-two)
-  - [Creating dev](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#creating-dev)
-  - [Cost per Environment](https://github.com/prod-forge/terraform/blob/main/docs/environments.md#cost-per-environment)
+- [2. Environments](docs/environments.md)
+  - [Environment Strategy](docs/environments.md#environment-strategy)
+    - [Development Environment (dev)](docs/environments.md#development-environment-dev)
+    - [Production Environment (prod)](docs/environments.md#production-environment-prod)
+    - [Why Not Use Pre-Production?](docs/environments.md#why-not-use-pre-production)
+  - [Key Principle](docs/environments.md#key-principle)
+  - [Layout in the Code](docs/environments.md#layout-in-the-code)
+    - [Differences Between dev and prod](docs/environments.md#differences-between-dev-and-prod)
+    - [One AWS Account or Two](docs/environments.md#one-aws-account-or-two)
+  - [Creating dev](docs/environments.md#creating-dev)
+  - [Cost per Environment](docs/environments.md#cost-per-environment)
 
 <!-- -->
 
-- [3. Workflow](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md)
-  - [Amazon ECR](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#amazon-ecr)
-    - [The "Chicken-and-Egg" Dilemma](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#the-chicken-and-egg-dilemma)
-    - [Initial Application Image](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#initial-application-image)
-      - [Required Endpoints](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#required-endpoints)
-  - [AWS Secrets Manager](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#aws-secrets-manager)
-  - [GitHub Integration for CI/CD](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#github-integration-for-cicd)
-    - [Approaches](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#approaches)
-      - [1. Dedicated AWS User](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#1-dedicated-aws-user)
-      - [2. OpenID Connect (OIDC) - Recommended](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#2-openid-connect-oidc--recommended)
-    - [Terraform Setup](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#terraform-setup)
-    - [Why OIDC is Recommended](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#why-oidc-is-recommended)
-  - [ECS Cluster](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#ecs-cluster)
-    - [Networking](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#networking)
-  - [Application Load Balancer (ALB)](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#application-load-balancer-alb)
-  - [ECS Service](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#ecs-service)
-    - [IAM](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#iam)
-  - [Task Definition](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#task-definition)
-  - [One-Run ECS Tasks](https://github.com/prod-forge/terraform/blob/main/docs/workflow.md#one-run-ecs-tasks)
+- [3. Workflow](docs/workflow.md)
+  - [Amazon ECR](docs/workflow.md#amazon-ecr)
+    - [The "Chicken-and-Egg" Dilemma](docs/workflow.md#the-chicken-and-egg-dilemma)
+    - [Initial Application Image](docs/workflow.md#initial-application-image)
+      - [Required Endpoints](docs/workflow.md#required-endpoints)
+  - [AWS Secrets Manager](docs/workflow.md#aws-secrets-manager)
+  - [GitHub Integration for CI/CD](docs/workflow.md#github-integration-for-cicd)
+    - [Approaches](docs/workflow.md#approaches)
+      - [1. Dedicated AWS User](docs/workflow.md#1-dedicated-aws-user)
+      - [2. OpenID Connect (OIDC) - Recommended](docs/workflow.md#2-openid-connect-oidc--recommended)
+    - [Terraform Setup](docs/workflow.md#terraform-setup)
+    - [Why OIDC is Recommended](docs/workflow.md#why-oidc-is-recommended)
+  - [ECS Cluster](docs/workflow.md#ecs-cluster)
+    - [Networking](docs/workflow.md#networking)
+  - [Application Load Balancer (ALB)](docs/workflow.md#application-load-balancer-alb)
+  - [ECS Service](docs/workflow.md#ecs-service)
+    - [IAM](docs/workflow.md#iam)
+  - [Task Definition](docs/workflow.md#task-definition)
+  - [One-Run ECS Tasks](docs/workflow.md#one-run-ecs-tasks)
 
 <!-- -->
 
-- [4. Frontend Deployment](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md)
-  - [Architecture](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#architecture)
-  - [Custom Domain](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#custom-domain)
-  - [WAF and Access Logs](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#waf-and-access-logs)
-  - [Security Headers](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#security-headers)
-  - [SPA Routing](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#spa-routing)
-  - [Cache Strategy](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#cache-strategy)
-  - [Deployment](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#deployment)
-  - [Rollback](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#rollback)
-  - [Terraform Setup](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#terraform-setup)
-  - [GitHub Actions Integration](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#github-actions-integration)
-  - [Advantages](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#advantages)
-  - [Limitations](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#limitations)
+- [4. Frontend Deployment](docs/frontend.md)
+  - [Architecture](docs/frontend.md#architecture)
+  - [Custom Domain](docs/frontend.md#custom-domain)
+  - [WAF and Access Logs](docs/frontend.md#waf-and-access-logs)
+  - [Security Headers](docs/frontend.md#security-headers)
+  - [SPA Routing](docs/frontend.md#spa-routing)
+  - [Cache Strategy](docs/frontend.md#cache-strategy)
+  - [Deployment](docs/frontend.md#deployment)
+  - [Rollback](docs/frontend.md#rollback)
+  - [Terraform Setup](docs/frontend.md#terraform-setup)
+  - [GitHub Actions Integration](docs/frontend.md#github-actions-integration)
+  - [Advantages](docs/frontend.md#advantages)
+  - [Limitations](docs/frontend.md#limitations)
 
 <!-- -->
 
-- [5. Observability](https://github.com/prod-forge/terraform/blob/main/docs/observability.md)
-  - [Deployment Model](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#deployment-model)
-  - [Why EC2?](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#why-ec2)
-  - [Observability Data Flow](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#observability-data-flow)
-  - [Advantages of This Approach](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#advantages-of-this-approach)
-    - [Simplicity](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#simplicity)
-    - [Cost Efficiency](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#cost-efficiency)
-    - [Full Control](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#full-control)
-    - [Infrastructure Independence](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#infrastructure-independence)
-  - [Limitations](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#limitations)
-    - [Single Point of Failure](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#single-point-of-failure)
-    - [Scaling Limitations](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#scaling-limitations)
-    - [Operational Maintenance](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#operational-maintenance)
-  - [When to Use Managed Observability](https://github.com/prod-forge/terraform/blob/main/docs/observability.md#when-to-use-managed-observability)
+- [5. Observability](docs/observability.md)
+  - [Deployment Model](docs/observability.md#deployment-model)
+  - [Why EC2?](docs/observability.md#why-ec2)
+  - [Observability Data Flow](docs/observability.md#observability-data-flow)
+  - [Advantages of This Approach](docs/observability.md#advantages-of-this-approach)
+    - [Simplicity](docs/observability.md#simplicity)
+    - [Cost Efficiency](docs/observability.md#cost-efficiency)
+    - [Full Control](docs/observability.md#full-control)
+    - [Infrastructure Independence](docs/observability.md#infrastructure-independence)
+  - [Limitations](docs/observability.md#limitations)
+    - [Single Point of Failure](docs/observability.md#single-point-of-failure)
+    - [Scaling Limitations](docs/observability.md#scaling-limitations)
+    - [Operational Maintenance](docs/observability.md#operational-maintenance)
+  - [When to Use Managed Observability](docs/observability.md#when-to-use-managed-observability)
 
 <!-- -->
 
-- [5. Debugging](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md)
-  - [ECS / Fargate Debugging](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#ecs--fargate-debugging)
-    - [Inspect ECS Tasks](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#inspect-ecs-tasks)
-    - [Execute Commands Inside Container](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#execute-commands-inside-container)
-  - [RDS, Redis Debugging (OpenVPN)](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#rds-redis-debugging-openvpn)
-    - [Install OpenVPN](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#install-openvpn)
-    - [Generate Certificates](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#generate-certificates)
-    - [Generate Client Certificate](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#generate-client-certificate)
-    - [Generate VPN Client Configuration](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#generate-vpn-client-configuration)
-    - [Verify VPN Connection](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#verify-vpn-connection)
-    - [Connect to RDS or Redis](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#connect-to-rds-or-redis)
-  - [Monitoring host access (SSM Session Manager)](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#monitoring-host-access-ssm-session-manager)
-    - [Debugging bootstrap.sh](https://github.com/prod-forge/terraform/blob/main/docs/debugging.md#debugging-bootstrapsh)
+- [6. Debugging](docs/debugging.md)
+  - [ECS / Fargate Debugging](docs/debugging.md#ecs--fargate-debugging)
+    - [Inspect ECS Tasks](docs/debugging.md#inspect-ecs-tasks)
+    - [Execute Commands Inside Container](docs/debugging.md#execute-commands-inside-container)
+  - [RDS, Redis Debugging (OpenVPN)](docs/debugging.md#rds-redis-debugging-openvpn)
+    - [Install OpenVPN](docs/debugging.md#install-openvpn)
+    - [Generate Certificates](docs/debugging.md#generate-certificates)
+    - [Generate Client Certificate](docs/debugging.md#generate-client-certificate)
+    - [Generate VPN Client Configuration](docs/debugging.md#generate-vpn-client-configuration)
+    - [Verify VPN Connection](docs/debugging.md#verify-vpn-connection)
+    - [Connect to RDS or Redis](docs/debugging.md#connect-to-rds-or-redis)
+  - [Monitoring host access (SSM Session Manager)](docs/debugging.md#monitoring-host-access-ssm-session-manager)
+    - [Debugging bootstrap.sh](docs/debugging.md#debugging-bootstrapsh)
 
 <!-- -->
 
-- [6. Troubleshooting](https://github.com/prod-forge/terraform/blob/main/docs/troubleshooting.md)
-  - [EC2/ECS + RDS Network Routing Connection](https://github.com/prod-forge/terraform/blob/main/docs/troubleshooting.md#ec2ecs--rds-network-routing-connection)
+- [7. Troubleshooting](docs/troubleshooting.md)
+  - [EC2/ECS + RDS Network Routing Connection](docs/troubleshooting.md#ec2ecs--rds-network-routing-connection)
 
 <!-- -->
 
-- [7. Destroying the Infrastructure](https://github.com/prod-forge/terraform/blob/main/docs/destroy.md)
-  - [Why Order Matters](https://github.com/prod-forge/terraform/blob/main/docs/destroy.md#why-order-matters)
-  - [Step 1 — Destroy Infrastructure](https://github.com/prod-forge/terraform/blob/main/docs/destroy.md#step-1--destroy-infrastructure)
-  - [Step 2 — Unlock the Bootstrap](https://github.com/prod-forge/terraform/blob/main/docs/destroy.md#step-2--unlock-the-bootstrap)
-  - [Step 3 — Delete the IAM User](https://github.com/prod-forge/terraform/blob/main/docs/destroy.md#step-3--delete-the-iam-user)
+- [8. Destroying the Infrastructure](docs/destroy.md)
+  - [Why Order Matters](docs/destroy.md#why-order-matters)
+  - [Step 1 — Destroy Infrastructure](docs/destroy.md#step-1--destroy-infrastructure)
+  - [Step 2 — Unlock the Bootstrap](docs/destroy.md#step-2--unlock-the-bootstrap)
+  - [Step 3 — Delete the IAM User](docs/destroy.md#step-3--delete-the-iam-user)
 
 <!-- -->
 
-- [8. CI for Infrastructure](https://github.com/prod-forge/terraform/blob/main/docs/ci.md)
-  - [Jobs](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#jobs)
-  - [Reproducibility](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#reproducibility)
-  - [Running locally](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#running-locally)
-  - [Tests](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#tests)
-  - [Why there is no terraform plan in CI yet](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#why-there-is-no-terraform-plan-in-ci-yet)
-  - [Baseline](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#baseline)
+- [9. CI for Infrastructure](docs/ci.md)
+  - [Jobs](docs/ci.md#jobs)
+  - [Reproducibility](docs/ci.md#reproducibility)
+  - [Running locally](docs/ci.md#running-locally)
+  - [Tests](docs/ci.md#tests)
+  - [Why there is no terraform plan in CI yet](docs/ci.md#why-there-is-no-terraform-plan-in-ci-yet)
+  - [Baseline](docs/ci.md#baseline)
 
 <!-- -->
 
-- [9. Backup and Disaster Recovery](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md)
-  - [Protection in place](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md#protection-in-place)
-  - [Objectives](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md#objectives)
-  - [Restore procedure](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md#restore-procedure)
-  - [Quarterly restore drill](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md#quarterly-restore-drill)
-  - [Not covered](https://github.com/prod-forge/terraform/blob/main/docs/backup-and-dr.md#not-covered)
+- [10. Backup and Disaster Recovery](docs/backup-and-dr.md)
+  - [Protection in place](docs/backup-and-dr.md#protection-in-place)
+  - [Objectives](docs/backup-and-dr.md#objectives)
+  - [Restore procedure](docs/backup-and-dr.md#restore-procedure)
+  - [Quarterly restore drill](docs/backup-and-dr.md#quarterly-restore-drill)
+  - [Not covered](docs/backup-and-dr.md#not-covered)
 
 <!-- -->
 
-- [10. Scaling](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md)
-  - [Capacity model](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md#capacity-model)
-  - [Scaling policies](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md#scaling-policies)
-  - [Deployments and shutdown](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md#deployments-and-shutdown)
-  - [How to load-test the policies](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md#how-to-load-test-the-policies)
-  - [Fargate Spot trade-off](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md#fargate-spot-trade-off)
+- [11. Scaling](docs/scaling.md)
+  - [Capacity model](docs/scaling.md#capacity-model)
+  - [Scaling policies](docs/scaling.md#scaling-policies)
+  - [Deployments and shutdown](docs/scaling.md#deployments-and-shutdown)
+  - [How to load-test the policies](docs/scaling.md#how-to-load-test-the-policies)
+  - [Fargate Spot trade-off](docs/scaling.md#fargate-spot-trade-off)
 
 <!-- -->
 
-- [11. Security](https://github.com/prod-forge/terraform/blob/main/docs/security.md)
-  - [TLS everywhere](https://github.com/prod-forge/terraform/blob/main/docs/security.md#tls-everywhere)
-    - [Without a domain (insecure fallback)](https://github.com/prod-forge/terraform/blob/main/docs/security.md#without-a-domain-insecure-fallback)
-  - [WAF](https://github.com/prod-forge/terraform/blob/main/docs/security.md#waf)
-  - [Response headers](https://github.com/prod-forge/terraform/blob/main/docs/security.md#response-headers)
-  - [Load balancer hardening](https://github.com/prod-forge/terraform/blob/main/docs/security.md#load-balancer-hardening)
-  - [Access logs](https://github.com/prod-forge/terraform/blob/main/docs/security.md#access-logs)
-  - [Security groups](https://github.com/prod-forge/terraform/blob/main/docs/security.md#security-groups)
-  - [IAM](https://github.com/prod-forge/terraform/blob/main/docs/security.md#iam)
-  - [Account security baseline](https://github.com/prod-forge/terraform/blob/main/docs/security.md#account-security-baseline)
-  - [Known gaps](https://github.com/prod-forge/terraform/blob/main/docs/security.md#known-gaps)
+- [12. Security](docs/security.md)
+  - [TLS everywhere](docs/security.md#tls-everywhere)
+    - [Without a domain (insecure fallback)](docs/security.md#without-a-domain-insecure-fallback)
+  - [WAF](docs/security.md#waf)
+  - [Response headers](docs/security.md#response-headers)
+  - [Load balancer hardening](docs/security.md#load-balancer-hardening)
+  - [Access logs](docs/security.md#access-logs)
+  - [Security groups](docs/security.md#security-groups)
+  - [IAM](docs/security.md#iam)
+  - [Account security baseline](docs/security.md#account-security-baseline)
+  - [Known gaps](docs/security.md#known-gaps)
 
 <!-- -->
 
-- [12. Cost](https://github.com/prod-forge/terraform/blob/main/docs/cost.md)
-  - [Monthly Estimate](https://github.com/prod-forge/terraform/blob/main/docs/cost.md#monthly-estimate)
-  - [Main Levers](https://github.com/prod-forge/terraform/blob/main/docs/cost.md#main-levers)
-  - [Budget](https://github.com/prod-forge/terraform/blob/main/docs/cost.md#budget)
+- [13. Cost](docs/cost.md)
+  - [Monthly Estimate](docs/cost.md#monthly-estimate)
+  - [Main Levers](docs/cost.md#main-levers)
+  - [Budget](docs/cost.md#budget)
 
 <!-- -->
 
-- [13. Migration to the Environments Layout](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md)
-  - [What Stays the Same](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md#what-stays-the-same)
-  - [Moved Addresses](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md#moved-addresses)
-  - [What Is Replaced](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md#what-is-replaced)
-  - [Rollout](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md#rollout)
-  - [Expected Downtime](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md#expected-downtime)
-  - [Rollback](https://github.com/prod-forge/terraform/blob/main/docs/migration-to-environments.md#rollback)
+- [14. Migration to the Environments Layout](docs/migration-to-environments.md)
+  - [What Stays the Same](docs/migration-to-environments.md#what-stays-the-same)
+  - [Moved Addresses](docs/migration-to-environments.md#moved-addresses)
+  - [What Is Replaced](docs/migration-to-environments.md#what-is-replaced)
+  - [Rollout](docs/migration-to-environments.md#rollout)
+  - [Expected Downtime](docs/migration-to-environments.md#expected-downtime)
+  - [Rollback](docs/migration-to-environments.md#rollback)
+
+<!-- -->
+
+- [15. Blue/Green Deployment (design note, not implemented)](docs/blue-green.md)
+  - [Why](docs/blue-green.md#why)
+  - [What changes in the service](docs/blue-green.md#what-changes-in-the-service)
+  - [What changes in the CD workflow](docs/blue-green.md#what-changes-in-the-cd-workflow)
+  - [Trade-offs](docs/blue-green.md#trade-offs)
 
 # Conclusion
 
@@ -235,9 +243,11 @@ The goal of Prod Forge is to make these practices visible, understandable, and r
 This project is actively evolving.
 Planned additions include:
 
-- Frontend repository with the same level of production treatment
 - Mobile App repository with the same level of production treatment
+- Blue/Green deployments for ECS (design note in [docs/blue-green.md](docs/blue-green.md))
 - Kubernetes-based infrastructure as an alternative to ECS
+
+The frontend repository already exists and is deployed by this Terraform (see [Frontend Deployment](docs/frontend.md)).
 
 If there is something missing that you would find valuable, open an issue or start a discussion.
 
@@ -258,8 +268,8 @@ This project exists as a reminder not to skip them.
 
 We welcome any kind of contribution, please read the guidelines:
 
-[CONTRIBUTING](https://github.com/prod-forge/terraform/blob/main/CONTRIBUTING.md)
+[CONTRIBUTING](CONTRIBUTING.md)
 
 # The MIT License
 
-[LICENSE](https://github.com/prod-forge/terraform/blob/main/LICENSE.md)
+[LICENSE](LICENSE.md)

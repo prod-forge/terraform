@@ -46,8 +46,11 @@ Review the plan carefully before confirming. Once applied, these resources are g
 Some resources block a plain destroy:
 
 - In prod the RDS instance has deletion protection (`rds_deletion_protection = true`). Set it to `false` and apply before destroying; the destroy still takes the final snapshot `<project>-<environment>-final`.
-- In prod the ALB has deletion protection. Disable it first: `aws elbv2 modify-load-balancer-attributes --load-balancer-arn <arn> --attributes Key=deletion_protection.enabled,Value=false`.
+- In prod the ALB has deletion protection (`enable_deletion_protection = var.environment == "prod"`). Terraform cannot disable it during a destroy, so turn it off first: `aws elbv2 modify-load-balancer-attributes --load-balancer-arn <arn> --attributes Key=deletion_protection.enabled,Value=false` (find the ARN with `aws elbv2 describe-load-balancers --names <project>-prod-alb`).
 - The web-client, assets and access-logs buckets are versioned and S3 refuses to delete a non-empty bucket. Empty all object versions (S3 console "Empty", or a lifecycle run) before `terraform destroy`.
+- The CloudTrail bucket `<project>-<env>-cloudtrail` (created when `enable_account_security_services = true`) is versioned, holds the audit log and has no `force_destroy`, so the destroy fails with `BucketNotEmpty`. Empty it (console "Empty", which also removes all versions and delete markers) once you are sure the audit history is no longer needed, then run the destroy again. Export the logs first if they must be kept.
+
+Prod destroy order: set `rds_deletion_protection = false` and apply, disable ALB deletion protection, empty the four buckets (web client, assets, access logs, CloudTrail), then `terraform destroy`.
 
 ## Step 2 — Unlock the Bootstrap
 

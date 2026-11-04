@@ -72,9 +72,15 @@ brew install openvpn
 
 ### Generate Certificates
 
-In the infrastructure folder we need to create **vpn-key** subfolder and generate certificate.
+The Terraform roots read the VPN certificates from `infrastructure/vpn-key/` (variable `vpn_key_dir`, default `../../vpn-key`). The folder is git-ignored. Create it and copy the OpenSSL config next to the keys:
 
-Run the following commands inside the certificate directory:
+```shell
+mkdir -p infrastructure/vpn-key
+cp infrastructure/certificate/openssl.cnf infrastructure/vpn-key/
+cd infrastructure/vpn-key
+```
+
+Run the following commands inside `infrastructure/vpn-key`:
 
 ```shell
 openssl genrsa -out ca.key 2048
@@ -120,6 +126,8 @@ Expected output:
 ```shell
 DNS:vpn.internal.local
 ```
+
+The VPN is optional (`enable_client_vpn`, off in dev). Be aware that the server and CA private keys are Terraform inputs, so they are stored in the environment's state file in plain text. Mitigation: keep the state bucket private, encrypted and limited to the deploy roles (as bootstrap sets it up), use a CA created only for this VPN, rotate the certificates when someone leaves the team, and set `enable_client_vpn = false` when the VPN is not needed.
 
 ### Generate Client Certificate
 

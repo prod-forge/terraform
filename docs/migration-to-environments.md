@@ -146,7 +146,7 @@ aws rds create-db-snapshot --db-instance-identifier prod-forge-database --db-sna
 aws rds wait db-snapshot-available --db-snapshot-identifier prod-forge-migration
 
 # The old instance is unencrypted; an encrypted copy is needed to restore into an encrypted instance.
-KMS_ARN=$(terraform -chdir=infrastructure/environments/prod state show 'module.stack.module.secrets_manager.aws_kms_key.this' | awk -F'"' '/^ *arn /{print $2}')
+KMS_ARN=$(terraform -chdir=infrastructure/environments/prod state show -no-color 'module.stack.module.secrets_manager.aws_kms_key.this' | awk -F'"' '/^ *arn /{print $2}')
 aws rds copy-db-snapshot --source-db-snapshot-identifier prod-forge-migration \
   --target-db-snapshot-identifier prod-forge-migration-encrypted --kms-key-id "$KMS_ARN"
 aws rds wait db-snapshot-available --db-snapshot-identifier prod-forge-migration-encrypted
@@ -182,9 +182,12 @@ aws s3 sync s3://prod-forge-todolist-web-client s3://prod-forge-todolist-prod-we
 aws s3 sync s3://prod-forge-todolist-assets s3://prod-forge-todolist-prod-assets
 ```
 
-Copy the images the service and rollbacks need (the running release and `initial`) into `prod-forge-todolist-prod`:
+Copy the images the service and rollbacks need (the running release and `initial`) into `prod-forge-todolist-prod`. Log Docker in to the registry first (the old and the new repository share the account's registry):
 
 ```shell
+REGISTRY=$(terraform -chdir=infrastructure/environments/prod output -raw ecr_repository_url | cut -d/ -f1)
+aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin "$REGISTRY"
+
 NEW=$(terraform -chdir=infrastructure/environments/prod output -raw ecr_repository_url)
 OLD=${NEW%-prod}
 for tag in initial <release-tag>; do
@@ -250,7 +253,7 @@ Keep `prod-forge-migration-encrypted` until the next automated snapshots cover t
 
 ## Rollback
 
-- **Before step 6** nothing that holds data has been deleted. Scale the old service back to 2 (`aws ecs update-service --cluster prod-forge-todolist-cluster --service prod-forge-todolist-service --desired-count 2`). To return Terraform to the old layout, push the saved state back (`terraform state push -force ~/prod-forge-state-before-migration.json` from a `main` checkout; the versioned state bucket also keeps every earlier version) and check out `main`. The NAT gateways and endpoints created in step 3 are then unmanaged; delete them by hand or roll forward later.
+- **Before step 6** nothing that holds data has been deleted. Scale the old service back to 2 (`aws ecs update-service --cluster prod-forge-todolist-cluster --service prod-forge-todolist-service --desired-count 2`). To return Terraform to the old layout, push the saved state back (`terraform state push -force ~/prod-forge-state-before-migration.json` from a `main` checkout; the versioned state bucket also keeps every earlier version) and check out `main`. After the state push the following are unmanaged and must be deleted by hand or adopted again by a later roll forward: the NAT gateways and endpoints created in step 3, the new ECR repository `prod-forge-todolist-prod` and the new buckets `prod-forge-todolist-prod-web-client` and `prod-forge-todolist-prod-assets` created in step 5 (empty the buckets and the repository first), and the encrypted snapshot `prod-forge-migration-encrypted` together with `prod-forge-migration`.
 - **After step 6** the old ALB, service and database are gone. Roll forward: fix the failing piece and re-apply. The data is safe in `prod-forge-migration` / `prod-forge-migration-encrypted`, the old buckets and the old ECR repository, which are all outside Terraform until step 9.
 
 ## Dev
