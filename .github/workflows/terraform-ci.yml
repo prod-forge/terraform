@@ -77,4 +77,9 @@ jobs:
             terraform-docs -c "$PWD/.terraform-docs.yml" "$d"
           done
       - name: Fail on docs diff
-        run: git diff --exit-code -- infrastructure/modules
+        run: |
+          status=$(git status --porcelain -- infrastructure/modules)
+          if [ -n "$status" ]; then
+            echo "$status"
+            exit 1
+          fi
