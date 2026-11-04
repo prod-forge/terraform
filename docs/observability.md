@@ -60,6 +60,13 @@ Changing the bootstrap template replaces the instance (`user_data_replace_on_cha
 
 The source of truth is `prod-forge/backend` `observability/`; re-sync after backend changes. To update a dashboard: edit it in the backend repo, copy `observability/dashboards/*.json` into `infrastructure/observability/dashboards/`, run `terraform apply`, then re-sync the host. `prometheus/alerts.yml` follows the same rule; it defines `HighErrorRate`, `HighLatencyP95`, `ServiceDown` and `InFlightStuck`. Prometheus evaluates them but has no Alertmanager, so they are visible in Prometheus and Grafana only; paging goes through the CloudWatch alarms below.
 
+Files that intentionally differ from the backend copy, because the host is not the backend's local compose stack:
+
+- `prometheus/prometheus.yml.tftpl` - the `nestjs-app` job (same name, referenced by dashboards and alerts) discovers the ECS tasks through the Cloud Map A record `backend.<namespace>` instead of the compose target `production:3000`.
+- `promtail/config.yml` - containers on this host carry no `logging` label and do not log pino JSON, so `appName` is the container name and there is no `level` stage.
+- `grafana/datasources.yml` - provisioned data sources are not editable in the UI (no `editable: true`).
+- `docker-compose.yml` - only the observability services; the backend, Postgres and Redis run on ECS, RDS and ElastiCache.
+
 ### Validating the configuration locally
 
 ```bash
@@ -121,7 +128,7 @@ ECS task logs go to CloudWatch Logs, not to Loki. Promtail ships only the docker
 
 ### Known gap: traces
 
-The ECS tasks cannot reach Tempo: it listens inside the Docker network of the monitoring host and the task definition sets no OTEL environment variables. The Tempo data source in Grafana stays empty until the backend exports OTLP to a reachable endpoint.
+The ECS tasks cannot reach Tempo: it listens inside the Docker network of the monitoring host and `backend_config.otel_exporter_otlp_endpoint` is empty, so the task definition sets no OTEL environment variables. The Tempo data source in Grafana stays empty until the backend exports OTLP to a reachable endpoint.
 
 This architecture follows common cloud-native observability patterns.
 

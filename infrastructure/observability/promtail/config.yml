@@ -1,5 +1,8 @@
+# Synced from prod-forge/backend observability/promtail/promtail-config.yml (the source of truth).
 # Ships only the docker logs of this host. ECS task logs go to CloudWatch Logs
-# and are not scraped here (see docs/observability.md).
+# and are not scraped here (see docs/observability.md). Differences from the backend copy:
+# containers on this host carry no `logging` label, so appName is the container name,
+# and their output is not pino JSON, so there is no json/level stage.
 server:
   http_listen_port: 9080
   grpc_listen_port: 0
@@ -9,18 +12,21 @@ positions:
 
 clients:
   - url: http://loki:3100/loki/api/v1/push
+    batchsize: 102400
 
 scrape_configs:
   - job_name: docker-logs
     docker_sd_configs:
       - host: unix:///var/run/docker.sock
         refresh_interval: 5s
+
+    # docker_sd_configs delivers the raw stdout line, so no docker stage is needed.
     relabel_configs:
       - source_labels: [__meta_docker_container_name]
         regex: /(.*)
         target_label: appName
+        action: replace
       - source_labels: [__meta_docker_container_name]
         regex: /(.*)
         target_label: container
-    pipeline_stages:
-      - docker: {}
+        action: replace
