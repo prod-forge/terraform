@@ -137,6 +137,15 @@ Built around a simple Todo API, but designed as a real-world production system.
   - [Step 2 — Unlock the Bootstrap](https://github.com/prod-forge/terraform/blob/main/docs/destroy.md#step-2--unlock-the-bootstrap)
   - [Step 3 — Delete the IAM User](https://github.com/prod-forge/terraform/blob/main/docs/destroy.md#step-3--delete-the-iam-user)
 
+<!-- -->
+
+- [8. CI for Infrastructure](https://github.com/prod-forge/terraform/blob/main/docs/ci.md)
+  - [Jobs](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#jobs)
+  - [Reproducibility](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#reproducibility)
+  - [Running locally](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#running-locally)
+  - [Why there is no terraform plan in CI yet](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#why-there-is-no-terraform-plan-in-ci-yet)
+  - [Baseline](https://github.com/prod-forge/terraform/blob/main/docs/ci.md#baseline-to-be-driven-to-zero)
+
 # Conclusion
 
 Building software is not just about writing code.

@@ -14,9 +14,6 @@
 terraform.tfstate
 terraform.tfstate.backup
 
-# Terraform lock
-.terraform.lock.hcl
-
 # Local .terraform directories
 .terraform/
 

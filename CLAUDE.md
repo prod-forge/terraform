@@ -183,7 +183,7 @@ modules/
 * Never apply production changes manually
 * Run `terraform fmt -check`
 * Run `terraform validate`
-* Run `terraform plan` in CI before apply
+* Run `terraform plan` in CI before apply (not yet: CI is offline, see `docs/ci.md`)
 * Require manual approval for production applies
 * Store CI/CD secrets securely
 * Prefer GitHub Actions, GitLab CI, or AWS CodePipeline
@@ -191,7 +191,9 @@ modules/
 * Fail fast on validation errors
 * Use separate AWS accounts/environments when possible
 
-Example CI steps:
+Implemented in `.github/workflows/terraform-ci.yml` (see `docs/ci.md`): `terraform fmt -check -recursive`, `terraform validate` per root, `tflint`, `checkov` and `terraform-docs` (fails on README drift). Provider lock files are committed and CI uses `-lockfile=readonly`.
+
+Target CI steps once a read-only OIDC role exists:
 
 ```yaml
 - terraform fmt -check

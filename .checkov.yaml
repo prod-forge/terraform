@@ -1,0 +1,5 @@
+framework:
+  - terraform
+directory:
+  - infrastructure
+skip-check: []
