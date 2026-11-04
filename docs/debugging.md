@@ -190,13 +190,13 @@ inet 10.200.0.34 --> 10.200.0.33 netmask 0xffffffe0
 Then resolve RDS through the internal DNS:
 
 ```shell
-nslookup my-postgres-db.chg8augcmdse.eu-central-1.rds.amazonaws.com 10.0.0.2
+nslookup my-postgres-db.example123.eu-central-1.rds.amazonaws.com 10.0.0.2
 ```
 
 Expected output:
 
 ```shell
-Name: my-postgres-db.chg8augcmdse.eu-central-1.rds.amazonaws.com
+Name: my-postgres-db.example123.eu-central-1.rds.amazonaws.com
 Address: 10.0.2.27
 ```
 
