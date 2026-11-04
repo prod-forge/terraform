@@ -8,6 +8,7 @@ locals {
   name             = "${var.project}-${var.environment}"
   hosted_zone_name = var.hosted_zone_name != "" ? var.hosted_zone_name : var.domain_name
   api_domain_name  = var.domain_name != "" ? "${var.api_subdomain}.${var.domain_name}" : ""
+  api_url          = local.api_domain_name != "" ? "https://${local.api_domain_name}" : "http://${module.load_balancer.lb_dns_name}"
 
   # Registered by backend CD, not by Terraform; the deploy role may only run this family.
   migration_task_definition_family = "${local.name}-migration-task"
@@ -470,6 +471,7 @@ module "frontend" {
   assets_bucket_name     = "${local.name}-assets"
   frontend_role_name     = module.github_oidc.frontend_role_name
 
+  api_origin              = local.api_url
   domain_name             = var.domain_name
   acm_certificate_arn     = module.cloudfront_certificate.certificate_arn
   web_acl_arn             = var.enable_waf ? module.waf_cloudfront[0].web_acl_arn : null

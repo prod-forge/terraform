@@ -46,9 +46,11 @@ The distribution is protected by a `CLOUDFRONT`-scope WAF web ACL (managed IP re
 
 ## Security Headers
 
-A CloudFront response headers policy is attached to every cache behavior: `Strict-Transport-Security` (2 years, includeSubDomains), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Content-Security-Policy: frame-ancestors 'none'`.
+A CloudFront response headers policy is attached to every cache behavior: `Strict-Transport-Security` (2 years, includeSubDomains), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, and the full `Content-Security-Policy`.
 
-The full CSP lives in the web client `index.html` meta tag, because it needs the build-time API URL. Browsers enforce every CSP they receive, so the header adds the one directive a meta tag cannot carry (`frame-ancestors`) without duplicating the API and asset origins.
+The header is the enforced source of truth for the CSP. The web client `index.html` carries the same policy in a `<meta>` tag as a fallback for local development (the Vite dev server has no CloudFront). Only the header can carry `frame-ancestors`; browsers ignore it in a meta tag. The only variable part is the API origin in `connect-src`, passed to the module as `api_origin`: `https://api.<domain>` with a domain, `http://<alb-dns>` without one (the stack passes its `api_url` output). The web client assets are served by the same distribution under `/assets`, so `'self'` covers them. `https://*.sentry.io` covers the Sentry ingest host. There is no `unsafe-eval`.
+
+The policy is asserted in `infrastructure/environments/prod/tests/edge.tftest.hcl` for both branches (with and without a domain). The frontend repo asserts the same string against `index.html` (`apps/web-client/index-csp.test.ts`); change both together.
 
 ## SPA Routing
 

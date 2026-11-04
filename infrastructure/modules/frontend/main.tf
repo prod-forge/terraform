@@ -1,5 +1,21 @@
 locals {
   custom_domain = var.domain_name != ""
+
+  # Same policy as the web client index.html meta tag (frontend docs/security.md).
+  # The assets are served by this distribution under /assets, so 'self' covers them.
+  # 'unsafe-inline' for styles: see the frontend security chapter.
+  content_security_policy = join("; ", [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: https:",
+    "connect-src 'self' ${var.api_origin} https://*.sentry.io",
+    "font-src 'self' data:",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+  ])
 }
 
 ############################################################
@@ -88,9 +104,9 @@ resource "aws_cloudfront_origin_access_control" "assets" {
 # CloudFront Security Response Headers
 ############################################################
 
-# The full CSP lives in the web client index.html meta tag (it needs the
-# build-time API URL). Browsers enforce every CSP they receive, so this header
-# only adds frame-ancestors, which a meta tag cannot carry.
+# The header is the enforced Content-Security-Policy. The index.html meta tag
+# carries the same policy as a fallback for local development, and the meta tag
+# cannot carry frame-ancestors.
 resource "aws_cloudfront_response_headers_policy" "security" {
   #checkov:skip=CKV_AWS_259: HSTS preload is a hard-to-revert commitment for the whole domain; it stays off until the owner opts in
   name = "${var.project}-${var.environment}-security-headers"
@@ -118,7 +134,7 @@ resource "aws_cloudfront_response_headers_policy" "security" {
     }
 
     content_security_policy {
-      content_security_policy = "frame-ancestors 'none'"
+      content_security_policy = local.content_security_policy
       override                = true
     }
   }

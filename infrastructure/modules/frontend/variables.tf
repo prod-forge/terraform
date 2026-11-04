@@ -19,6 +19,16 @@ variable "frontend_role_name" {
   type        = string
 }
 
+variable "api_origin" {
+  description = "Origin of the API (scheme and host, no path) allowed in the CSP connect-src: https://api.<domain>, or http://<alb-dns> without a domain"
+  type        = string
+
+  validation {
+    condition     = can(regex("^https?://[^/\\s;']+$", var.api_origin))
+    error_message = "api_origin must be a scheme and host without a path, for example https://api.example.com."
+  }
+}
+
 variable "domain_name" {
   description = "Custom domain for the distribution. Empty keeps the default *.cloudfront.net certificate"
   type        = string

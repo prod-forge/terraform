@@ -28,7 +28,7 @@ output "assets_bucket_name" {
 
 output "api_url" {
   description = "Public API base URL: HTTPS on the API domain when domain_name is set, otherwise plain HTTP on the ALB"
-  value       = local.api_domain_name != "" ? "https://${local.api_domain_name}" : "http://${module.load_balancer.lb_dns_name}"
+  value       = local.api_url
 }
 
 # Names and network ids that backend CD reads from GitHub repository variables (docs/workflow.md).

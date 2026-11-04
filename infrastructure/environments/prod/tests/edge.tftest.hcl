@@ -29,6 +29,8 @@ variables {
   alb_zone_id            = "Z215JYRZR1TBD5"
   cloudfront_domain_name = "d111111abcdef8.cloudfront.net"
   cloudfront_zone_id     = "Z2FDTNDATAQYW2"
+
+  api_origin = "http://test-alb-123456789.eu-central-1.elb.amazonaws.com"
 }
 
 ############################
@@ -75,6 +77,20 @@ run "frontend_rejects_domain_without_certificate" {
   }
 
   expect_failures = [var.acm_certificate_arn]
+}
+
+run "frontend_rejects_api_origin_with_path" {
+  command = plan
+
+  module {
+    source = "../../modules/frontend"
+  }
+
+  variables {
+    api_origin = "https://api.example.com/api/v1/"
+  }
+
+  expect_failures = [var.api_origin]
 }
 
 run "dns_rejects_domain_without_zone_name" {
@@ -244,6 +260,12 @@ run "frontend_without_domain_uses_default_certificate" {
   assert {
     condition     = one(aws_s3_bucket_lifecycle_configuration.web_client.rule[0].noncurrent_version_expiration).noncurrent_days == 30
     error_message = "Previous web client builds must expire after 30 days."
+  }
+
+  # Keep in sync with the CSP test in the frontend repo (apps/web-client/index-csp.test.ts).
+  assert {
+    condition     = aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy == "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' http://test-alb-123456789.eu-central-1.elb.amazonaws.com https://*.sentry.io; font-src 'self' data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+    error_message = "Without a domain the CSP must allow the plain-HTTP ALB as the API origin."
   }
 }
 
@@ -429,6 +451,13 @@ run "frontend_with_domain_uses_acm_certificate" {
   variables {
     domain_name         = "example.com"
     acm_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/00000000-0000-0000-0000-000000000000"
+    api_origin          = "https://api.example.com"
+  }
+
+  # Keep in sync with the CSP test in the frontend repo (apps/web-client/index-csp.test.ts).
+  assert {
+    condition     = aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy == "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.example.com https://*.sentry.io; font-src 'self' data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+    error_message = "With a domain the CSP must allow https://api.<domain> as the API origin."
   }
 
   assert {
