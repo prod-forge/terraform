@@ -54,7 +54,7 @@ A `moved` block fixes an address, not a name. Every resource whose name, identif
 | 7 | `module.monitoring_ec2.aws_instance.monitoring` | No key pair, new bootstrap (`user_data_replace_on_change`) | Prometheus, Loki and Grafana data on the old root volume |
 | 7 | `module.monitoring_ssh` key pair | Removed (SSM only) | none |
 | 7 | Generated secrets `<project>/prod/redis-auth`, `jwt-secret`, `grafana-admin`, WAF ACLs, certificates and DNS (with a domain), logs bucket, alarms, SNS, budget, Cloud Map, observability config bucket | New | none |
-| 7 | `module.security_baseline`: CloudTrail trail, its bucket, KMS key and SNS topic, GuardDuty detector, IAM Access Analyzer | New. If the account already has a GuardDuty detector in the region, import it first: `terraform import 'module.stack.module.security_baseline.aws_guardduty_detector.this[0]' <detector-id>` | none |
+| 7 | `module.security_baseline`: CloudTrail trail, its bucket, KMS key and SNS topic, GuardDuty detector, IAM Access Analyzer | New. If the account already has a GuardDuty detector in the region, import it first: `terraform import 'module.stack.module.security_baseline.aws_guardduty_detector.this[0]' <detector-id>`. If an account analyzer already exists, import it too: `terraform import 'module.stack.module.security_baseline.aws_accessanalyzer_analyzer.this[0]' <analyzer-name>` | none |
 
 Updated in place: the VPC and subnets (`Name` tags, the AZs stay `eu-central-1a`/`eu-central-1b`), the internet gateway, the public route table, the OIDC provider (thumbprints dropped), the secrets KMS key (rotation on, description), `prod_forge/backend/config-v1` (recovery window), the Client VPN endpoint (description, security group), its certificates (tags) and association, the CloudFront distribution (new origins, WAF, logging), the OACs (names), and the tags of every resource that gains `CostCenter` and `Repository` from `default_tags`.
 
@@ -62,9 +62,11 @@ The notes from earlier tasks about the ECS security group moving from inline to 
 
 Without `-target`, Terraform would destroy the old RDS instance with the `skip_final_snapshot = true` stored in the state (no final snapshot), fail on the non-empty ECR repository and buckets, and start the new service while NAT routes are still being created. The steps below avoid all three.
 
+Destroying the old RDS instance also deletes its automated backups, so the point-in-time restore history is lost. Only the manual snapshot `prod-forge-migration` (and its encrypted copy) remains; the new instance builds its own backup history from the restore onward.
+
 ## Rollout
 
-Plan a maintenance window of about one hour. Freeze backend and frontend deploys for its duration.
+Plan a maintenance window of about one hour and 15 minutes. Freeze backend and frontend deploys for its duration.
 
 ### 1. Bootstrap: drop the DynamoDB lock table
 
@@ -90,7 +92,7 @@ Keep a copy of the current state outside the repository (the state bucket is ver
 
 ```shell
 cd infrastructure/environments/prod
-terraform state pull > ~/prod-forge-state-before-migration.json
+terraform state pull > ~/prod-forge-state-before-migration.json   # contains secrets: delete it in step 9
 
 in_state() { terraform state list | awk -v a="$1" 'index($0, a ".") == 1 || index($0, a "[") == 1 || $0 == a { f = 1 } END { exit !f }'; }
 mv_if_present() { if in_state "$1"; then terraform state mv "$1" "$2"; fi; }
@@ -202,9 +204,14 @@ done
 Restore the database from the encrypted copy on creation:
 
 ```shell
-terraform -chdir=infrastructure/environments/prod plan -var=rds_snapshot_identifier=prod-forge-migration-encrypted -out=migration.plan
-terraform -chdir=infrastructure/environments/prod apply migration.plan
+PLAN_DIR="$(mktemp -d)"   # plan files contain secrets: keep them outside the repository
+terraform -chdir=infrastructure/environments/prod plan -var=rds_snapshot_identifier=prod-forge-migration-encrypted \
+  -var=image_tag=<release-tag> -out="$PLAN_DIR/migration.plan"
+terraform -chdir=infrastructure/environments/prod apply "$PLAN_DIR/migration.plan"
+rm -rf "$PLAN_DIR"
 ```
+
+`image_tag` must be the release tag copied in step 5: the task definition is created once with it, and `ignore_changes = [task_definition]` on the service keeps later applies from replacing it, so the default `initial` image would keep running until the next deploy.
 
 The plan must match the replacement table. Terraform orders the rest itself: new security groups and IAM roles first, then the old ECS service and ALB are deleted, RDS and Redis are recreated, and the new ALB, target group, listener, task definition and service are created. `rds_snapshot_identifier` is only read when the instance is created (`ignore_changes`), so it does not need to stay in `terraform.tfvars`.
 
@@ -218,6 +225,15 @@ curl -fsS "$(terraform -chdir=infrastructure/environments/prod output -raw api_u
 ```
 
 - `runningCount` must reach 2. If the service settled at fewer tasks, run `aws ecs update-service --cluster prod-forge-todolist-prod-cluster --service prod-forge-todolist-prod-service --desired-count 2`; Application Auto Scaling keeps the minimum at 2 from then on.
+- The running task must use the release image, not `initial`:
+
+  ```shell
+  TASK_DEF="$(aws ecs describe-services --cluster prod-forge-todolist-prod-cluster --services prod-forge-todolist-prod-service \
+    --query 'services[0].taskDefinition' --output text)"
+  aws ecs describe-task-definition --task-definition "$TASK_DEF" --query 'taskDefinition.containerDefinitions[0].image'
+  ```
+
+  The tag must be `<release-tag>`. If it shows `initial`, the apply ran without `-var=image_tag=<release-tag>`: re-run the CD deploy of the release to replace the task definition.
 - The old security groups are deleted once the network interfaces of the old tasks are released. If the apply waits on `DependencyViolation` for a few minutes, that is the ENI release; it finishes on its own.
 - The new Redis is empty; the application rebuilds the cache on demand.
 - Confirm the SNS email subscription for `alert_email`.
@@ -241,13 +257,14 @@ aws ecr delete-repository --repository-name prod-forge-todolist --force
 aws logs delete-log-group --log-group-name /ecs/prod-forge-todolist
 aws logs delete-log-group --log-group-name /ecs/prod-forge-todolist-task-migration
 aws rds delete-db-snapshot --db-snapshot-identifier prod-forge-migration
+rm -f ~/prod-forge-state-before-migration.json   # the state copy contains secrets
 ```
 
 Keep `prod-forge-migration-encrypted` until the next automated snapshots cover the restore window.
 
 ## Expected Downtime
 
-- **API: about 30 to 60 minutes**, from scaling the service to 0 in step 4 until the new service is healthy in step 7. Most of it is the snapshot, the encrypted copy and the RDS restore with Multi-AZ; the ALB and the ECS service take a few minutes each.
+- **API: about 30 to 75 minutes**, from scaling the service to 0 in step 4 until the new service is healthy in step 7. Most of it is the snapshot, the encrypted copy and the RDS restore with Multi-AZ; the ALB and the ECS service take a few minutes each.
 - **Web client: none for static files.** The distribution is updated in place and the new buckets already hold the copied build. API calls from the page fail during the API window. Without a domain, the page keeps calling the old ALB DNS name until the frontend is rebuilt with the new `api_url`.
 - **Client VPN and monitoring:** the VPN stays up (in-place update). Grafana is unavailable while the monitoring host is replaced and starts with empty history.
 

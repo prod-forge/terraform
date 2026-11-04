@@ -41,7 +41,17 @@ export AWS_DEFAULT_REGION="${region}"
 STACK_DIR="/opt/observability"
 
 mkdir -p "$STACK_DIR"
-aws s3 sync "s3://${bucket}" "$STACK_DIR" --delete --exclude ".env"
+# IAM and S3 are eventually consistent right after the first apply: retry a few times.
+for attempt in 1 2 3 4 5 6; do
+  if aws s3 sync "s3://${bucket}" "$STACK_DIR" --delete --exclude ".env"; then
+    break
+  fi
+  if [ "$attempt" -eq 6 ]; then
+    echo "S3 sync failed after $attempt attempts" >&2
+    exit 1
+  fi
+  sleep $((attempt * 10))
+done
 
 PASSWORD="$(aws secretsmanager get-secret-value --secret-id "${grafana_secret}" --query SecretString --output text)"
 umask 077

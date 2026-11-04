@@ -35,8 +35,6 @@ No modules.
 | <a name="input_project"></a> [project](#input\_project) | Project name, used in resource names | `string` | n/a | yes |
 | <a name="input_public_subnet_id"></a> [public\_subnet\_id](#input\_public\_subnet\_id) | Public Subnet ID | `string` | n/a | yes |
 | <a name="input_region"></a> [region](#input\_region) | AWS region | `string` | n/a | yes |
-| <a name="input_repository_url"></a> [repository\_url](#input\_repository\_url) | ECR URL | `string` | n/a | yes |
-| <a name="input_secret_id"></a> [secret\_id](#input\_secret\_id) | Secrets Manager secret ARN or name for the monitoring EC2 | `string` | n/a | yes |
 | <a name="input_sg_monitoring_id"></a> [sg\_monitoring\_id](#input\_sg\_monitoring\_id) | Security Group Monitoring ID | `string` | n/a | yes |
 
 ## Outputs

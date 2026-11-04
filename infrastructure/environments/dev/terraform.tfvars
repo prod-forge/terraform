@@ -46,7 +46,8 @@ service_namespace = "prod-forge-todolist-dev.local"
 # Dev is reached through SSM; set true and provide the key files to add a Client VPN.
 enable_client_vpn = false
 
-alert_email = "alerts@example.com"
+# Empty: no alarm subscription is created (no pending confirmation email).
+alert_email = ""
 # 0: no budget. The account-wide budget is owned by prod (docs/cost.md).
 monthly_budget_usd = 0
 

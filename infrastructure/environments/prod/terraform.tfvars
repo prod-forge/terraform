@@ -12,6 +12,7 @@ create_github_oidc_provider = true
 # prod owns the account-level CloudTrail trail, GuardDuty detector and Access Analyzer.
 enable_account_security_services = true
 
+# Must equal the live master username: changing it replaces the database.
 rds_username = "new_username"
 rds_db_name  = "todolist"
 

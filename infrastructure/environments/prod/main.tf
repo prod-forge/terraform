@@ -75,6 +75,8 @@ module "stack" {
   vpn_ca_certificate     = local.vpn_pem.ca_certificate
   vpn_ca_private_key     = local.vpn_pem.ca_private_key
 
+  image_tag = var.image_tag
+
   monitoring_instance_type = var.monitoring_instance_type
   admin_cidr_blocks        = var.admin_cidr_blocks
 

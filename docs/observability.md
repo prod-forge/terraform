@@ -119,6 +119,10 @@ Tempo accepts OTLP traces on 4317/4318 (bound inside the Docker network) and is 
 
 ECS task logs go to CloudWatch Logs, not to Loki. Promtail ships only the docker logs of the monitoring host itself, so the Loki-based logs dashboard has no backend data. Read application logs in CloudWatch Logs. Forwarding them to Loki (for example with a lambda-promtail subscription on the log groups) is out of scope.
 
+### Known gap: traces
+
+The ECS tasks cannot reach Tempo: it listens inside the Docker network of the monitoring host and the task definition sets no OTEL environment variables. The Tempo data source in Grafana stays empty until the backend exports OTLP to a reachable endpoint.
+
 This architecture follows common cloud-native observability patterns.
 
 ## Advantages of This Approach

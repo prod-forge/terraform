@@ -26,6 +26,9 @@ resource "aws_lb_target_group" "app" {
   vpc_id      = var.vpc_id
   target_type = "ip"
 
+  # The backend drains on SIGTERM within about 30 s (see docs/scaling.md).
+  deregistration_delay = 30
+
   health_check {
     path                = "/health"
     protocol            = "HTTP"
@@ -81,5 +84,32 @@ resource "aws_lb_listener" "https" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.app.arn
+  }
+}
+
+############################
+# Block /metrics
+############################
+
+# The backend serves /metrics and /metrics/database without authentication.
+# Prometheus scrapes the task IPs directly, so the ALB never needs to expose them.
+resource "aws_lb_listener_rule" "block_metrics" {
+  listener_arn = local.https_enabled ? aws_lb_listener.https[0].arn : aws_lb_listener.app.arn
+  priority     = 1
+
+  action {
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "Not Found"
+      status_code  = "404"
+    }
+  }
+
+  condition {
+    path_pattern {
+      values = ["/metrics*"]
+    }
   }
 }

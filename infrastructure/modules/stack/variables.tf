@@ -117,6 +117,12 @@ variable "admin_cidr_blocks" {
   default     = []
 }
 
+variable "image_tag" {
+  description = "Image tag of the initial task definition revision; CD replaces the image afterwards"
+  type        = string
+  default     = "initial"
+}
+
 variable "monitoring_instance_type" {
   description = "EC2 instance type of the monitoring host"
   type        = string

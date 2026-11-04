@@ -35,7 +35,7 @@ Both policies are target tracking on the same scalable target (`ecs:service:Desi
 - Rolling deployments (`deployment_controller = ECS`), `minimum_healthy_percent = 100`, `maximum_percent = 200`: new tasks start before old ones stop.
 - The deployment circuit breaker is on with `rollback = true`: if new tasks keep failing health checks, ECS marks the deployment failed and rolls back to the last steady task definition.
 - `health_check_grace_period_seconds = 60` gives the app time to boot before failing ALB health checks count.
-- `stopTimeout = 60`: on SIGTERM the backend drains for 10 s, then waits up to 20 s for in-flight requests before exiting. 60 s covers those 30 s with headroom before ECS sends SIGKILL. If the backend drain or in-flight timeouts grow, `stopTimeout` must stay above their sum (Fargate allows at most 120 s). ECS deregisters the task from the ALB target group (default 300 s deregistration delay) before it sends SIGTERM, so that delay lengthens deployments but does not cut requests.
+- `stopTimeout = 60`: on SIGTERM the backend drains for 10 s, then waits up to 20 s for in-flight requests before exiting. 60 s covers those 30 s with headroom before ECS sends SIGKILL. If the backend drain or in-flight timeouts grow, `stopTimeout` must stay above their sum (Fargate allows at most 120 s). ECS deregisters the task from the ALB target group (`deregistration_delay = 30` s on the target group, matching the backend drain of about 30 s) before it sends SIGTERM, so the delay lengthens deployments slightly but does not cut requests. Keep the delay at or below `stopTimeout`.
 
 ## How to load-test the policies
 

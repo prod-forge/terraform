@@ -50,7 +50,7 @@ Some resources block a plain destroy:
 - The web-client, assets and access-logs buckets are versioned and S3 refuses to delete a non-empty bucket. Empty all object versions (S3 console "Empty", or a lifecycle run) before `terraform destroy`.
 - The CloudTrail bucket `<project>-<env>-cloudtrail` (created when `enable_account_security_services = true`) is versioned, holds the audit log and has no `force_destroy`, so the destroy fails with `BucketNotEmpty`. Empty it (console "Empty", which also removes all versions and delete markers) once you are sure the audit history is no longer needed, then run the destroy again. Export the logs first if they must be kept.
 
-Prod destroy order: set `rds_deletion_protection = false` and apply, disable ALB deletion protection, empty the four buckets (web client, assets, access logs, CloudTrail), then `terraform destroy`.
+Prod destroy order: set `rds_deletion_protection = false` and apply, disable ALB deletion protection, empty the five buckets (web client, assets, access logs, CloudTrail, versioned observability-config), then `terraform destroy`.
 
 ## Step 2 — Unlock the Bootstrap
 

@@ -247,6 +247,7 @@ module "task_definition" {
   project                 = var.project
   environment             = var.environment
   region                  = var.region
+  image_tag               = var.image_tag
 
   cpu                = var.ecs_task_cpu
   memory             = var.ecs_task_memory
@@ -366,7 +367,6 @@ module "monitoring_iam" {
   source      = "../monitoring/iam"
   project     = var.project
   environment = var.environment
-  secret_arn  = module.secrets_manager.secret_arn
   kms_key_arn = module.secrets_manager.kms_arn
 
   grafana_admin_secret_arn        = module.secrets_manager.grafana_admin_secret_arn
@@ -405,12 +405,13 @@ module "monitoring_ec2" {
   instance_type                        = var.monitoring_instance_type
   sg_monitoring_id                     = module.monitoring_sg.sg_monitoring_id
   public_subnet_id                     = module.vpc.public_subnet_ids[0]
-  repository_url                       = module.ecr.repository_url
-  secret_id                            = module.secrets_manager.secret_arn
   region                               = var.region
 
   observability_bucket     = module.observability_config.bucket_name
   grafana_admin_secret_arn = module.secrets_manager.grafana_admin_secret_arn
+
+  # The boot-time sync needs the role policies and attachments in place.
+  depends_on = [module.monitoring_iam]
 }
 
 # Prometheus on the monitoring host scrapes the backend tasks on the app port.

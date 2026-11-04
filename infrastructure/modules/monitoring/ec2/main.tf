@@ -4,7 +4,7 @@ data "aws_ssm_parameter" "ubuntu" {
 }
 
 resource "aws_instance" "monitoring" {
-  #checkov:skip=CKV_AWS_88: Grafana is reached by IP from var.admin_cidr_blocks; the host has no other inbound path and no SSH
+  #checkov:skip=CKV_AWS_88: the public IP exists only for egress (SSM, package and image downloads) from a public subnet; there is no SSH and no inbound path except Grafana from the optional var.admin_cidr_blocks
 
   ami           = data.aws_ssm_parameter.ubuntu.value
   instance_type = var.instance_type
@@ -17,8 +17,6 @@ resource "aws_instance" "monitoring" {
   ebs_optimized               = true
 
   user_data = templatefile("${path.module}/templates/bootstrap.sh.tpl", {
-    repository_url = var.repository_url
-    secret_id      = var.secret_id
     region         = var.region
     bucket         = var.observability_bucket
     grafana_secret = var.grafana_admin_secret_arn
@@ -28,7 +26,7 @@ resource "aws_instance" "monitoring" {
   # No key pair: the host is reached only through SSM Session Manager.
   # The security group controls which ports (Grafana) are reachable by IP.
   vpc_security_group_ids = [var.sg_monitoring_id]
-  # Connect EC2 to ECR, Secrets Manager, S3 config and SSM
+  # Grants Secrets Manager (Grafana password), S3 config and SSM
   iam_instance_profile = var.monitoring_ec2_instance_profile_name
 
   metadata_options {

@@ -221,3 +221,9 @@ variable "monthly_budget_usd" {
   description = "Monthly cost budget in USD; 0 disables the budget"
   type        = number
 }
+
+variable "image_tag" {
+  description = "Image tag of the initial task definition revision; CD replaces the image afterwards. Pass the release tag on the first apply of an environment"
+  type        = string
+  default     = "initial"
+}

@@ -76,6 +76,7 @@
 | <a name="input_enable_waf"></a> [enable\_waf](#input\_enable\_waf) | Attach WAF web ACLs to the ALB and the CloudFront distribution | `bool` | n/a | yes |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, prod), the second part of every resource name | `string` | n/a | yes |
 | <a name="input_hosted_zone_name"></a> [hosted\_zone\_name](#input\_hosted\_zone\_name) | Public Route 53 zone for domain\_name; defaults to domain\_name when empty | `string` | `""` | no |
+| <a name="input_image_tag"></a> [image\_tag](#input\_image\_tag) | Image tag of the initial task definition revision; CD replaces the image afterwards | `string` | `"initial"` | no |
 | <a name="input_monitoring_instance_type"></a> [monitoring\_instance\_type](#input\_monitoring\_instance\_type) | EC2 instance type of the monitoring host | `string` | `"t3.small"` | no |
 | <a name="input_monthly_budget_usd"></a> [monthly\_budget\_usd](#input\_monthly\_budget\_usd) | Monthly cost budget in USD; 0 disables the budget | `number` | `0` | no |
 | <a name="input_project"></a> [project](#input\_project) | Project name, the first part of every resource name | `string` | n/a | yes |

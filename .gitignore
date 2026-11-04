@@ -33,3 +33,9 @@ openvpn
 ssh
 
 node_modules/
+
+# Plans and state copies can contain secrets
+*.tfplan
+*.plan
+*.tfstate.*
+*-state-before-migration.json

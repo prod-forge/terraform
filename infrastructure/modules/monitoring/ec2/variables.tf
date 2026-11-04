@@ -8,11 +8,6 @@ variable "environment" {
   type        = string
 }
 
-variable "repository_url" {
-  description = "ECR URL"
-  type        = string
-}
-
 variable "instance_type" {
   description = "EC2 instance type of the monitoring host"
   type        = string
@@ -31,11 +26,6 @@ variable "monitoring_ec2_instance_profile_name" {
 
 variable "public_subnet_id" {
   description = "Public Subnet ID"
-  type        = string
-}
-
-variable "secret_id" {
-  description = "Secrets Manager secret ARN or name for the monitoring EC2"
   type        = string
 }
 

@@ -55,6 +55,10 @@ The CloudFront response headers policy (see [Frontend](frontend.md#security-head
 - Deletion protection is on when `environment = "prod"`.
 - Access logs go to the `<project>-<env>-access-logs` bucket under `alb/`.
 
+## Metrics endpoints
+
+The backend serves `/metrics` and `/metrics/database` without authentication. A listener rule with priority 1 returns a fixed 404 for the path pattern `/metrics*` on the forwarding listener (443 with a domain, 80 without), so they are not reachable through the ALB. Prometheus scrapes the task IPs on port 3000 directly and is not affected.
+
 ## Access logs
 
 The `logs-bucket` module creates one bucket for ALB access logs (`alb/`) and CloudFront standard logs (`cloudfront/`):

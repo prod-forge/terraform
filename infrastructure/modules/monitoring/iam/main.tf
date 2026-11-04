@@ -30,7 +30,7 @@ resource "aws_iam_policy" "secrets_access" {
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
         ]
-        Resource = compact([var.secret_arn, var.grafana_admin_secret_arn])
+        Resource = compact([var.grafana_admin_secret_arn])
       },
       {
         Effect = "Allow"
@@ -74,13 +74,6 @@ moved {
 resource "aws_iam_role_policy_attachment" "ssm" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
-# A role attachment, not aws_iam_policy_attachment: that resource owns every
-# attachment of the managed policy in the account and would detach other environments.
-resource "aws_iam_role_policy_attachment" "ecr_read" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
 resource "aws_iam_instance_profile" "ec2_instance_profile" {

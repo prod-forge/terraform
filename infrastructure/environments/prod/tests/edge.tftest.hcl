@@ -163,6 +163,19 @@ run "load_balancer_without_domain_forwards_http" {
   }
 
   assert {
+    condition = (
+      one([for c in aws_lb_listener_rule.block_metrics.condition : one(c.path_pattern).values]) == toset(["/metrics*"]) &&
+      aws_lb_listener_rule.block_metrics.action[0].fixed_response[0].status_code == "404"
+    )
+    error_message = "/metrics* must return 404 on the port 80 listener."
+  }
+
+  assert {
+    condition     = aws_lb_target_group.app.deregistration_delay == "30"
+    error_message = "The target group must drain for 30 s."
+  }
+
+  assert {
     condition     = aws_lb.app.enable_deletion_protection == false
     error_message = "Deletion protection must be off outside prod."
   }
@@ -361,6 +374,14 @@ run "load_balancer_with_domain_serves_https" {
       aws_lb_listener.app.default_action[0].redirect[0].status_code == "HTTP_301"
     )
     error_message = "Port 80 must redirect to HTTPS with a 301."
+  }
+
+  assert {
+    condition = (
+      one([for c in aws_lb_listener_rule.block_metrics.condition : one(c.path_pattern).values]) == toset(["/metrics*"]) &&
+      aws_lb_listener_rule.block_metrics.action[0].fixed_response[0].status_code == "404"
+    )
+    error_message = "/metrics* must return 404 on the 443 listener."
   }
 
   assert {
