@@ -143,6 +143,15 @@ aws secretsmanager get-secret-value \
   --output text | jq -r '.SOME_SECRET'
 ```
 
+### Generated secrets
+
+Terraform generates two secrets with `random_password` (64 characters, no special characters so they are safe in env vars and in the ElastiCache AUTH token) and stores them encrypted with the same KMS key:
+
+- `<project>/<environment>/redis-auth` - the Redis AUTH token, injected into the task as `REDIS_PASSWORD`.
+- `<project>/<environment>/jwt-secret` - the JWT signing secret, injected as `JWT_SECRET`. The backend refuses to start without it (at least 32 characters).
+
+The task execution role may read both. Values live in Terraform state, so keep the state bucket private and encrypted.
+
 ## GitHub Integration for CI/CD
 
 Once Secrets Manager and ECR are configured, the next step is to connect the GitHub repository to the CI/CD pipeline.
@@ -299,6 +308,17 @@ Find your log group (for example, */ecs/prod-forge-todolist*):
 ```shell
 aws logs tail <LOG_GROUP> --since 10h
 ```
+
+## Redis
+
+Redis runs as an `aws_elasticache_replication_group` with two nodes (primary plus replica), Multi-AZ and automatic failover. A single `aws_elasticache_cluster` node has no failover: a node or AZ failure means downtime. A replication group promotes the replica automatically and exposes a stable primary endpoint, which the backend uses as `REDIS_HOST`.
+
+- **Encryption.** At-rest encryption uses the project KMS key. In-transit encryption (TLS) is on, so the backend sets `REDIS_TLS=true`. TLS costs some CPU and a little latency for the handshake and per-message encryption; on `cache.t4g.*` nodes this is negligible for a cache of this size.
+- **AUTH.** The token comes from the `redis-auth` secret and reaches the container as `REDIS_PASSWORD`. AUTH requires transit encryption.
+- **Snapshots.** Daily snapshots (7 days of retention in prod, 1 by default). Maintenance and snapshot windows do not overlap.
+- **Sizing.** Prod uses `cache.t4g.small`, the module default is `cache.t4g.micro`.
+- **Rotating the AUTH token.** Change the `random_password` (for example `terraform apply -replace=module.secrets_manager.random_password.redis`) and apply. ElastiCache applies the new token in place, but running tasks still hold the old value, so force a new ECS deployment right after the apply to pick up the new secret.
+- **Migration note.** Replacing the old `aws_elasticache_cluster` with a replication group recreates Redis. Cached data is lost, which is acceptable for a cache; expect a short window with no Redis during the apply.
 
 ## One-Run ECS Tasks
 

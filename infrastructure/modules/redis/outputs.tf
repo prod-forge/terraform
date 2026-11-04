@@ -1,7 +1,9 @@
 output "redis_host" {
-  value = aws_elasticache_cluster.redis.cache_nodes[0].address
+  description = "Primary endpoint address"
+  value       = aws_elasticache_replication_group.redis.primary_endpoint_address
 }
 
 output "redis_port" {
-  value = 6379
+  description = "Redis port"
+  value       = aws_elasticache_replication_group.redis.port
 }

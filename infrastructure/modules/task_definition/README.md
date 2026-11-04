@@ -29,8 +29,10 @@ No modules.
 | <a name="input_db_name"></a> [db\_name](#input\_db\_name) | DB Table Name | `string` | n/a | yes |
 | <a name="input_db_port"></a> [db\_port](#input\_db\_port) | DB Port | `string` | n/a | yes |
 | <a name="input_db_username"></a> [db\_username](#input\_db\_username) | DB Username | `string` | n/a | yes |
+| <a name="input_jwt_secret_arn"></a> [jwt\_secret\_arn](#input\_jwt\_secret\_arn) | JWT signing secret ARN | `string` | n/a | yes |
 | <a name="input_project"></a> [project](#input\_project) | Project Name | `string` | n/a | yes |
 | <a name="input_rds_secrets_arn"></a> [rds\_secrets\_arn](#input\_rds\_secrets\_arn) | RDS Secrets ARN | `string` | n/a | yes |
+| <a name="input_redis_auth_secret_arn"></a> [redis\_auth\_secret\_arn](#input\_redis\_auth\_secret\_arn) | Redis AUTH token secret ARN | `string` | n/a | yes |
 | <a name="input_redis_host"></a> [redis\_host](#input\_redis\_host) | Redis Host | `string` | n/a | yes |
 | <a name="input_redis_port"></a> [redis\_port](#input\_redis\_port) | Redis Port | `string` | n/a | yes |
 | <a name="input_repository_url"></a> [repository\_url](#input\_repository\_url) | Repository URL | `string` | n/a | yes |

@@ -31,6 +31,8 @@ module "github_oidc" {
 module "secrets_manager" {
   secrets_manager_name = "prod_forge/backend/config-v1"
   source               = "./modules/secrets_manager"
+  project              = var.project
+  environment          = var.environment
 }
 
 ############################
@@ -49,6 +51,9 @@ module "iam" {
   source          = "./modules/iam"
   rds_secrets_arn = module.rds.secrets_arn
   kms_arn         = module.secrets_manager.kms_arn
+
+  redis_auth_secret_arn = module.secrets_manager.redis_auth_secret_arn
+  jwt_secret_arn        = module.secrets_manager.jwt_secret_arn
 }
 
 ############################
@@ -114,6 +119,8 @@ module "task_definition" {
   db_port                 = module.rds.port
   redis_host              = module.redis.redis_host
   redis_port              = module.redis.redis_port
+  redis_auth_secret_arn   = module.secrets_manager.redis_auth_secret_arn
+  jwt_secret_arn          = module.secrets_manager.jwt_secret_arn
   project                 = var.project
 }
 
@@ -149,6 +156,11 @@ module "redis" {
   sg_redis_id        = module.security_groups.sg_redis_id
   private_subnet_ids = module.vpc.private_subnet_ids
   project            = var.project
+  kms_key_arn        = module.secrets_manager.kms_arn
+  auth_token         = module.secrets_manager.redis_auth_token
+
+  node_type                = var.redis_node_type
+  snapshot_retention_limit = var.redis_snapshot_retention_limit
 }
 
 ############################

@@ -26,7 +26,7 @@ resource "aws_iam_policy" "allow_rds_secret" {
         Action = [
           "secretsmanager:GetSecretValue"
         ]
-        Resource = var.rds_secrets_arn
+        Resource = [var.rds_secrets_arn, var.redis_auth_secret_arn, var.jwt_secret_arn]
       },
       {
         Effect = "Allow"

@@ -37,3 +37,11 @@ variable "rds_backup_retention_period" {
 variable "rds_deletion_protection" {
   type = bool
 }
+
+variable "redis_node_type" {
+  type = string
+}
+
+variable "redis_snapshot_retention_limit" {
+  type = number
+}

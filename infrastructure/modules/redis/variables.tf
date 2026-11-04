@@ -12,3 +12,50 @@ variable "project" {
   description = "Project Name"
   type        = string
 }
+
+variable "kms_key_arn" {
+  description = "KMS key ARN for at-rest encryption"
+  type        = string
+}
+
+variable "auth_token" {
+  description = "Redis AUTH token"
+  type        = string
+  sensitive   = true
+}
+
+variable "node_type" {
+  description = "Cache node type"
+  type        = string
+  default     = "cache.t4g.micro"
+}
+
+variable "num_cache_clusters" {
+  description = "Number of nodes (primary plus replicas), at least 2 for Multi-AZ failover"
+  type        = number
+  default     = 2
+}
+
+variable "snapshot_retention_limit" {
+  description = "Days to keep automatic snapshots"
+  type        = number
+  default     = 1
+}
+
+variable "snapshot_window" {
+  description = "Daily snapshot window (UTC)"
+  type        = string
+  default     = "02:00-03:00"
+}
+
+variable "maintenance_window" {
+  description = "Weekly maintenance window (UTC)"
+  type        = string
+  default     = "sun:04:00-sun:05:00"
+}
+
+variable "apply_immediately" {
+  description = "Apply changes immediately instead of in the maintenance window"
+  type        = bool
+  default     = false
+}

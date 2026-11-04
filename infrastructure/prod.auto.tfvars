@@ -9,3 +9,6 @@ rds_instance_class          = "db.t4g.medium"
 rds_multi_az                = true
 rds_backup_retention_period = 7
 rds_deletion_protection     = true
+
+redis_node_type                = "cache.t4g.small"
+redis_snapshot_retention_limit = 7

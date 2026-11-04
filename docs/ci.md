@@ -50,14 +50,13 @@ A plan needs to read real state and refresh live resources, so the job needs AWS
 - `terraform_required_providers` (22): modules do not declare the `aws` provider constraint.
 - `terraform_typed_variables`: fixed (`vpc` `cidr`).
 
-### Checkov: 51 failed, 150 passed
+### Checkov: 50 failed, 154 passed
 
 | ID | Check | Resources |
 | --- | --- | --- |
 | CKV_AWS_126 | Ensure that detailed monitoring is enabled for EC2 instances | module.monitoring_ec2.aws_instance.monitoring |
 | CKV_AWS_130 | Ensure VPC subnets do not assign public IP by default | module.vpc.aws_subnet.public[0], module.vpc.aws_subnet.public[1] |
 | CKV_AWS_131 | Ensure that ALB drops HTTP headers | module.load_balancer.aws_lb.app |
-| CKV_AWS_134 | Ensure that Amazon ElastiCache Redis clusters have automatic backup turned on | module.redis.aws_elasticache_cluster.redis |
 | CKV_AWS_135 | Ensure that EC2 is EBS optimized | module.monitoring_ec2.aws_instance.monitoring |
 | CKV_AWS_136 | Ensure that ECR repositories are encrypted using KMS | module.ecr.aws_ecr_repository.prod_forge_repo |
 | CKV_AWS_150 | Ensure that Load Balancer has deletion protection enabled | module.load_balancer.aws_lb.app |

@@ -52,3 +52,13 @@ variable "project" {
   description = "Project Name"
   type        = string
 }
+
+variable "redis_auth_secret_arn" {
+  description = "Redis AUTH token secret ARN"
+  type        = string
+}
+
+variable "jwt_secret_arn" {
+  description = "JWT signing secret ARN"
+  type        = string
+}

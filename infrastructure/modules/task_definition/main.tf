@@ -47,12 +47,24 @@ resource "aws_ecs_task_definition" "app" {
           name  = "REDIS_PORT"
           value = var.redis_port
         },
+        {
+          name  = "REDIS_TLS"
+          value = "true"
+        },
       ]
 
       secrets = [
         {
           name      = "DATABASE_PASSWORD"
           valueFrom = "${var.rds_secrets_arn}:password::"
+        },
+        {
+          name      = "REDIS_PASSWORD"
+          valueFrom = var.redis_auth_secret_arn
+        },
+        {
+          name      = "JWT_SECRET"
+          valueFrom = var.jwt_secret_arn
         },
       ]
 
