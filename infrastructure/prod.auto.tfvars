@@ -22,3 +22,8 @@ ecs_max_capacity       = 10
 ecs_task_cpu           = 512
 ecs_task_memory        = 1024
 ecs_log_retention_days = 30
+
+# Set to the owned domain to enable HTTPS on the ALB, the CloudFront custom domain and DNS records.
+domain_name      = ""
+hosted_zone_name = ""
+api_subdomain    = "api"

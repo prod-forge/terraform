@@ -4,6 +4,11 @@
 
 data "aws_caller_identity" "current" {}
 
+locals {
+  hosted_zone_name = var.hosted_zone_name != "" ? var.hosted_zone_name : var.domain_name
+  api_domain_name  = var.domain_name != "" ? "${var.api_subdomain}.${var.domain_name}" : ""
+}
+
 ############################
 # ECR
 ############################
@@ -81,6 +86,79 @@ module "load_balancer" {
   sg_alb_id         = module.security_groups.sg_alb_id
   public_subnet_ids = module.vpc.public_subnet_ids
   project           = var.project
+  environment       = var.environment
+
+  domain_name        = local.api_domain_name
+  certificate_arn    = module.api_certificate.certificate_arn
+  access_logs_bucket = module.logs_bucket.bucket_name
+  access_logs_prefix = module.logs_bucket.alb_prefix
+}
+
+############################
+# Access logs (ALB, CloudFront)
+############################
+
+module "logs_bucket" {
+  source      = "./modules/logs-bucket"
+  project     = var.project
+  environment = var.environment
+  bucket_name = "${var.project}-access-logs"
+}
+
+############################
+# WAF
+############################
+
+module "waf_alb" {
+  source       = "./modules/waf"
+  project      = var.project
+  environment  = var.environment
+  scope        = "REGIONAL"
+  resource_arn = module.load_balancer.lb_arn
+}
+
+module "waf_cloudfront" {
+  source      = "./modules/waf"
+  project     = var.project
+  environment = var.environment
+  scope       = "CLOUDFRONT"
+
+  providers = {
+    aws = aws.us_east_1
+  }
+}
+
+############################
+# DNS and certificates
+############################
+
+module "api_certificate" {
+  source         = "./modules/acm-certificate"
+  domain_name    = local.api_domain_name
+  hosted_zone_id = module.dns.zone_id
+}
+
+# CloudFront only accepts certificates from us-east-1.
+module "cloudfront_certificate" {
+  source         = "./modules/acm-certificate"
+  domain_name    = var.domain_name
+  hosted_zone_id = module.dns.zone_id
+
+  providers = {
+    aws = aws.us_east_1
+  }
+}
+
+module "dns" {
+  source           = "./modules/dns"
+  domain_name      = var.domain_name
+  hosted_zone_name = local.hosted_zone_name
+  api_domain_name  = local.api_domain_name
+
+  alb_dns_name           = module.load_balancer.lb_dns_name
+  alb_zone_id            = module.load_balancer.lb_zone_id
+  cloudfront_domain_name = module.frontend.cloudfront_domain_name
+  cloudfront_zone_id     = module.frontend.cloudfront_hosted_zone_id
 }
 
 ############################
@@ -284,4 +362,10 @@ module "frontend" {
   web_client_bucket_name   = "${var.project}-web-client"
   assets_bucket_name       = "${var.project}-assets"
   github_actions_role_name = module.github_oidc.github_actions_role_name
+
+  domain_name             = var.domain_name
+  acm_certificate_arn     = module.cloudfront_certificate.certificate_arn
+  web_acl_arn             = module.waf_cloudfront.web_acl_arn
+  logs_bucket_domain_name = module.logs_bucket.bucket_domain_name
+  logs_prefix             = module.logs_bucket.cloudfront_prefix
 }

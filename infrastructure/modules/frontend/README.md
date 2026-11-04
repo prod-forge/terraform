@@ -1,13 +1,16 @@
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
-No requirements.
+| Name | Version |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.10 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.35 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | n/a |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.35 |
 
 ## Modules
 
@@ -25,19 +28,27 @@ No modules.
 | [aws_iam_role_policy_attachment.web_client_deploy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_s3_bucket.assets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket.web_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
+| [aws_s3_bucket_lifecycle_configuration.web_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration) | resource |
 | [aws_s3_bucket_policy.assets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy) | resource |
 | [aws_s3_bucket_policy.web_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy) | resource |
 | [aws_s3_bucket_public_access_block.assets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
 | [aws_s3_bucket_public_access_block.web_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
+| [aws_s3_bucket_versioning.web_client](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_acm_certificate_arn"></a> [acm\_certificate\_arn](#input\_acm\_certificate\_arn) | Validated us-east-1 ACM certificate for domain\_name; required when domain\_name is set | `string` | `""` | no |
 | <a name="input_assets_bucket_name"></a> [assets\_bucket\_name](#input\_assets\_bucket\_name) | n/a | `string` | n/a | yes |
+| <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Custom domain for the distribution. Empty keeps the default *.cloudfront.net certificate | `string` | `""` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | n/a | `string` | n/a | yes |
 | <a name="input_github_actions_role_name"></a> [github\_actions\_role\_name](#input\_github\_actions\_role\_name) | IAM role name for GitHub Actions to attach deploy policy | `string` | n/a | yes |
+| <a name="input_logs_bucket_domain_name"></a> [logs\_bucket\_domain\_name](#input\_logs\_bucket\_domain\_name) | Domain name of the S3 bucket for CloudFront standard logs | `string` | n/a | yes |
+| <a name="input_logs_prefix"></a> [logs\_prefix](#input\_logs\_prefix) | Key prefix for CloudFront standard logs | `string` | `"cloudfront"` | no |
+| <a name="input_noncurrent_version_expiration_days"></a> [noncurrent\_version\_expiration\_days](#input\_noncurrent\_version\_expiration\_days) | Days to keep previous web client builds | `number` | `30` | no |
 | <a name="input_project"></a> [project](#input\_project) | n/a | `string` | n/a | yes |
+| <a name="input_web_acl_arn"></a> [web\_acl\_arn](#input\_web\_acl\_arn) | ARN of the CLOUDFRONT-scope WAF web ACL | `string` | n/a | yes |
 | <a name="input_web_client_bucket_name"></a> [web\_client\_bucket\_name](#input\_web\_client\_bucket\_name) | n/a | `string` | n/a | yes |
 
 ## Outputs
@@ -46,6 +57,8 @@ No modules.
 | ---- | ----------- |
 | <a name="output_assets_bucket_name"></a> [assets\_bucket\_name](#output\_assets\_bucket\_name) | n/a |
 | <a name="output_cloudfront_distribution_id"></a> [cloudfront\_distribution\_id](#output\_cloudfront\_distribution\_id) | n/a |
+| <a name="output_cloudfront_domain_name"></a> [cloudfront\_domain\_name](#output\_cloudfront\_domain\_name) | n/a |
+| <a name="output_cloudfront_hosted_zone_id"></a> [cloudfront\_hosted\_zone\_id](#output\_cloudfront\_hosted\_zone\_id) | n/a |
 | <a name="output_cloudfront_url"></a> [cloudfront\_url](#output\_cloudfront\_url) | n/a |
 | <a name="output_web_client_bucket_name"></a> [web\_client\_bucket\_name](#output\_web\_client\_bucket\_name) | n/a |
 <!-- END_TF_DOCS -->

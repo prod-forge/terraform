@@ -32,12 +32,18 @@ This removes all managed AWS resources:
 - RDS, Redis
 - VPC, subnets, security groups, load balancer
 - ECR repository
-- CloudFront distribution and S3 buckets (web client, assets)
+- CloudFront distribution and S3 buckets (web client, assets, access logs)
+- WAF web ACLs, ACM certificates and Route 53 records (when a domain is set)
 - GitHub OIDC role
 - Monitoring EC2 instance
 - VPN endpoint
 
 Review the plan carefully before confirming. Once applied, these resources are gone.
+
+Two edge resources block a plain destroy:
+
+- In prod the ALB has deletion protection. Disable it first: `aws elbv2 modify-load-balancer-attributes --load-balancer-arn <arn> --attributes Key=deletion_protection.enabled,Value=false`.
+- The web-client and access-logs buckets are versioned and S3 refuses to delete a non-empty bucket. Empty all object versions (S3 console "Empty", or a lifecycle run) before `terraform destroy`.
 
 ## Step 2 — Unlock the Bootstrap
 

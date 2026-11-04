@@ -77,3 +77,21 @@ variable "ecs_task_memory" {
 variable "ecs_log_retention_days" {
   type = number
 }
+
+variable "domain_name" {
+  description = "Web client domain (for example example.com). Empty keeps HTTP on the ALB and the default CloudFront certificate"
+  type        = string
+  default     = ""
+}
+
+variable "hosted_zone_name" {
+  description = "Public Route 53 zone for domain_name; defaults to domain_name when empty"
+  type        = string
+  default     = ""
+}
+
+variable "api_subdomain" {
+  description = "Subdomain of domain_name that points to the ALB"
+  type        = string
+  default     = "api"
+}

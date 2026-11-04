@@ -1,3 +1,7 @@
+locals {
+  custom_domain = var.domain_name != ""
+}
+
 ############################################################
 # Web Client S3 Bucket
 ############################################################
@@ -20,6 +24,36 @@ resource "aws_s3_bucket_public_access_block" "web_client" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+# Versioning keeps the previous build recoverable after a bad deploy.
+resource "aws_s3_bucket_versioning" "web_client" {
+  bucket = aws_s3_bucket.web_client.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "web_client" {
+  bucket = aws_s3_bucket.web_client.id
+
+  rule {
+    id     = "expire-noncurrent-builds"
+    status = "Enabled"
+
+    filter {}
+
+    noncurrent_version_expiration {
+      noncurrent_days = var.noncurrent_version_expiration_days
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+
+  depends_on = [aws_s3_bucket_versioning.web_client]
 }
 
 ############################################################
@@ -72,6 +106,7 @@ resource "aws_cloudfront_origin_access_control" "assets" {
 # build-time API URL). Browsers enforce every CSP they receive, so this header
 # only adds frame-ancestors, which a meta tag cannot carry.
 resource "aws_cloudfront_response_headers_policy" "security" {
+  #checkov:skip=CKV_AWS_259: HSTS preload is a hard-to-revert commitment for the whole domain; it stays off until the owner opts in
   name = "${var.project}-${var.environment}-security-headers"
 
   security_headers_config {
@@ -108,9 +143,21 @@ resource "aws_cloudfront_response_headers_policy" "security" {
 ############################################################
 
 resource "aws_cloudfront_distribution" "web_client" {
+  #checkov:skip=CKV_AWS_310: both origins are single-region S3 buckets; a failover origin needs a replicated bucket that is not provisioned
+  #checkov:skip=CKV_AWS_374: the web client is public for every country; geo blocking has no business requirement
+  #checkov:skip=CKV_AWS_174: TLS 1.2 is enforced whenever a custom domain is set; the default *.cloudfront.net certificate only allows TLSv1
   enabled             = true
+  is_ipv6_enabled     = true
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
+  aliases             = local.custom_domain ? [var.domain_name] : []
+  web_acl_id          = var.web_acl_arn
+
+  logging_config {
+    bucket          = var.logs_bucket_domain_name
+    prefix          = "${var.logs_prefix}/"
+    include_cookies = false
+  }
 
   origin {
     domain_name              = aws_s3_bucket.web_client.bucket_regional_domain_name
@@ -171,7 +218,10 @@ resource "aws_cloudfront_distribution" "web_client" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    cloudfront_default_certificate = !local.custom_domain
+    acm_certificate_arn            = local.custom_domain ? var.acm_certificate_arn : null
+    ssl_support_method             = local.custom_domain ? "sni-only" : null
+    minimum_protocol_version       = local.custom_domain ? "TLSv1.2_2021" : "TLSv1"
   }
 
   tags = {

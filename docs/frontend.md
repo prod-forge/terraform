@@ -28,6 +28,22 @@ Browser → CloudFront → [SigV4 signed] → S3
 
 The raw S3 URLs are never exposed.
 
+The web-client bucket is versioned. Previous object versions (overwritten or deleted by a deploy) expire after 30 days (`noncurrent_version_expiration_days`), so an accidental `sync --delete` can be undone from S3 versions in addition to the `releases/` archive.
+
+## Custom Domain
+
+Set `domain_name` in the environment tfvars (and `hosted_zone_name` when the Route 53 zone is a parent domain). Terraform then:
+
+1. Issues an ACM certificate for `<domain>` in `us-east-1` (CloudFront accepts certificates only from there) and validates it through a DNS record in the zone.
+2. Adds `<domain>` to the distribution `aliases` and serves it with SNI and a `TLSv1.2_2021` minimum.
+3. Creates `A` and `AAAA` alias records for `<domain>` pointing to the distribution (IPv6 is enabled on it), and an `A` alias for `api.<domain>` pointing to the ALB.
+
+With `domain_name = ""` the distribution keeps the default `*.cloudfront.net` certificate and no records are created. `terraform output cloudfront_url` and `terraform output api_url` always return the URLs to use for the web client build and the CSP in `index.html`.
+
+## WAF and Access Logs
+
+The distribution is protected by a `CLOUDFRONT`-scope WAF web ACL (managed IP reputation, common and known-bad-inputs rules, 2000 requests per IP per 5 minutes); see [Security](security.md#waf). Standard access logs are written to the shared access-logs bucket under `cloudfront/` and expire after 90 days.
+
 ## Security Headers
 
 A CloudFront response headers policy is attached to every cache behavior: `Strict-Transport-Security` (2 years, includeSubDomains), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Content-Security-Policy: frame-ancestors 'none'`.
@@ -100,6 +116,7 @@ Outputs needed for GitHub Actions:
 
 ```shell
 terraform output cloudfront_url
+terraform output api_url
 terraform output cloudfront_distribution_id
 terraform output web_client_bucket_name
 terraform output assets_bucket_name

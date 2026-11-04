@@ -263,6 +263,8 @@ At this stage, if you open the DNS address in your browser, the response will li
 
 This is expected because the ECS service may not yet have a healthy running task attached to the load balancer.
 
+When `domain_name` is set, the ALB serves `api.<domain>` on 443 with an ACM certificate and port 80 only returns `301` to HTTPS. Without a domain it stays on plain HTTP; see [Security](security.md#without-a-domain-insecure-fallback). The ALB drops invalid header fields, writes access logs to the access-logs bucket and has deletion protection in prod. A regional WAF ACL is associated with it.
+
 ## ECS Service
 
 The ECS service is responsible for running and maintaining the desired number of application tasks.

@@ -34,9 +34,14 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.11.2
-      - run: terraform init -backend=false -lockfile=readonly
+      - id: init
+        run: terraform init -backend=false -lockfile=readonly
         working-directory: ${{ matrix.root }}
       - run: terraform validate
+        working-directory: ${{ matrix.root }}
+      # Offline: every run uses mock providers with command = plan.
+      - if: ${{ !cancelled() && steps.init.outcome == 'success' && matrix.root == 'infrastructure' }}
+        run: terraform test
         working-directory: ${{ matrix.root }}
 
   tflint:

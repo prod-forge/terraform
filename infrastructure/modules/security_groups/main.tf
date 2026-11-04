@@ -2,6 +2,7 @@
 # group while the old one exists; dependents (ALB, ECS, RDS, Redis, Client VPN) switch before it is deleted.
 
 resource "aws_security_group" "alb_sg" {
+  #checkov:skip=CKV_AWS_260: the ALB is the public entry point; port 80 only redirects to HTTPS when a domain is configured
   name_prefix = "${var.project}-alb-sg-"
   description = "Public HTTP access to the application load balancer"
   vpc_id      = var.vpc_id
@@ -10,6 +11,14 @@ resource "aws_security_group" "alb_sg" {
     description = "HTTP from the internet"
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTPS from the internet"
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }

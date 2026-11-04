@@ -83,6 +83,9 @@ Built around a simple Todo API, but designed as a real-world production system.
 
 - [4. Frontend Deployment](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md)
   - [Architecture](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#architecture)
+  - [Custom Domain](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#custom-domain)
+  - [WAF and Access Logs](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#waf-and-access-logs)
+  - [Security Headers](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#security-headers)
   - [SPA Routing](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#spa-routing)
   - [Cache Strategy](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#cache-strategy)
   - [Deployment](https://github.com/prod-forge/terraform/blob/main/docs/frontend.md#deployment)
@@ -165,6 +168,19 @@ Built around a simple Todo API, but designed as a real-world production system.
   - [Deployments and shutdown](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md#deployments-and-shutdown)
   - [How to load-test the policies](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md#how-to-load-test-the-policies)
   - [Fargate Spot trade-off](https://github.com/prod-forge/terraform/blob/main/docs/scaling.md#fargate-spot-trade-off)
+
+<!-- -->
+
+- [11. Security](https://github.com/prod-forge/terraform/blob/main/docs/security.md)
+  - [TLS everywhere](https://github.com/prod-forge/terraform/blob/main/docs/security.md#tls-everywhere)
+    - [Without a domain (insecure fallback)](https://github.com/prod-forge/terraform/blob/main/docs/security.md#without-a-domain-insecure-fallback)
+  - [WAF](https://github.com/prod-forge/terraform/blob/main/docs/security.md#waf)
+  - [Response headers](https://github.com/prod-forge/terraform/blob/main/docs/security.md#response-headers)
+  - [Load balancer hardening](https://github.com/prod-forge/terraform/blob/main/docs/security.md#load-balancer-hardening)
+  - [Access logs](https://github.com/prod-forge/terraform/blob/main/docs/security.md#access-logs)
+  - [Security groups](https://github.com/prod-forge/terraform/blob/main/docs/security.md#security-groups)
+  - [IAM](https://github.com/prod-forge/terraform/blob/main/docs/security.md#iam)
+  - [Known gaps](https://github.com/prod-forge/terraform/blob/main/docs/security.md#known-gaps)
 
 # Conclusion
 

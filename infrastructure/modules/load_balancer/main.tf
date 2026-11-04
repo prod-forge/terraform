@@ -1,8 +1,22 @@
+locals {
+  https_enabled = var.domain_name != ""
+}
+
 resource "aws_lb" "app" {
+  #checkov:skip=CKV_AWS_150: deletion protection is enabled when var.environment is prod; dev stays off so it can be destroyed freely
   name               = "${var.project}-alb"
   load_balancer_type = "application"
   subnets            = var.public_subnet_ids
   security_groups    = [var.sg_alb_id]
+
+  enable_deletion_protection = var.environment == "prod"
+  drop_invalid_header_fields = true
+
+  access_logs {
+    enabled = true
+    bucket  = var.access_logs_bucket
+    prefix  = var.access_logs_prefix
+  }
 }
 
 resource "aws_lb_target_group" "app" {
@@ -23,10 +37,46 @@ resource "aws_lb_target_group" "app" {
   }
 }
 
+############################
+# HTTP listener
+############################
+
+# With a domain, port 80 only redirects to HTTPS. Without one there is no
+# certificate, so port 80 forwards to the app (documented insecure fallback).
 resource "aws_lb_listener" "app" {
+  #checkov:skip=CKV_AWS_2: port 80 redirects to HTTPS whenever var.domain_name is set; plain forward is the documented fallback for environments without a domain
   load_balancer_arn = aws_lb.app.arn
   port              = 80
   protocol          = "HTTP"
+
+  default_action {
+    type             = local.https_enabled ? "redirect" : "forward"
+    target_group_arn = local.https_enabled ? null : aws_lb_target_group.app.arn
+
+    dynamic "redirect" {
+      for_each = local.https_enabled ? [1] : []
+
+      content {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+  }
+}
+
+############################
+# HTTPS listener
+############################
+
+resource "aws_lb_listener" "https" {
+  count = local.https_enabled ? 1 : 0
+
+  load_balancer_arn = aws_lb.app.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = var.certificate_arn
 
   default_action {
     type             = "forward"
