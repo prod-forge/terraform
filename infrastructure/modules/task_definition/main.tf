@@ -103,7 +103,7 @@ resource "aws_ecs_task_definition" "app" {
       name  = var.project
       image = "${var.repository_url}:${var.image_tag}"
 
-      # The backend drains for 10s and then waits up to 20s for in-flight requests,
+      # By default the backend drains for 10s and then waits up to 20s for in-flight requests,
       # so 60s leaves headroom before ECS sends SIGKILL.
       stopTimeout = 60
 
