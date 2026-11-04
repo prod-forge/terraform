@@ -363,7 +363,7 @@ The task definition also specifies the Docker image that will be deployed.
 
 ### Backend configuration
 
-The backend validates its configuration at startup (`src/config/*.config.ts` in the backend repository) and runs on the defaults of any variable that is not set. The task definition sets all of them except `APP_NAME`, `APP_DESCRIPTION` and `APP_VERSION`, which come from the image's `package.json`. The migration task (`ecs/migration-task.json` in the backend repository) is rendered by CD from the `environment` and `secrets` of the current application task definition, so it gets the same set.
+The backend validates its configuration at startup (`src/config/*.config.ts` in the backend repository) and runs on the defaults of any variable that is not set. The task definition sets all of them except `APP_NAME`, `APP_DESCRIPTION` and `APP_VERSION`, which come from the image's `package.json`. The migration task is not managed here: at release time backend CD renders `ecs/migration-task.json` with `scripts/render-migration-task.sh`, which copies the roles, `environment` and `secrets` of the latest application task definition revision with `jq` (JSON-valued entries such as `API_ALLOWED_ORIGINS` keep their escaping). It has the same variables as the application only when this stack was applied before the release; a release against an older revision copies that older set.
 
 Fixed by the infrastructure (module constants):
 
