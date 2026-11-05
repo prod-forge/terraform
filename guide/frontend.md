@@ -28,7 +28,7 @@ Browser → CloudFront → [SigV4 signed] → S3
 
 The raw S3 URLs are never exposed.
 
-The web client requests the assets under `/assets/` on the distribution (`VITE_ASSETS_BASE_URL = <cloudfront_url>/assets`), while frontend CD syncs the `assets/` folder to the root of the assets bucket (`todo.svg`, not `assets/todo.svg`). A CloudFront Function (`<project>-<environment>-assets-path`, viewer request on the `/assets/*` behavior) strips the `/assets` prefix, so `/assets/todo.svg` reads the key `todo.svg`. Keep the two in step: if CD ever uploads under an `assets/` prefix, remove the function in the same change.
+The web client requests the assets under `/assets/` on the distribution (`VITE_ASSETS_BASE_URL = <cloudfront_url>/assets`), and the `/assets/*` behavior forwards the path unchanged, so `/assets/todo.svg` reads the key `assets/todo.svg`. Frontend CD therefore syncs the `assets/` folder to the `assets/` prefix of the assets bucket, not to its root.
 
 Both buckets are versioned. Previous object versions (overwritten or deleted by a deploy) expire after 30 days (`noncurrent_version_expiration_days`), so an accidental `sync --delete` can be undone from S3 versions, in the web-client bucket in addition to the `releases/` archive.
 

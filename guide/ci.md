@@ -78,7 +78,7 @@ All test files live in `infrastructure/environments/prod/tests/` and run with `t
 - no certificate, 443 listener, validation or alias record exists without a domain, and port 80 forwards;
 - with a domain there is one validated certificate, a 443 listener with `ELBSecurityPolicy-TLS13-1-2-2021-06`, a `301` redirect on port 80, `A` (API) and `A`/`AAAA` (web) alias records, and CloudFront serves the alias with `TLSv1.2_2021`;
 - the regional ACL has one ALB association and the CloudFront ACL none; the rule set and the 2000/5 min rate limit;
-- the web client and assets buckets are versioned, with noncurrent versions expiring after 30 days, and the `/assets/*` behavior runs the function that strips the `/assets` prefix;
+- the web client and assets buckets are versioned, with noncurrent versions expiring after 30 days, and the `/assets/*` behavior reaches the assets origin with the path unchanged;
 - variable validations reject a domain without a zone, zone name or certificate, an `api_origin` with a path, an unknown WAF scope and a regional ACL without a resource ARN.
 
 `security-baseline.tftest.hcl` checks the multi-region, validated, KMS-encrypted trail with its bucket lifecycle, the GuardDuty detector and the Access Analyzer, that every switch off creates nothing, and that a retention shorter than the archive age is rejected.

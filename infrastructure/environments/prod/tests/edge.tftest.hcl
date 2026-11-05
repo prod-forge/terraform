@@ -277,22 +277,14 @@ run "frontend_without_domain_uses_default_certificate" {
     error_message = "Previous assets versions must expire after 30 days and incomplete uploads after 7."
   }
 
-  # Frontend CD syncs the assets to the bucket root; the web client requests /assets/<file>.
+  # The /assets/* behavior forwards the path unchanged, so frontend CD uploads under the assets/ prefix.
   assert {
     condition = (
       aws_cloudfront_distribution.web_client.ordered_cache_behavior[0].path_pattern == "/assets/*" &&
       aws_cloudfront_distribution.web_client.ordered_cache_behavior[0].target_origin_id == "assets" &&
-      [for f in aws_cloudfront_distribution.web_client.ordered_cache_behavior[0].function_association : f.event_type] == ["viewer-request"]
+      length(aws_cloudfront_distribution.web_client.ordered_cache_behavior[0].function_association) == 0
     )
-    error_message = "The /assets/* behavior must run a viewer-request function before the assets origin."
-  }
-
-  assert {
-    condition = (
-      aws_cloudfront_function.assets_path.runtime == "cloudfront-js-2.0" &&
-      strcontains(aws_cloudfront_function.assets_path.code, "request.uri.substring(\"/assets\".length)")
-    )
-    error_message = "The assets function must strip the /assets prefix from the URI."
+    error_message = "The /assets/* behavior must reach the assets origin with the path unchanged."
   }
 
   # Keep in sync with the CSP test in the frontend repo (apps/web-client/index-csp.test.ts).

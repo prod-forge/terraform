@@ -4,7 +4,7 @@ Every place where the code takes a shortcut or makes a non-obvious decision, and
 
 - [observability.md](observability.md) — stale `docs/observability.md` mentions that must stay, the monitoring host user data, `source_hash` uploads.
 - [lifecycle.md](lifecycle.md) — `ignore_changes`, `create_before_destroy` with `name_prefix`, `moved` blocks, `depends_on` on outputs.
-- [aws.md](aws.md) — the logs bucket encryption, the ECR `initial` tag, the CloudTrail ARN built from parts, the OIDC provider owned by one environment, the VPN key files, the CloudFront `/assets` prefix function.
+- [aws.md](aws.md) — the logs bucket encryption, the ECR `initial` tag, the CloudTrail ARN built from parts, the OIDC provider owned by one environment, the VPN key files.
 
 The `#checkov:skip` comments are listed with their reasons in `guide/ci.md` ("Inline skips"); they are not repeated here.
 
