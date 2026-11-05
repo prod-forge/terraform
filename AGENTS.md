@@ -289,7 +289,7 @@ terraform/
       stack/                      composition shared by both roots
       vpc/ rds/ redis/ ...        single-purpose modules
     observability/                Prometheus, Grafana and Loki templates
-  docs/                           agent reference (architecture, developers guide)
+  docs/                           agent reference (goal, architecture, commands, restrictions, plans)
   guide/                          human guide chapters and assets
 ```
 
@@ -330,13 +330,29 @@ Never commit secrets or state files.
 
 ---
 
-## Documentation Rules
+## Documentation
 
 Agent reference docs live in `docs/`; the human guide lives in `guide/`:
 
-- **`docs/architecture.md`** — roots, state backend, modules and what they provision, dev/prod differences, conditional HTTPS, outputs consumed by CD; update when a module, root, backend setting, environment value or output is added, removed or changed
-- **`docs/developers-guide.md`** — commands, CI jobs, conventions, how to add a module or variable, commands agents must never run; update when tooling, CI or these procedures change
+- `docs/goal.md` — what the project is and what it must achieve
+- `docs/architecture/` — roots, state backend, dev/prod differences, outputs consumed by CD (`overview.md`), modules and what they provision, conditional HTTPS (`modules.md`), conventions and how to add a module, variable, environment value or output (`patterns.md`)
+- `docs/commands.md` — tool versions, local checks, plan by hand, CI jobs, git hooks, commands agents must never run
+- `docs/restrictions/` — constraints of this project, with the reason and where each is enforced
+- `docs/plans/` — what is being implemented now
+- `docs/ideas/` — raw high-level ideas
+- `docs/roadmap/` — ideas scheduled into versions; the public list of open work is `roadmap.md`
+- `docs/open-issues/` — deferred known problems
+- `docs/postmortem/` — attempts that did not work, and why
+- `docs/hacks/` — non-obvious decisions and shortcuts
 
-When making changes that affect any of the above, update the relevant doc in the same task. Do not defer doc updates to a follow-up.
+When making changes that affect any of the above, update the relevant doc in the same task. Do not defer doc updates to a follow-up. A module, root, backend setting, environment value or output that is added, removed or changed updates `docs/architecture/`; a change to tooling, CI or the hooks updates `docs/commands.md`.
 
 The human guide in `guide/` is updated when the behaviour it describes changes.
+
+## Planning
+
+- Before writing a new plan, read `docs/goal.md`, `docs/architecture/` and `docs/restrictions/`
+- Plans follow `docs/plans/README.md`: a global plan (`NNN-<name>/` with `readme.md` and `00-design.md`), plans inside it, one file per step; every level carries status, version, date and modules
+- The design ends with open questions, the user's decisions and your own calls to check; implement only approved plans
+- A plan is done when its conclusions are written and the user has looked at its result
+- Shortcuts go to `docs/hacks/`, deferred problems to `docs/open-issues/`, failed attempts to `docs/postmortem/`
