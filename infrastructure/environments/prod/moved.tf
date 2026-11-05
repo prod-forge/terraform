@@ -1,7 +1,7 @@
 # The former infrastructure/ root became module.stack. These blocks move every
 # address of the live prod state under it, so no resource is recreated by the
 # move itself. Name changes are not addresses: those replacements are listed in
-# docs/migration-to-environments.md. Moves whose source is not in the state are
+# guide/migration-to-environments.md. Moves whose source is not in the state are
 # no-ops. Keep this file until every environment has been applied once.
 
 moved {

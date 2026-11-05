@@ -109,7 +109,7 @@ variable "api_allowed_origins" {
 
 # Defaults match the backend defaults in src/config/*.config.ts; null attributes fall back to them.
 variable "backend_config" {
-  description = "Backend tunables rendered into the task environment (see docs/workflow.md for the variable map)"
+  description = "Backend tunables rendered into the task environment (see guide/workflow.md for the variable map)"
   type = object({
     log_level                       = optional(string, "info")
     log_exclude_endpoints           = optional(list(string), [])

@@ -106,7 +106,7 @@ resource "aws_ecs_service" "app" {
     ignore_changes = [task_definition, desired_count]
   }
 
-  # Changing launch_type forces a new service, so it stays FARGATE; see docs/scaling.md for Spot.
+  # Changing launch_type forces a new service, so it stays FARGATE; see guide/scaling.md for Spot.
   launch_type = "FARGATE"
 
   enable_execute_command = true

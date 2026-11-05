@@ -26,7 +26,7 @@ resource "aws_lb_target_group" "app" {
   vpc_id      = var.vpc_id
   target_type = "ip"
 
-  # The backend drains on SIGTERM within about 30 s (see docs/scaling.md).
+  # The backend drains on SIGTERM within about 30 s (see guide/scaling.md).
   deregistration_delay = 30
 
   health_check {

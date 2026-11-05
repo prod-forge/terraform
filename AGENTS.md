@@ -161,7 +161,7 @@ infrastructure/modules/
 * Store container images in ECR
 * Pin container image versions
 * Avoid using `latest` tags
-* Configure autoscaling policies (see `docs/scaling.md`)
+* Configure autoscaling policies (see `guide/scaling.md`)
 * Keep secrets outside container images
 
 ---
@@ -169,10 +169,10 @@ infrastructure/modules/
 ## CI/CD Rules
 
 * All infrastructure changes must go through CI/CD (checks run in CI; apply is manual for now)
-* Never apply production changes manually (target state; today applies are manual because there is no write-capable CI role, see `docs/ci.md`)
+* Never apply production changes manually (target state; today applies are manual because there is no write-capable CI role, see `guide/ci.md`)
 * Run `terraform fmt -check`
 * Run `terraform validate`
-* Run `terraform plan` in CI before apply (not yet: CI is offline, see `docs/ci.md`)
+* Run `terraform plan` in CI before apply (not yet: CI is offline, see `guide/ci.md`)
 * Require manual approval for production applies (not applicable yet: CI never applies; applies are run by hand from an environment root)
 * Store CI/CD secrets securely
 * Prefer GitHub Actions, GitLab CI, or AWS CodePipeline
@@ -180,7 +180,7 @@ infrastructure/modules/
 * Fail fast on validation errors
 * Use separate AWS accounts/environments when possible
 
-Implemented in `.github/workflows/terraform-ci.yml` (see `docs/ci.md`): `terraform fmt -check -recursive`, `terraform validate` per root, `tflint`, `checkov` and `terraform-docs` (fails on README drift). Provider lock files are committed and CI uses `-lockfile=readonly`.
+Implemented in `.github/workflows/terraform-ci.yml` (see `guide/ci.md`): `terraform fmt -check -recursive`, `terraform validate` per root, `tflint`, `checkov` and `terraform-docs` (fails on README drift). Provider lock files are committed and CI uses `-lockfile=readonly`.
 
 Target CI steps once a read-only OIDC role exists:
 
@@ -206,7 +206,7 @@ Target CI steps once a read-only OIDC role exists:
 * Prefer SSM Session Manager over bastion hosts
 * Scan Terraform code with `checkov` (used in CI); `tfsec` and `terrascan` are not used
 * Review IAM changes carefully
-* Enable MFA for privileged access (IAM Identity Center, see `docs/development-setup.md`)
+* Enable MFA for privileged access (IAM Identity Center, see `guide/development-setup.md`)
 
 ---
 
@@ -234,7 +234,7 @@ Target CI steps once a read-only OIDC role exists:
 * Right-size infrastructure resources
 * Shut down non-production resources when unused
 * Use autoscaling where appropriate
-* Prefer Spot instances for fault-tolerant workloads (Fargate Spot trade-off in `docs/scaling.md`)
+* Prefer Spot instances for fault-tolerant workloads (Fargate Spot trade-off in `guide/scaling.md`)
 * Review unused resources regularly
 * Use S3 lifecycle management
 * Avoid unnecessary NAT Gateways
@@ -251,7 +251,7 @@ Target CI steps once a read-only OIDC role exists:
 * Prefer automated infrastructure validation
 * Test modules in isolation when possible
 * Mock external dependencies only when necessary
-* Use the `dev` environment before production rollout; there is no separate staging environment (see `docs/environments.md`)
+* Use the `dev` environment before production rollout; there is no separate staging environment (see `guide/environments.md`)
 
 ### Validation Commands
 
@@ -289,7 +289,8 @@ terraform/
       stack/                      composition shared by both roots
       vpc/ rds/ redis/ ...        single-purpose modules
     observability/                Prometheus, Grafana and Loki templates
-  docs/
+  docs/                           agent reference (architecture, developers guide)
+  guide/                          human guide chapters and assets
 ```
 
 There is no `stage` environment and no `global/` layer.
@@ -326,3 +327,16 @@ Never commit secrets or state files.
 * Prefer targeted validation for changed infrastructure
 * Use cached providers in CI/CD when possible
 * Minimize unnecessary AWS resource recreation
+
+---
+
+## Documentation Rules
+
+Agent reference docs live in `docs/`; the human guide lives in `guide/`:
+
+- **`docs/architecture.md`** — roots, state backend, modules and what they provision, dev/prod differences, conditional HTTPS, outputs consumed by CD; update when a module, root, backend setting, environment value or output is added, removed or changed
+- **`docs/developers-guide.md`** — commands, CI jobs, conventions, how to add a module or variable, commands agents must never run; update when tooling, CI or these procedures change
+
+When making changes that affect any of the above, update the relevant doc in the same task. Do not defer doc updates to a follow-up.
+
+The human guide in `guide/` is updated when the behaviour it describes changes.

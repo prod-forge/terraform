@@ -64,7 +64,7 @@ enable_client_vpn = false
 
 # Empty: no alarm subscription is created (no pending confirmation email).
 alert_email = ""
-# 0: no budget. The account-wide budget is owned by prod (docs/cost.md).
+# 0: no budget. The account-wide budget is owned by prod (guide/cost.md).
 monthly_budget_usd = 0
 
 monitoring_instance_type = "t3.small"

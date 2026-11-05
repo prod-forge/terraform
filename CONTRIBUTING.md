@@ -84,7 +84,7 @@ tflint --recursive
 checkov -d infrastructure
 ```
 
-Never run `terraform apply` against a shared account as part of a contribution, and never commit state files, keys or `.ovpn` files. A change to a module needs the matching update in `docs/` in the same pull request; see [CI for Infrastructure](docs/ci.md) for the full list of checks.
+Never run `terraform apply` against a shared account as part of a contribution, and never commit state files, keys or `.ovpn` files. A change to a module needs the matching update in `guide/` (and in the agent docs in `docs/` where they describe it) in the same pull request; see [CI for Infrastructure](guide/ci.md) for the full list of checks.
 
 If you are adding a new section to the README or the docs, follow the existing writing style:
 

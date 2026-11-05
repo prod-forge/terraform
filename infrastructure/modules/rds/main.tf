@@ -42,7 +42,7 @@ resource "aws_db_instance" "postgres" {
   monitoring_role_arn             = aws_iam_role.monitoring.arn
   enabled_cloudwatch_logs_exports = ["postgresql"]
 
-  # Restores the first instance from a snapshot (see docs/migration-to-environments.md).
+  # Restores the first instance from a snapshot (see guide/migration-to-environments.md).
   # Changing it later would replace the instance, so it only applies on creation.
   snapshot_identifier = var.snapshot_identifier
 

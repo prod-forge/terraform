@@ -1,7 +1,7 @@
 locals {
   custom_domain = var.domain_name != ""
 
-  # Same policy as the web client index.html meta tag (frontend docs/security.md).
+  # Same policy as the web client index.html meta tag (frontend guide/security.md).
   # The assets are served by this distribution under /assets, so 'self' covers them.
   # 'unsafe-inline' for styles: see the frontend security chapter.
   content_security_policy = join("; ", [

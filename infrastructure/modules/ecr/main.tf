@@ -10,7 +10,7 @@ resource "aws_ecr_repository" "prod_forge_repo" {
     scan_on_push = true
   }
 
-  # Changing the encryption type forces a new repository; see docs/workflow.md.
+  # Changing the encryption type forces a new repository; see guide/workflow.md.
   encryption_configuration {
     encryption_type = "KMS"
   }

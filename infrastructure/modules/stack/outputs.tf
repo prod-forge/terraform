@@ -31,7 +31,7 @@ output "api_url" {
   value       = local.api_url
 }
 
-# Names and network ids that backend CD reads from GitHub repository variables (docs/workflow.md).
+# Names and network ids that backend CD reads from GitHub repository variables (guide/workflow.md).
 
 output "ecr_repository_name" {
   description = "ECR repository the backend image is pushed to"

@@ -60,13 +60,13 @@ api_subdomain     = "api"
 enable_waf        = true
 service_namespace = "prod-forge-todolist.local"
 
-# Reads server.crt, server.key, ca.crt and ca.key from infrastructure/vpn-key (see docs/debugging.md).
+# Reads server.crt, server.key, ca.crt and ca.key from infrastructure/vpn-key (see guide/debugging.md).
 enable_client_vpn = true
 
 # Replace with the real on-call mailbox: alarms and budget notifications go here (the subscription must be confirmed).
 alert_email = "alerts@example.com"
 # The budget has no cost filter, so it tracks the whole account: prod owns it and
-# sizes it above the combined dev and prod estimate (docs/cost.md).
+# sizes it above the combined dev and prod estimate (guide/cost.md).
 monthly_budget_usd = 800
 
 monitoring_instance_type = "t3.small"

@@ -13,7 +13,7 @@ terraform {
   }
 
   # Same bucket and key as the former infrastructure/ root, so the live prod
-  # state is migrated in place (see docs/migration-to-environments.md).
+  # state is migrated in place (see guide/migration-to-environments.md).
   backend "s3" {
     bucket       = "prod-forge-todolist-terraform-state-prod"
     key          = "infrastructure/terraform.tfstate"
