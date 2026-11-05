@@ -124,14 +124,15 @@ single root, so the live state was migrated in place.
 All `vpn/*` modules are created only when `enable_client_vpn`. The stack itself adds one resource: the ECS ingress
 rule on port 3000 from the monitoring security group (Prometheus scrape).
 
-Modules declare only `required_providers`; providers are configured in the environment roots. `stack` declares
+Modules declare only `required_version` and `required_providers`; providers are configured in the environment roots. `stack` declares
 `configuration_aliases = [aws.us_east_1]`.
 
 ---
 
 ## How dev and prod differ
 
-All differences are values in `infrastructure/environments/<env>/terraform.tfvars`:
+Apart from the backend state key in `versions.tf`, the differences are values in
+`infrastructure/environments/<env>/terraform.tfvars`:
 
 | Setting                                | prod                                    | dev                                   |
 | -------------------------------------- | --------------------------------------- | ------------------------------------- |
@@ -144,6 +145,8 @@ All differences are values in `infrastructure/environments/<env>/terraform.tfvar
 | Secret recovery window                 | 30 days                                 | 0 (immediate delete)                  |
 | GitHub OIDC provider, account security services | created by prod                | read / skipped (shared account)       |
 | Alert email, monthly budget            | set, `800` USD                          | empty, `0` (none)                     |
+| Backend log level, DB pool size        | `info`, 10 per task                     | `trace`, 5 per task                   |
+| RDS connections alarm threshold        | 320                                     | 90                                    |
 | Cloud Map namespace                    | `prod-forge-todolist.local`             | `prod-forge-todolist-dev.local`       |
 
 The ALB deletion protection follows `environment == "prod"` in `modules/load_balancer/main.tf`.

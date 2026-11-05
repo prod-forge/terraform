@@ -20,7 +20,7 @@ This repository is the Terraform part of Prod Forge, an open-source guide to bui
 - Improvements to the Terraform modules and the `dev` and `prod` roots
 - CI workflow improvements (`.github/workflows/terraform-ci.yml`)
 - New `terraform test` coverage (`infrastructure/environments/prod/tests/`)
-- Fixes to the commands and addresses in `docs/`
+- Fixes to the commands and addresses in `guide/`
 
 ### Other contributions
 
