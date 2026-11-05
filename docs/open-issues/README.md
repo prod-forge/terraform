@@ -17,6 +17,7 @@ Issues #2–#5 are also items of the public roadmap, [roadmap.md](../../roadmap.
 - [branch-protection.md](branch-protection.md) — `main` has no branch protection, so CI does not block merges.
 - [dev-cd-workflows.md](dev-cd-workflows.md) — no backend or frontend CD workflow deploys dev; CD deploys prod only.
 - [vpn-ca-key-in-state.md](vpn-ca-key-in-state.md) — the Client VPN CA private key is imported into ACM and kept in Terraform state.
+- [monitoring-host-graviton.md](monitoring-host-graviton.md) — the monitoring host is x86 (`t3.small`, amd64 AMI); moving to Graviton replaces the host.
 
 ## Format
 
