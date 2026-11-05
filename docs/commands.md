@@ -93,11 +93,11 @@ git config core.hooksPath .githooks
 
 | Hook         | What it runs                                                                                                                     |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| `pre-commit` | `terraform fmt -check -recursive`, then `terraform validate` in `bootstrap`, `infrastructure/environments/dev` and `infrastructure/environments/prod` |
+| `pre-commit` | `terraform fmt -check -recursive`; when `.tf`, `.tfvars` or `.hcl` files are staged, `init -backend=false` and `validate` in `bootstrap`, `infrastructure/environments/dev` and `infrastructure/environments/prod` |
 | `commit-msg` | rejects `Co-Authored-By`, `Generated-by` or `Assisted-by` trailers that mention Claude or Anthropic; checks a Conventional Commits subject |
 | `pre-push`   | `terraform test` in `infrastructure/environments/prod`; `tflint --recursive` when `tflint` is installed                           |
 
-`terraform validate` needs an initialised root: run the `init -backend=false` commands above once. Checkov and the
+The hooks run `init -backend=false` themselves, so they never touch the remote state and need no AWS credentials. Checkov and the
 terraform-docs drift check run only in CI. A failing hook is fixed, not skipped with `--no-verify`.
 
 ---
