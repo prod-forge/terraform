@@ -43,7 +43,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_acm_certificate_arn"></a> [acm\_certificate\_arn](#input\_acm\_certificate\_arn) | Validated us-east-1 ACM certificate for domain\_name; required when domain\_name is set | `string` | `""` | no |
-| <a name="input_api_origin"></a> [api\_origin](#input\_api\_origin) | Origin of the API (scheme and host, no path) allowed in the CSP connect-src: https://api.<domain>, or http://<alb-dns> without a domain (smoke tests only: an HTTPS page cannot call it, mixed content) | `string` | n/a | yes |
+| <a name="input_api_origin"></a> [api\_origin](#input\_api\_origin) | Origin of the API (scheme and host, no path) allowed in the CSP connect-src: `https://api.<domain>`, or `http://<alb-dns>` without a domain (smoke tests only: an HTTPS page cannot call it, mixed content) | `string` | n/a | yes |
 | <a name="input_assets_bucket_name"></a> [assets\_bucket\_name](#input\_assets\_bucket\_name) | n/a | `string` | n/a | yes |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Custom domain for the distribution. Empty keeps the default *.cloudfront.net certificate | `string` | `""` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | n/a | `string` | n/a | yes |
