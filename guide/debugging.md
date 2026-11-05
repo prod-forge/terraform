@@ -1,7 +1,7 @@
 # Debugging and Troubleshooting
 
 <p align="center">
-  <img alt="The Debugging and Troubleshooting Problem" src="assets/debugging.png" width="512px" height="768px">
+  <img alt="The Debugging and Troubleshooting Problem" src="assets/debugging.jpg" width="512px" height="768px">
 </p>
 
 Debugging is one of the most critical aspects of operating production infrastructure.

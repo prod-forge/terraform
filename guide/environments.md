@@ -1,7 +1,7 @@
 # Environments
 
 <p align="center">
-  <img alt="Environments" src="assets/environments.png" width="512px" height="550px">
+  <img alt="Environments" src="assets/environments.jpg" width="512px" height="550px">
 </p>
 
 Many projects introduce multiple environments such as:

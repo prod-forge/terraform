@@ -1,7 +1,7 @@
 # Workflow
 
 <p align="center">
-  <img alt="Development Setup" src="assets/workflow.png" width="512px" height="768px">
+  <img alt="Development Setup" src="assets/workflow.jpg" width="512px" height="768px">
 </p>
 
 After the above preparation, we can begin setting up the infrastructure.
@@ -34,7 +34,7 @@ terraform -chdir=infrastructure/environments/<env> apply -target='module.stack.m
 ### The "Chicken-and-Egg" Dilemma
 
 <p align="center">
-  <img alt="The Chicken and Egg Problem" src="assets/chicken-egg-problem.png" width="512px" height="768px">
+  <img alt="The Chicken and Egg Problem" src="assets/chicken-egg-problem.jpg" width="512px" height="768px">
 </p>
 
 In many organizations, the DevOps and backend teams work independently and often in parallel. This can create a common
