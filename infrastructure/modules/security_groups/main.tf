@@ -2,6 +2,7 @@
 # group while the old one exists; dependents (ALB, ECS, RDS, Redis, Client VPN) switch before it is deleted.
 
 resource "aws_security_group" "alb_sg" {
+  #checkov:skip=CKV2_AWS_5: attached to the ALB in module.load_balancer; Checkov does not follow the id across modules
   #checkov:skip=CKV_AWS_260: the ALB is the public entry point; port 80 only redirects to HTTPS when a domain is configured
   name_prefix = "${var.project}-${var.environment}-alb-sg-"
   description = "Public HTTP access to the application load balancer"
@@ -38,6 +39,7 @@ resource "aws_security_group" "alb_sg" {
 }
 
 resource "aws_security_group" "ecs_sg" {
+  #checkov:skip=CKV2_AWS_5: attached to the ECS service in module.ecs_service; Checkov does not follow the id across modules
   name_prefix = "${var.project}-${var.environment}-ecs-sg-"
   description = "ECS tasks: ingress from the ALB and the monitoring host, egress to HTTPS, RDS and Redis"
   vpc_id      = var.vpc_id
@@ -87,6 +89,7 @@ resource "aws_vpc_security_group_egress_rule" "ecs_redis" {
 }
 
 resource "aws_security_group" "rds_sg" {
+  #checkov:skip=CKV2_AWS_5: attached to the RDS instance in module.rds; Checkov does not follow the id across modules
   name_prefix = "${var.project}-${var.environment}-rds-sg-"
   description = "PostgreSQL access from ECS tasks and the Client VPN"
   vpc_id      = var.vpc_id
@@ -111,6 +114,7 @@ resource "aws_security_group" "rds_sg" {
 }
 
 resource "aws_security_group" "vpn_sg" {
+  #checkov:skip=CKV2_AWS_5: attached to the Client VPN endpoint when var.enable_client_vpn is true (prod); dev keeps the group without an endpoint
   name_prefix = "${var.project}-${var.environment}-client-vpn-sg-"
   description = "Client VPN endpoint network interfaces"
   vpc_id      = var.vpc_id
@@ -138,6 +142,7 @@ resource "aws_security_group" "vpn_sg" {
 }
 
 resource "aws_security_group" "redis_sg" {
+  #checkov:skip=CKV2_AWS_5: attached to the Redis replication group in module.redis; Checkov does not follow the id across modules
   name_prefix = "${var.project}-${var.environment}-redis-sg-"
   description = "Redis access from ECS tasks and the Client VPN"
   vpc_id      = var.vpc_id

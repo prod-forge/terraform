@@ -1,6 +1,7 @@
 # name_prefix and create_before_destroy let a replacement group attach to the
 # instance before the old one is deleted.
 resource "aws_security_group" "monitoring" {
+  #checkov:skip=CKV2_AWS_5: attached to the monitoring instance in module.monitoring_ec2; Checkov does not follow the id across modules
   name_prefix = "${var.project}-${var.environment}-monitoring-sg-"
   description = "Monitoring host: Grafana from the admin CIDR blocks, outbound for packages, images and AWS APIs"
   vpc_id      = var.vpc_id

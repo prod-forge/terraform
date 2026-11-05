@@ -23,6 +23,10 @@ locals {
 ############################################################
 
 resource "aws_s3_bucket" "web_client" {
+  #checkov:skip=CKV_AWS_18: reads go through CloudFront, whose standard logs land in the logs bucket; direct bucket access is blocked by the OAC-only policy
+  #checkov:skip=CKV_AWS_144: single-region bucket by design; the build is reproducible from the repository and kept in noncurrent versions
+  #checkov:skip=CKV_AWS_145: public static files served through CloudFront OAC; SSE-KMS would add a KMS call per uncached request and a key policy for CloudFront, SSE-S3 is used
+  #checkov:skip=CKV2_AWS_62: nothing consumes object events; CD uploads and invalidates CloudFront directly
   bucket = var.web_client_bucket_name
 }
 
@@ -70,6 +74,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "web_client" {
 ############################################################
 
 resource "aws_s3_bucket" "assets" {
+  #checkov:skip=CKV_AWS_18: reads go through CloudFront, whose standard logs land in the logs bucket; direct bucket access is blocked by the OAC-only policy
+  #checkov:skip=CKV_AWS_144: single-region bucket by design; the assets are synced from the repository and kept in noncurrent versions
+  #checkov:skip=CKV_AWS_145: public static files served through CloudFront OAC; SSE-KMS would add a KMS call per uncached request and a key policy for CloudFront, SSE-S3 is used
+  #checkov:skip=CKV2_AWS_62: nothing consumes object events; CD syncs the folder directly
   bucket = var.assets_bucket_name
 }
 
@@ -80,6 +88,36 @@ resource "aws_s3_bucket_public_access_block" "assets" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+# Same as the web client bucket: an overwritten or deleted asset stays recoverable.
+resource "aws_s3_bucket_versioning" "assets" {
+  bucket = aws_s3_bucket.assets.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "assets" {
+  bucket = aws_s3_bucket.assets.id
+
+  rule {
+    id     = "expire-noncurrent-assets"
+    status = "Enabled"
+
+    filter {}
+
+    noncurrent_version_expiration {
+      noncurrent_days = var.noncurrent_version_expiration_days
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+
+  depends_on = [aws_s3_bucket_versioning.assets]
 }
 
 ############################################################
@@ -145,6 +183,7 @@ resource "aws_cloudfront_response_headers_policy" "security" {
 ############################################################
 
 resource "aws_cloudfront_distribution" "web_client" {
+  #checkov:skip=CKV2_AWS_47: the CloudFront ACL passed in var.web_acl_arn includes AWSManagedRulesKnownBadInputsRuleSet, which carries the Log4j rules; Checkov cannot resolve an ACL passed as a variable
   #checkov:skip=CKV_AWS_310: both origins are single-region S3 buckets; a failover origin needs a replicated bucket that is not provisioned
   #checkov:skip=CKV_AWS_374: the web client is public for every country; geo blocking has no business requirement
   #checkov:skip=CKV_AWS_174: TLS 1.2 is enforced whenever a custom domain is set; the default *.cloudfront.net certificate only allows TLSv1

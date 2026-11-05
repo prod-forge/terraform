@@ -24,6 +24,16 @@ resource "aws_vpc" "this" {
   }
 }
 
+# Every resource has its own security group; the default one is taken over and left
+# without rules, so nothing placed in it by mistake can talk to anything.
+resource "aws_default_security_group" "this" {
+  vpc_id = aws_vpc.this.id
+
+  tags = {
+    Name = "${local.prefix}-default-deny"
+  }
+}
+
 ############################
 # Internet Gateway
 ############################

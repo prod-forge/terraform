@@ -18,6 +18,13 @@ resource "aws_db_parameter_group" "postgres" {
     value = "500"
   }
 
+  # Already the PostgreSQL 15+ default on RDS; set explicitly so a client without TLS is
+  # refused by configuration, not by a default. The backend connects with DATABASE_SSL=true.
+  parameter {
+    name  = "rds.force_ssl"
+    value = "1"
+  }
+
   lifecycle {
     create_before_destroy = true
   }

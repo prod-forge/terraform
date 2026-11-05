@@ -40,7 +40,8 @@ terraform -chdir=infrastructure/environments/prod test
 # Lint and scan
 tflint --init
 tflint --recursive
-checkov -d infrastructure --config-file .checkov.yaml
+# Checkov: use the image CI uses; a Homebrew checkov 3.4.3 skips the graph checks and reports zero
+docker run --rm -v "$PWD":/w -w /w --entrypoint checkov ghcr.io/bridgecrewio/checkov:3.4.3 -d infrastructure --config-file .checkov.yaml --quiet --compact
 
 # Module READMEs (one module)
 terraform-docs -c .terraform-docs.yml infrastructure/modules/<module>

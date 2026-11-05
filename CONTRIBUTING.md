@@ -85,7 +85,7 @@ terraform -chdir=infrastructure/environments/prod init -backend=false
 terraform -chdir=infrastructure/environments/prod validate
 terraform -chdir=infrastructure/environments/prod test
 tflint --recursive
-checkov -d infrastructure
+docker run --rm -v "$PWD":/w -w /w --entrypoint checkov ghcr.io/bridgecrewio/checkov:3.4.3 -d infrastructure --config-file .checkov.yaml --quiet --compact
 ```
 
 Never run `terraform apply` against a shared account as part of a contribution, and never commit state files, keys or `.ovpn` files. A change to a module needs the matching update in `guide/` (and in the agent docs in `docs/` where they describe it) in the same pull request; see [CI for Infrastructure](guide/ci.md) for the full list of checks.

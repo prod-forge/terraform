@@ -3,6 +3,7 @@ locals {
 }
 
 resource "aws_lb" "app" {
+  #checkov:skip=CKV2_AWS_28: module.waf_alb associates the regional WAF ACL with this ALB when var.enable_waf is true (prod); Checkov cannot follow the association made in a counted module
   #checkov:skip=CKV_AWS_150: deletion protection is enabled when var.environment is prod; dev stays off so it can be destroyed freely
   name               = "${var.project}-${var.environment}-alb"
   load_balancer_type = "application"
@@ -20,6 +21,7 @@ resource "aws_lb" "app" {
 }
 
 resource "aws_lb_target_group" "app" {
+  #checkov:skip=CKV_AWS_378: TLS terminates at the ALB; traffic to the tasks stays inside private subnets and the backend has no TLS listener
   name        = "${var.project}-${var.environment}-tg"
   port        = 3000
   protocol    = "HTTP"

@@ -6,6 +6,10 @@ data "aws_elb_service_account" "current" {}
 # ALB access logs support only SSE-S3, and CloudFront standard logging needs
 # ACLs enabled, so this bucket deliberately uses neither a CMK nor BucketOwnerEnforced.
 resource "aws_s3_bucket" "logs" {
+  #checkov:skip=CKV_AWS_18: this is the access log target itself; logging it would need yet another bucket
+  #checkov:skip=CKV_AWS_144: operational logs with a lifecycle; replicating them to a second region is not worth the cost
+  #checkov:skip=CKV_AWS_145: ALB access logs support only SSE-S3, so the bucket cannot default to a CMK
+  #checkov:skip=CKV2_AWS_62: nothing consumes object events of the log bucket
   bucket = var.bucket_name
 }
 
@@ -19,6 +23,7 @@ resource "aws_s3_bucket_public_access_block" "logs" {
 }
 
 resource "aws_s3_bucket_ownership_controls" "logs" {
+  #checkov:skip=CKV2_AWS_65: CloudFront standard logging writes with ACLs, so BucketOwnerEnforced would break CloudFront logs; public ACLs stay blocked by the public access block
   bucket = aws_s3_bucket.logs.id
 
   rule {

@@ -30,7 +30,7 @@ terraform fmt -check -recursive
 (cd infrastructure/environments/prod && terraform init -backend=false && terraform validate && terraform test)
 docker run --rm -v "$PWD":/data -w /data ghcr.io/terraform-linters/tflint:v0.65.0 --init
 docker run --rm -v "$PWD":/data -w /data ghcr.io/terraform-linters/tflint:v0.65.0 --recursive
-checkov --config-file .checkov.yaml --quiet --compact
+docker run --rm -v "$PWD":/w -w /w --entrypoint checkov ghcr.io/bridgecrewio/checkov:3.4.3 -d infrastructure --config-file .checkov.yaml --quiet --compact
 for d in $(find infrastructure/modules -name '*.tf' -exec dirname {} \; | sort -u); do
   terraform-docs -c "$PWD/.terraform-docs.yml" "$d"
 done
@@ -39,7 +39,7 @@ actionlint
 
 `terraform test` uses `override_during` in `override_data`/`override_resource` blocks, which needs Terraform 1.11 or newer, while `required_version` stays `>= 1.10` for plain `plan`/`apply`. CI pins 1.17.1; run the tests with 1.11 or newer locally.
 
-Tool versions: CI pins Terraform 1.17.1, TFLint 0.65.0 with the AWS ruleset 0.50.0 (`.tflint.hcl`) and terraform-docs 0.24.0; the providers are locked to AWS 6.72.0 and random 3.9.1 in each root's `.terraform.lock.hcl`. Any local Terraform from 1.11 up runs the hooks and tests. The Checkov baseline below was recorded with Checkov 3.4.3.
+Tool versions: CI pins Terraform 1.17.1, TFLint 0.65.0 with the AWS ruleset 0.50.0 (`.tflint.hcl`) and terraform-docs 0.24.0; the providers are locked to AWS 6.72.0 and random 3.9.1 in each root's `.terraform.lock.hcl`. Any local Terraform from 1.11 up runs the hooks and tests. The Checkov baseline below was recorded with the `ghcr.io/bridgecrewio/checkov:3.4.3` image that the CI action runs.
 
 ## Git hooks
 
@@ -94,7 +94,7 @@ A plan needs to read real state and refresh live resources, so the job needs AWS
 
 ## Baseline
 
-Both scanners are at zero: `tflint --recursive` reports no issues (every module has a `versions.tf` with `required_version >= 1.10` and its provider constraints), and `checkov -d infrastructure` reports no failed checks. Checkov evaluates the modules through both environment roots, so a resource whose setting differs per environment is checked with the dev values too; those cases have inline skips that name the variable.
+Both scanners are at zero: `tflint --recursive` reports no issues (every module has a `versions.tf` with `required_version >= 1.10` and its provider constraints), and `checkov -d infrastructure` reports no failed checks (408 passed, 84 skipped inline). Run Checkov through the Docker image, as in the commands above: a Checkov 3.4.3 installed with Homebrew skipped the graph checks (`CKV2_*`) and the module calls, reported zero for months and hid 48 findings that CI kept failing on, until they were fixed or skipped on 2026-11-05. Checkov evaluates the modules through both environment roots, so a resource whose setting differs per environment is checked with the dev values too; those cases have inline skips that name the variable.
 
 ### Inline skips
 
@@ -116,6 +116,26 @@ Both scanners are at zero: `tflint --recursive` reports no issues (every module 
 | CKV_AWS_336 | module.task_definition.aws_ecs_task_definition.app                                                                                                                | The Node image writes to its filesystem at runtime; a read-only root with tmpfs mounts is a separate hardening task                                               |
 | CKV_AWS_259 | module.frontend.aws_cloudfront_response_headers_policy.security                                                                                                   | HSTS `preload` is a hard-to-revert commitment; off until the owner opts in                                                                                        |
 
-The CloudTrail checks CKV_AWS_35 (KMS), CKV_AWS_36 (log file validation), CKV_AWS_67 (all regions) and CKV_AWS_252 (SNS topic) pass on `module.security_baseline`. CKV2_AWS_3 (GuardDuty) does not exist in Checkov 3.4.3; its GuardDuty check is CKV_AWS_238 (detector enabled), which passes.
+The CloudTrail checks CKV_AWS_35 (KMS), CKV_AWS_36 (log file validation), CKV_AWS_67 (all regions) and CKV_AWS_252 (SNS topic) pass on `module.security_baseline`.
+
+Fixed rather than skipped: the VPC default security group is taken over without rules (CKV2_AWS_12), the KMS key has its policy written out (CKV2_AWS_64), the RDS parameter group sets `rds.force_ssl = 1` (CKV2_AWS_69), and the assets bucket is versioned with a lifecycle like the web client bucket (CKV_AWS_21, CKV2_AWS_61).
+
+Skipped with a reason in the code (graph and S3 checks, added on 2026-11-05):
+
+| ID          | Resources                                              | Reason                                                                                                                                                 |
+| ----------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CKV2_AWS_5  | the six security groups                                | Each is attached in another module (ALB, ECS service, RDS, Redis, monitoring instance, Client VPN in prod); Checkov does not follow ids across modules |
+| CKV2_AWS_28 | module.load_balancer.aws_lb.app                        | module.waf_alb associates the regional ACL when `enable_waf` is true (prod)                                                                            |
+| CKV2_AWS_47 | module.frontend.aws_cloudfront_distribution.web_client | The ACL passed in `web_acl_arn` includes `AWSManagedRulesKnownBadInputsRuleSet` (Log4j)                                                                |
+| CKV2_AWS_31 | module.waf.aws_wafv2_web_acl.this                      | No log destination yet; metrics and sampled requests are on; full logging is a cost decision                                                           |
+| CKV2_AWS_10 | module.security_baseline.aws_cloudtrail.this           | The trail goes to the encrypted bucket; no metric filters exist that a log group would feed                                                            |
+| CKV2_AWS_3  | module.security_baseline.aws_guardduty_detector.this   | Single account without AWS Organizations                                                                                                               |
+| CKV2_AWS_57 | the four Secrets Manager secrets                       | Generated or third-party values; rotation needs coordinated app restarts (JWT logs users out)                                                          |
+| CKV2_AWS_65 | module.logs_bucket ownership controls                  | CloudFront standard logging writes with ACLs                                                                                                           |
+| CKV_AWS_145 | web client, assets and logs buckets                    | Public files behind CloudFront OAC stay on SSE-S3; ALB access logs support only SSE-S3                                                                 |
+| CKV_AWS_18  | every bucket                                           | CloudFront logs cover the web buckets; the logs bucket is the log target itself; the rest are small private buckets                                    |
+| CKV_AWS_144 | every bucket                                           | Single-region stack; replication doubles storage for data that can be rebuilt                                                                          |
+| CKV2_AWS_62 | every bucket                                           | Nothing consumes S3 object events                                                                                                                      |
+| CKV_AWS_378 | module.load_balancer.aws_lb_target_group.app           | TLS terminates at the ALB; tasks are in private subnets without a TLS listener                                                                         |
 
 `.checkov.yaml` keeps `skip-check` empty. A new finding must be fixed, or skipped inline with `#checkov:skip=<ID>: <reason>` and a real reason, and added to this table.

@@ -47,6 +47,9 @@ resource "aws_kms_key" "cloudtrail" {
 }
 
 resource "aws_s3_bucket" "cloudtrail" {
+  #checkov:skip=CKV_AWS_18: CloudTrail already records the management events of this bucket; server access logs would need a separate log target bucket
+  #checkov:skip=CKV_AWS_144: single-region stack by design; cross-region replication doubles storage for an audit trail that is also kept by CloudTrail event history
+  #checkov:skip=CKV2_AWS_62: nothing consumes object events of the trail bucket
   count = var.enable_cloudtrail ? 1 : 0
 
   bucket = "${local.prefix}-cloudtrail"
@@ -212,6 +215,7 @@ resource "aws_sns_topic_policy" "cloudtrail" {
 }
 
 resource "aws_cloudtrail" "this" {
+  #checkov:skip=CKV2_AWS_10: the trail is delivered to the KMS-encrypted S3 bucket with log file validation; there are no CloudWatch metric filters or alarms on API calls yet, so a log group would only add ingestion cost
   count = var.enable_cloudtrail ? 1 : 0
 
   name                          = local.trail_name
@@ -234,6 +238,7 @@ resource "aws_cloudtrail" "this" {
 
 # One detector per account and region; findings appear in the GuardDuty console.
 resource "aws_guardduty_detector" "this" {
+  #checkov:skip=CKV2_AWS_3: a single account without AWS Organizations; the detector is enabled in the region the stack runs in, there is no delegated administrator to configure
   count = var.enable_guardduty ? 1 : 0
 
   enable                       = true

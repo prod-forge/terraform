@@ -11,6 +11,7 @@ locals {
 
 # A CLOUDFRONT-scope ACL must be created through a us-east-1 provider.
 resource "aws_wafv2_web_acl" "this" {
+  #checkov:skip=CKV2_AWS_31: no log destination is provisioned; sampled requests and CloudWatch metrics are on in visibility_config, full WAF logging is a cost decision for the owner
   name  = local.acl_name
   scope = var.scope
 

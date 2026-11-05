@@ -268,7 +268,7 @@ terraform -chdir=infrastructure/environments/prod test
 
 ```bash
 tflint --recursive
-checkov -d infrastructure
+docker run --rm -v "$PWD":/w -w /w --entrypoint checkov ghcr.io/bridgecrewio/checkov:3.4.3 -d infrastructure --config-file .checkov.yaml --quiet --compact
 terraform-docs -c .terraform-docs.yml infrastructure/modules/<module>
 ```
 
