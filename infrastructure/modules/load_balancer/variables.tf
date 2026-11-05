@@ -50,3 +50,9 @@ variable "access_logs_prefix" {
   type        = string
   default     = "alb"
 }
+
+variable "app_port" {
+  description = "Port the backend container listens on"
+  type        = number
+  default     = 3000
+}

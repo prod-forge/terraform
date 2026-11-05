@@ -27,8 +27,8 @@ resource "aws_security_group" "alb_sg" {
   # Targets and health checks are the ECS tasks on the application port.
   egress {
     description = "Application port to the ECS tasks inside the VPC"
-    from_port   = 3000
-    to_port     = 3000
+    from_port   = var.app_port
+    to_port     = var.app_port
     protocol    = "tcp"
     cidr_blocks = [var.vpc_cidr]
   }
@@ -56,8 +56,8 @@ resource "aws_vpc_security_group_ingress_rule" "ecs_from_alb" {
   security_group_id            = aws_security_group.ecs_sg.id
   description                  = "Application port from the ALB"
   ip_protocol                  = "tcp"
-  from_port                    = 3000
-  to_port                      = 3000
+  from_port                    = var.app_port
+  to_port                      = var.app_port
   referenced_security_group_id = aws_security_group.alb_sg.id
 }
 

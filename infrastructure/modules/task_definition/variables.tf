@@ -148,3 +148,9 @@ variable "backend_config" {
     error_message = "shutdown_drain_ms + shutdown_inflight_timeout_ms must be below the 60 s stopTimeout."
   }
 }
+
+variable "app_port" {
+  description = "Port the backend container listens on"
+  type        = number
+  default     = 3000
+}

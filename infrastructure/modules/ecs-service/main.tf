@@ -121,7 +121,7 @@ resource "aws_ecs_service" "app" {
   load_balancer {
     target_group_arn = var.lb_target_group_arn
     container_name   = var.project
-    container_port   = 3000
+    container_port   = var.app_port
   }
 
   dynamic "service_registries" {

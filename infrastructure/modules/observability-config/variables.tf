@@ -22,3 +22,9 @@ variable "service_namespace" {
   description = "Cloud Map namespace the backend registers in; Prometheus scrapes backend.<namespace>"
   type        = string
 }
+
+variable "app_port" {
+  description = "Port the backend container listens on"
+  type        = number
+  default     = 3000
+}

@@ -10,6 +10,8 @@ app_secret_name = "prod_forge/backend/dev/config-v1"
 secret_recovery_window_days = 0
 # The OIDC provider is account-wide and owned by prod. Set true when dev has its own AWS account.
 create_github_oidc_provider = false
+# Owner of the backend and frontend repositories trusted by the deploy roles.
+github_owner = "prod-forge"
 # Covered by prod in a shared account. Set true when dev has its own AWS account.
 enable_account_security_services = false
 
@@ -27,6 +29,8 @@ redis_node_type                = "cache.t4g.micro"
 redis_num_cache_clusters       = 1
 redis_snapshot_retention_limit = 1
 
+# dev and prod share this CIDR today; changing it replaces the VPC (and everything in it).
+vpc_cidr             = "10.0.0.0/16"
 vpc_nat_per_az       = false
 vpc_enable_endpoints = false
 

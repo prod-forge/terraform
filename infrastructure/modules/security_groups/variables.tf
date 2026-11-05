@@ -17,3 +17,9 @@ variable "environment" {
   description = "Environment name (dev, prod), used to prefix security group names"
   type        = string
 }
+
+variable "app_port" {
+  description = "Port the backend container listens on"
+  type        = number
+  default     = 3000
+}

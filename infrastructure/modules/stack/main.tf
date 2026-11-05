@@ -6,6 +6,7 @@ data "aws_caller_identity" "current" {}
 
 locals {
   name             = "${var.project}-${var.environment}"
+  app_port         = 3000
   hosted_zone_name = var.hosted_zone_name != "" ? var.hosted_zone_name : var.domain_name
   api_domain_name  = var.domain_name != "" ? "${var.api_subdomain}.${var.domain_name}" : ""
   api_url          = local.api_domain_name != "" ? "https://${local.api_domain_name}" : "http://${module.load_balancer.lb_dns_name}"
@@ -38,7 +39,7 @@ module "github_oidc" {
   source       = "../github-oidc"
   project      = var.project
   environment  = var.environment
-  github_owner = "prod-forge"
+  github_owner = var.github_owner
 
   github_environment   = var.environment
   create_oidc_provider = var.create_github_oidc_provider
@@ -65,6 +66,7 @@ module "vpc" {
   source      = "../vpc"
   project     = var.project
   environment = var.environment
+  cidr        = var.vpc_cidr
 
   nat_per_az           = var.vpc_nat_per_az
   enable_vpc_endpoints = var.vpc_enable_endpoints
@@ -92,6 +94,7 @@ module "iam" {
 
 module "security_groups" {
   source      = "../security_groups"
+  app_port    = local.app_port
   vpc_id      = module.vpc.vpc_id
   vpc_cidr    = module.vpc.vpc_cidr
   project     = var.project
@@ -104,6 +107,7 @@ module "security_groups" {
 
 module "load_balancer" {
   source            = "../load_balancer"
+  app_port          = local.app_port
   vpc_id            = module.vpc.vpc_id
   sg_alb_id         = module.security_groups.sg_alb_id
   public_subnet_ids = module.vpc.public_subnet_ids
@@ -201,6 +205,7 @@ module "ecs_cluster" {
 
 module "ecs_service" {
   source                  = "../ecs-service"
+  app_port                = local.app_port
   ecs_cluster_id          = module.ecs_cluster.ecs_cluster_id
   ecs_cluster_name        = module.ecs_cluster.ecs_cluster_name
   ecs_task_definition_arn = module.task_definition.ecs_task_definition_arn
@@ -243,6 +248,7 @@ module "service_discovery" {
 
 module "task_definition" {
   source                  = "../task_definition"
+  app_port                = local.app_port
   task_execution_role_arn = module.iam.task_execution_role_arn
   task_role_arn           = module.iam.task_role_arn
   repository_url          = module.ecr.repository_url
@@ -377,6 +383,7 @@ module "observability_config" {
   kms_key_arn = module.secrets_manager.kms_arn
 
   service_namespace = module.service_discovery.namespace_name
+  app_port          = local.app_port
 }
 
 module "monitoring_iam" {
@@ -432,8 +439,8 @@ resource "aws_vpc_security_group_ingress_rule" "ecs_from_monitoring" {
   security_group_id            = module.security_groups.sg_ecs_id
   description                  = "Prometheus scrape of the application port from the monitoring host"
   ip_protocol                  = "tcp"
-  from_port                    = 3000
-  to_port                      = 3000
+  from_port                    = local.app_port
+  to_port                      = local.app_port
   referenced_security_group_id = module.monitoring_sg.sg_monitoring_id
 }
 

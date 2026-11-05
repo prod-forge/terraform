@@ -32,6 +32,7 @@ No modules.
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_access_logs_bucket"></a> [access\_logs\_bucket](#input\_access\_logs\_bucket) | S3 bucket for ALB access logs | `string` | n/a | yes |
 | <a name="input_access_logs_prefix"></a> [access\_logs\_prefix](#input\_access\_logs\_prefix) | Key prefix for ALB access logs | `string` | `"alb"` | no |
+| <a name="input_app_port"></a> [app\_port](#input\_app\_port) | Port the backend container listens on | `number` | `3000` | no |
 | <a name="input_certificate_arn"></a> [certificate\_arn](#input\_certificate\_arn) | Validated ACM certificate for domain\_name; required when domain\_name is set | `string` | `""` | no |
 | <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | API domain (for example api.example.com). Empty disables the 443 listener and the HTTP to HTTPS redirect | `string` | `""` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name; deletion protection is enabled only for prod | `string` | n/a | yes |

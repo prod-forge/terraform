@@ -76,6 +76,7 @@
 | <a name="input_enable_client_vpn"></a> [enable\_client\_vpn](#input\_enable\_client\_vpn) | Create the Client VPN endpoint; requires the four vpn\_* PEM inputs | `bool` | n/a | yes |
 | <a name="input_enable_waf"></a> [enable\_waf](#input\_enable\_waf) | Attach WAF web ACLs to the ALB and the CloudFront distribution | `bool` | n/a | yes |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, prod), the second part of every resource name | `string` | n/a | yes |
+| <a name="input_github_owner"></a> [github\_owner](#input\_github\_owner) | GitHub organization or user that owns the backend and frontend repositories trusted by the deploy roles | `string` | n/a | yes |
 | <a name="input_hosted_zone_name"></a> [hosted\_zone\_name](#input\_hosted\_zone\_name) | Public Route 53 zone for domain\_name; defaults to domain\_name when empty | `string` | `""` | no |
 | <a name="input_image_tag"></a> [image\_tag](#input\_image\_tag) | Image tag of the initial task definition revision; CD replaces the image afterwards | `string` | `"initial"` | no |
 | <a name="input_monitoring_instance_type"></a> [monitoring\_instance\_type](#input\_monitoring\_instance\_type) | EC2 instance type of the monitoring host | `string` | `"t3.small"` | no |
@@ -95,6 +96,7 @@
 | <a name="input_region"></a> [region](#input\_region) | AWS region of the regional provider | `string` | n/a | yes |
 | <a name="input_secret_recovery_window_days"></a> [secret\_recovery\_window\_days](#input\_secret\_recovery\_window\_days) | Recovery window of every Secrets Manager secret; 0 deletes immediately so a recreated environment can reuse the names | `number` | n/a | yes |
 | <a name="input_service_namespace"></a> [service\_namespace](#input\_service\_namespace) | Cloud Map private DNS namespace; unique per environment so two environments in one account never share a name | `string` | n/a | yes |
+| <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | CIDR block of the VPC; changing it replaces the VPC and everything in it | `string` | n/a | yes |
 | <a name="input_vpc_enable_endpoints"></a> [vpc\_enable\_endpoints](#input\_vpc\_enable\_endpoints) | n/a | `bool` | n/a | yes |
 | <a name="input_vpc_nat_per_az"></a> [vpc\_nat\_per\_az](#input\_vpc\_nat\_per\_az) | n/a | `bool` | n/a | yes |
 | <a name="input_vpn_ca_certificate"></a> [vpn\_ca\_certificate](#input\_vpn\_ca\_certificate) | PEM body of the CA that signs the server and client certificates | `string` | `""` | no |

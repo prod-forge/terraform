@@ -108,3 +108,9 @@ variable "task_role_arns" {
   description = "Task and task execution role ARNs the backend CD may pass to ECS"
   type        = list(string)
 }
+
+variable "app_port" {
+  description = "Port the backend container listens on"
+  type        = number
+  default     = 3000
+}

@@ -33,6 +33,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_app_port"></a> [app\_port](#input\_app\_port) | Port the backend container listens on | `number` | `3000` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, prod) | `string` | n/a | yes |
 | <a name="input_kms_key_arn"></a> [kms\_key\_arn](#input\_kms\_key\_arn) | KMS key ARN used for server-side encryption of the bucket | `string` | n/a | yes |
 | <a name="input_project"></a> [project](#input\_project) | Project name, used in the bucket name | `string` | n/a | yes |

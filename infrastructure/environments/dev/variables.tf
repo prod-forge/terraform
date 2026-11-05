@@ -51,6 +51,11 @@ variable "create_github_oidc_provider" {
   type        = bool
 }
 
+variable "github_owner" {
+  description = "GitHub organization or user that owns the backend and frontend repositories trusted by the deploy roles"
+  type        = string
+}
+
 variable "enable_account_security_services" {
   description = "Create the account-level CloudTrail trail, GuardDuty detector and IAM Access Analyzer (one environment per account)"
   type        = bool
@@ -59,6 +64,11 @@ variable "enable_account_security_services" {
 ############################
 # Network
 ############################
+
+variable "vpc_cidr" {
+  description = "CIDR block of the VPC; changing it replaces the VPC and everything in it"
+  type        = string
+}
 
 variable "vpc_nat_per_az" {
   type = bool

@@ -116,6 +116,7 @@ terraform -chdir=infrastructure/environments/dev apply
 
 | Setting | dev | prod |
 | --- | --- | --- |
+| VPC CIDR (`vpc_cidr`) | `10.0.0.0/16` | `10.0.0.0/16` (the same today, so the two VPCs cannot be peered or share one VPN; changing it replaces the VPC) |
 | NAT gateways (`vpc_nat_per_az`) | 1 shared | 1 per AZ |
 | Interface VPC endpoints (`vpc_enable_endpoints`) | off | on |
 | RDS class / Multi-AZ | `db.t4g.micro`, single AZ | `db.t4g.medium`, Multi-AZ |

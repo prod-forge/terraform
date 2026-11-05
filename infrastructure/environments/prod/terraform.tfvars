@@ -9,6 +9,8 @@ app_secret_name             = "prod_forge/backend/config-v1"
 secret_recovery_window_days = 30
 # prod owns the account-wide GitHub OIDC provider; dev in the same account reads it.
 create_github_oidc_provider = true
+# Owner of the backend and frontend repositories trusted by the deploy roles.
+github_owner = "prod-forge"
 # prod owns the account-level CloudTrail trail, GuardDuty detector and Access Analyzer.
 enable_account_security_services = true
 
@@ -27,6 +29,8 @@ redis_node_type                = "cache.t4g.small"
 redis_num_cache_clusters       = 2
 redis_snapshot_retention_limit = 7
 
+# Changing it replaces the VPC (and everything in it).
+vpc_cidr             = "10.0.0.0/16"
 vpc_nat_per_az       = true
 vpc_enable_endpoints = true
 

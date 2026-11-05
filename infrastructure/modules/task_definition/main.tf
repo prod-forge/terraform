@@ -8,7 +8,7 @@ locals {
     NODE_ENV = "production"
 
     APP_HOST                     = "0.0.0.0"
-    APP_PORT                     = "3000"
+    APP_PORT                     = tostring(var.app_port)
     SHUTDOWN_DRAIN_MS            = tostring(local.cfg.shutdown_drain_ms)
     SHUTDOWN_INFLIGHT_TIMEOUT_MS = tostring(local.cfg.shutdown_inflight_timeout_ms)
 
@@ -117,8 +117,8 @@ resource "aws_ecs_task_definition" "app" {
 
       portMappings = [
         {
-          containerPort = 3000
-          hostPort      = 3000
+          containerPort = var.app_port
+          hostPort      = var.app_port
         }
       ]
 
@@ -126,7 +126,7 @@ resource "aws_ecs_task_definition" "app" {
       secrets     = local.container_secrets
 
       healthCheck = {
-        command     = ["CMD", "node", "-e", "fetch('http://localhost:'+(process.env.APP_PORT||3000)+'/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+        command     = ["CMD", "node", "-e", "fetch('http://localhost:'+(process.env.APP_PORT||${var.app_port})+'/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
         interval    = 30
         timeout     = 5
         retries     = 3

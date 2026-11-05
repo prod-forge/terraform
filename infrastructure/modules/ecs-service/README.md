@@ -34,6 +34,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_app_port"></a> [app\_port](#input\_app\_port) | Port the backend container listens on | `number` | `3000` | no |
 | <a name="input_aws_account_id"></a> [aws\_account\_id](#input\_aws\_account\_id) | AWS Account ID | `string` | n/a | yes |
 | <a name="input_backend_role_name"></a> [backend\_role\_name](#input\_backend\_role\_name) | Backend GitHub Actions role that receives the ECS deploy policy | `string` | n/a | yes |
 | <a name="input_cpu_target_value"></a> [cpu\_target\_value](#input\_cpu\_target\_value) | Target average CPU utilization (percent) for the service | `number` | `60` | no |

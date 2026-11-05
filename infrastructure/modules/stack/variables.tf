@@ -61,6 +61,11 @@ variable "redis_num_cache_clusters" {
   type        = number
 }
 
+variable "vpc_cidr" {
+  description = "CIDR block of the VPC; changing it replaces the VPC and everything in it"
+  type        = string
+}
+
 variable "vpc_nat_per_az" {
   type = bool
 }
@@ -185,6 +190,11 @@ variable "secret_recovery_window_days" {
     condition     = var.secret_recovery_window_days == 0 || (var.secret_recovery_window_days >= 7 && var.secret_recovery_window_days <= 30)
     error_message = "secret_recovery_window_days must be 0 or between 7 and 30."
   }
+}
+
+variable "github_owner" {
+  description = "GitHub organization or user that owns the backend and frontend repositories trusted by the deploy roles"
+  type        = string
 }
 
 variable "create_github_oidc_provider" {

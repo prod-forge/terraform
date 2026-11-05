@@ -94,6 +94,7 @@ Apart from the backend state key in `versions.tf`, the differences are values in
 | -------------------------------------- | --------------------------------------- | ------------------------------------- |
 | RDS                                    | `db.t4g.medium`, Multi-AZ, 7-day backups, deletion protection | `db.t4g.micro`, single AZ, 1-day backups, no deletion protection |
 | Redis                                  | `cache.t4g.small` x 2, 7 snapshots      | `cache.t4g.micro` x 1, 1 snapshot     |
+| VPC CIDR                               | `10.0.0.0/16`                           | `10.0.0.0/16` (same; changing it replaces the VPC) |
 | NAT / VPC endpoints                    | NAT per AZ, endpoints on                | one NAT, endpoints off                |
 | ECS                                    | 2 tasks (2..10), 512 CPU / 1024 MiB, 30-day logs | 1 task (1..2), 256 CPU / 512 MiB, 7-day logs |
 | WAF                                    | on                                      | off                                   |

@@ -34,6 +34,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_app_port"></a> [app\_port](#input\_app\_port) | Port the backend container listens on | `number` | `3000` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (dev, prod), used to prefix security group names | `string` | n/a | yes |
 | <a name="input_project"></a> [project](#input\_project) | Project name used to prefix security group names | `string` | n/a | yes |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | VPC CIDR block: the only source allowed into the Client VPN group and the only egress target of the ALB and VPN groups | `string` | n/a | yes |

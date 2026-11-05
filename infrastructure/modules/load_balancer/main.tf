@@ -23,7 +23,7 @@ resource "aws_lb" "app" {
 resource "aws_lb_target_group" "app" {
   #checkov:skip=CKV_AWS_378: TLS terminates at the ALB; traffic to the tasks stays inside private subnets and the backend has no TLS listener
   name        = "${var.project}-${var.environment}-tg"
-  port        = 3000
+  port        = var.app_port
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"

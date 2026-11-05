@@ -36,9 +36,11 @@ module "stack" {
   app_secret_name             = var.app_secret_name
   secret_recovery_window_days = var.secret_recovery_window_days
   create_github_oidc_provider = var.create_github_oidc_provider
+  github_owner                = var.github_owner
 
   enable_account_security_services = var.enable_account_security_services
 
+  vpc_cidr             = var.vpc_cidr
   vpc_nat_per_az       = var.vpc_nat_per_az
   vpc_enable_endpoints = var.vpc_enable_endpoints
 
