@@ -64,7 +64,7 @@ variable "logs_prefix" {
 }
 
 variable "noncurrent_version_expiration_days" {
-  description = "Days to keep previous web client builds"
+  description = "Days to keep previous object versions in the web client and assets buckets"
   type        = number
   default     = 30
 }

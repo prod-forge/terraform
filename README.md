@@ -138,7 +138,7 @@ Start with the [Development Setup](guide/development-setup.md).
   - [Why Order Matters](guide/destroy.md#why-order-matters)
   - [Step 1 — Destroy Infrastructure](guide/destroy.md#step-1--destroy-infrastructure)
   - [Step 2 — Unlock the Bootstrap](guide/destroy.md#step-2--unlock-the-bootstrap)
-  - [Step 3 — Delete the IAM User](guide/destroy.md#step-3--delete-the-iam-user)
+  - [Step 3 — Remove Operator Access](guide/destroy.md#step-3--remove-operator-access)
 
 <!-- -->
 

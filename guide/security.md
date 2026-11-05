@@ -9,7 +9,7 @@ How traffic is protected from the browser to the data stores, and which controls
 | Browser → CloudFront | HTTPS only (`redirect-to-https`). With a custom domain: ACM certificate from `us-east-1`, SNI, minimum `TLSv1.2_2021` |
 | Browser → ALB | With a domain: 443 listener with `ELBSecurityPolicy-TLS13-1-2-2021-06` (TLS 1.3 and 1.2 only) and port 80 answering `301` to HTTPS |
 | CloudFront → S3 | Origin Access Control with SigV4 signing; buckets block all public access |
-| ECS → RDS | TLS required: `rds.force_ssl` defaults to 1 on RDS for PostgreSQL 15 and later (the instance runs 18) |
+| ECS → RDS | TLS required: the parameter group sets `rds.force_ssl = 1` explicitly (also the RDS default for PostgreSQL 15 and later; the instance runs 18) |
 | ECS → Redis | In-transit encryption and an AUTH token |
 | ECS → AWS APIs | HTTPS through VPC endpoints or the NAT gateway |
 
@@ -79,13 +79,14 @@ The `logs-bucket` module creates one bucket for ALB access logs (`alb/`) and Clo
 | Client VPN | all from the VPC CIDR | all to the VPC CIDR |
 | Monitoring host | 3000 from `admin_cidr_blocks` | all (packages, images, AWS APIs) |
 | VPC endpoints | 443 from the VPC CIDR | none |
+| VPC default group | none | none (taken over by Terraform and left without rules, so nothing placed in it can talk) |
 
 The ALB is the only public entry point for the API. ECS tasks run in private subnets without public IPs. RDS and Redis need no egress rules because security groups are stateful. Groups use `name_prefix` (`<project>-<env>-<role>-sg-`) with `create_before_destroy`, so rule changes never leave dependents without a group.
 
 ## IAM
 
 - GitHub Actions authenticate through OIDC (no static keys) and use one role per repository: the backend role gets ECR push and ECS deploy, the frontend role gets the web client deploy (S3 sync and `cloudfront:CreateInvalidation` on the one distribution). Trust is limited to the repository and its GitHub environment (`environment:prod` for the prod roles, `environment:dev` for dev). The ECR repository has immutable tags, scan on push and KMS encryption.
-- The ECS execution role reads only the secrets the task needs (RDS, Redis AUTH, JWT, policy `<project>-<env>-ecs-secrets-read`) and decrypts them with the project KMS key, which rotates yearly.
+- The ECS execution role reads only the secrets the task needs (RDS, Redis AUTH, JWT, the app config secret; policy `<project>-<env>-ecs-secrets-read`) and decrypts them with the project KMS key, which rotates yearly.
 - The monitoring EC2 role reads the Grafana admin secret (and decrypts it with the project KMS key), reads the observability config bucket and uses SSM Session Manager (`AmazonSSMManagedInstanceCore`). It has no ECR access: the observability images come from public registries.
 - Every role and policy name starts with `<project>-<env>-`, so the IAM permissions of the Terraform operator can be scoped to that prefix.
 
