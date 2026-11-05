@@ -12,6 +12,12 @@ Deferred known problems, so they are not rediscovered (or silently "fixed") in e
 
 Issues #2–#5 are also items of the public roadmap, [roadmap.md](../../roadmap.md).
 
+## Without an issue
+
+- [branch-protection.md](branch-protection.md) — `main` has no branch protection, so CI does not block merges.
+- [dev-cd-workflows.md](dev-cd-workflows.md) — no backend or frontend CD workflow deploys dev; CD deploys prod only.
+- [vpn-ca-key-in-state.md](vpn-ca-key-in-state.md) — the Client VPN CA private key is imported into ACM and kept in Terraform state.
+
 ## Format
 
 One line per problem: the issue link, its title and, when the docs already describe it, a link to that note. A problem without an issue gets a short file in this folder: what is wrong, where, why it is deferred, and what a fix needs.

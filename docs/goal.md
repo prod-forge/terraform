@@ -22,8 +22,8 @@ It answers one question: how do I run all of it on AWS with code, not clicks? (`
 - Two reproducible environments from one `stack` module; `dev` is the only step before `prod`, there is no staging (`guide/environments.md`).
 - Remote, encrypted, versioned state with the S3 lock file; the bootstrap resists accidental deletion (`guide/development-setup.md`, `guide/destroy.md`).
 - CI/CD of the backend and frontend repositories deploys through GitHub OIDC roles that trust only their own repository and GitHub environment, with no static credentials (`guide/workflow.md`).
-- Code that does not pass `fmt`, `validate`, `terraform test`, TFLint, Checkov and the terraform-docs drift check cannot be merged (`guide/ci.md`).
+- Code must pass `fmt`, `validate`, `terraform test`, TFLint, Checkov and the terraform-docs drift check in CI before it is merged (`guide/ci.md`). This is kept by review and the git hooks: `main` has no branch protection yet, so a red run does not block a merge ([open-issues/branch-protection.md](open-issues/branch-protection.md)).
 - Production hardening is explained, not just applied: TLS, WAF, security headers, least-privilege IAM, CloudTrail and GuardDuty (`guide/security.md`), backups and a restore drill (`guide/backup-and-dr.md`), scaling policies (`guide/scaling.md`), alarms and the monitoring host (`guide/observability.md`), cost (`guide/cost.md`).
 - Every decision is explained in `guide/`, and the docs are updated in the same change as the code (`AGENTS.md`).
 
-Not done yet: `terraform plan` in CI, team access in Terraform, blue/green deployment (designed in `guide/blue-green.md`, not implemented). Open work is listed in the public roadmap, [roadmap.md](../roadmap.md), and tracked in [open-issues/README.md](open-issues/README.md).
+Not done yet: `terraform plan` in CI, team access in Terraform, blue/green deployment (designed in `guide/blue-green.md`, not implemented), branch protection on `main`, CD workflows for dev. Open work is listed in the public roadmap, [roadmap.md](../roadmap.md), and tracked in [open-issues/README.md](open-issues/README.md).

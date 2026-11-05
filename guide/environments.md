@@ -147,7 +147,7 @@ With a separate dev account, run the bootstrap there too, point the dev backend 
 ## Creating dev
 
 1. Apply prod first (or, in a separate account, run the bootstrap there). Dev reads the GitHub OIDC provider created by prod.
-2. Create the `dev` GitHub environment in the backend and frontend repositories; the dev roles trust only `environment:dev`.
+2. Create the `dev` GitHub environment in the backend and frontend repositories when dev CD workflows exist (step 7); the dev roles trust only `environment:dev`.
 3. Review `infrastructure/environments/dev/terraform.tfvars` (alert email, budget, admin CIDRs).
 4. Create the infrastructure in stages, as in [Workflow](workflow.md): ECR and the application secret first, then the rest.
 
@@ -163,7 +163,7 @@ With a separate dev account, run the bootstrap there too, point the dev backend 
    terraform -chdir=infrastructure/environments/dev apply
    ```
 
-7. Point the backend and frontend dev workflows at `<project>-dev-github-backend-role` / `<project>-dev-github-frontend-role`, the dev cluster, service and buckets.
+7. Deploy to dev by hand for now. CD deploys prod only: every backend and frontend deploy workflow runs in the `prod` GitHub environment, and there are no dev workflows yet. Terraform already creates the dev deploy roles (`<project>-dev-github-backend-role` / `<project>-dev-github-frontend-role`, trusting only `environment:dev`) for when they exist; the gap is tracked in `docs/open-issues/dev-cd-workflows.md`.
 
 Dev is meant to be disposable: RDS and the ALB have no deletion protection and secrets are deleted without a recovery window, so `terraform destroy` followed by `apply` recreates it under the same names. The RDS final snapshot `<project>-dev-final` must be deleted before a second destroy, because snapshot names are unique.
 
