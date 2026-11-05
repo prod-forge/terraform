@@ -5,7 +5,7 @@
 Terraform for the Prod Forge AWS stack: the NestJS backend on ECS Fargate behind an ALB, PostgreSQL on RDS, Redis on
 ElastiCache, the web client on S3 + CloudFront, and a self-hosted Prometheus/Grafana/Loki host on EC2.
 
-**Stack:** Terraform `>= 1.10` (CI pins 1.11.2) · AWS provider `~> 6.35` · random provider `~> 3.7` · region
+**Stack:** Terraform `>= 1.10` (CI pins 1.17.1) · AWS provider `~> 6.35` (locked 6.72.0) · random provider `~> 3.7` (locked 3.9.1) · region
 `eu-central-1`
 
 The human guide (`guide/`) explains the why; these files map where things are. The modules and conditional HTTPS are in [modules.md](modules.md); how to add a module, variable, environment value or output is in [patterns.md](patterns.md).

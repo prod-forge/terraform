@@ -16,10 +16,10 @@ jobs:
   fmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4
         with:
-          terraform_version: 1.11.2
+          terraform_version: 1.17.1
       - run: terraform fmt -check -recursive
 
   validate:
@@ -29,10 +29,10 @@ jobs:
       matrix:
         root: [bootstrap, infrastructure/environments/dev, infrastructure/environments/prod]
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4
         with:
-          terraform_version: 1.11.2
+          terraform_version: 1.17.1
       - id: init
         run: terraform init -backend=false -lockfile=readonly
         working-directory: ${{ matrix.root }}
@@ -46,8 +46,8 @@ jobs:
   tflint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: terraform-linters/setup-tflint@v4
+      - uses: actions/checkout@v7
+      - uses: terraform-linters/setup-tflint@v6
         with:
           tflint_version: v0.65.0
       - run: tflint --init
@@ -58,7 +58,7 @@ jobs:
   checkov:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: bridgecrewio/checkov-action@v12
         with:
           directory: infrastructure
@@ -68,7 +68,7 @@ jobs:
   terraform-docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install terraform-docs
         run: |
           curl -sSLo terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/v0.24.0/terraform-docs-v0.24.0-linux-amd64.tar.gz

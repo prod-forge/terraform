@@ -8,8 +8,8 @@ Commands for working with the infrastructure code. Human setup (AWS access, IAM 
 
 | Tool           | Version                      | Pinned in                                  |
 | -------------- | ---------------------------- | ------------------------------------------ |
-| Terraform      | 1.11.2 (`required_version = ">= 1.10"`) | `.github/workflows/terraform-ci.yml`, every `versions.tf` |
-| TFLint         | 0.65.0, AWS ruleset 0.38.0   | `.github/workflows/terraform-ci.yml`, `.tflint.hcl` |
+| Terraform      | 1.17.1 in CI (`required_version = ">= 1.10"`; tests need 1.11+) | `.github/workflows/terraform-ci.yml`, every `versions.tf` |
+| TFLint         | 0.65.0, AWS ruleset 0.50.0   | `.github/workflows/terraform-ci.yml`, `.tflint.hcl` |
 | terraform-docs | 0.24.0                       | `.github/workflows/terraform-ci.yml`       |
 | Checkov        | `checkov-action@v12`         | `.github/workflows/terraform-ci.yml`, `.checkov.yaml` |
 
