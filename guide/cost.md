@@ -17,7 +17,7 @@ Approximate monthly cost of each environment in `eu-central-1`, at on-demand lis
 | WAF | 0 | 18 | 2 web ACLs with 4 rules each, plus requests |
 | Public IPv4 addresses | 15 | 18 | NAT, ALB and monitoring host addresses at 0.005 USD per hour |
 | CloudWatch (logs, alarms, Container Insights) | 8 | 25 | grows with VPC flow log and application log volume |
-| Secrets Manager, KMS, S3, CloudFront | 7 | 10 | 4 secrets, 2 to 3 CMKs, low-traffic buckets and distribution |
+| Secrets Manager, KMS, S3, CloudFront | 7 | 10 | 5 secrets (4 project secrets plus the RDS-managed master secret), 2 to 3 CMKs, low-traffic buckets and distribution |
 | CloudTrail, GuardDuty, Access Analyzer | 0 | 10 | first trail copy of management events is free; GuardDuty bills analyzed events and flow/DNS log volume; the account analyzer is free; prod owns them for the shared account |
 | **Total** | **about 150** | **about 580** | |
 
@@ -27,7 +27,7 @@ Approximate monthly cost of each environment in `eu-central-1`, at on-demand lis
 
 ## Main Levers
 
-- **Client VPN (prod, about 73 USD).** The endpoint association bills every hour. Session Manager port forwarding reaches RDS, Redis and Grafana without it (see [Debugging](debugging.md)); set `enable_client_vpn = false` if nobody needs the VPN.
+- **Client VPN (prod, about 73 USD).** The endpoint association bills every hour. Without it, Session Manager port forwarding reaches Grafana on the monitoring host, and RDS and Redis through a running backend task with ECS Exec (see [Debugging](debugging.md)); set `enable_client_vpn = false` if nobody needs the VPN.
 - **NAT gateways (38 USD each).** `vpc_nat_per_az = false` keeps one shared gateway at the cost of losing egress when its AZ fails. Interface endpoints reduce NAT data processing, not the hourly charge.
 - **Interface endpoints (about 88 USD).** Worth it when image pulls, logs and secret reads move many GB through NAT; for a quiet environment NAT alone is cheaper (`vpc_enable_endpoints = false`).
 - **RDS Multi-AZ (doubles the instance cost).** Keep it in prod for the 60 to 120 second failover; dev runs single AZ.

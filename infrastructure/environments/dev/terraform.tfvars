@@ -59,7 +59,8 @@ api_subdomain     = "api"
 enable_waf        = false
 service_namespace = "prod-forge-todolist-dev.local"
 
-# Dev is reached through SSM; set true and provide the key files to add a Client VPN.
+# Dev is reached through SSM (Grafana on the monitoring host, RDS and Redis through ECS Exec
+# port forwarding, guide/debugging.md); set true and provide the key files to add a Client VPN.
 enable_client_vpn = false
 
 # Empty: no alarm subscription is created (no pending confirmation email).

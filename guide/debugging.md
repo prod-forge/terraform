@@ -56,6 +56,23 @@ aws ecs execute-command \
   --region eu-central-1
 ```
 
+### RDS and Redis without the VPN (port forwarding through a task)
+
+The RDS and Redis security groups accept connections only from the ECS tasks and the VPN, so the monitoring host cannot reach them. Without the VPN (dev, or prod with `enable_client_vpn = false`), forward a local port through a running backend task: ECS Exec is enabled on the service, and the ECS security group already allows egress to 5432 and 6379.
+
+```shell
+# Runtime id of the backend container
+aws ecs describe-tasks --cluster <CLUSTER_NAME> --tasks <TASK_ID> \
+  --query 'tasks[0].containers[?name==`<TASK_CONTAINER>`].runtimeId' --output text
+
+aws ssm start-session \
+  --target ecs:<CLUSTER_NAME>_<TASK_ID>_<RUNTIME_ID> \
+  --document-name AWS-StartPortForwardingSessionToRemoteHost \
+  --parameters '{"host":["<RDS_ENDPOINT>"],"portNumber":["5432"],"localPortNumber":["5432"]}'
+```
+
+Use the Redis primary endpoint and port 6379 for Redis. RDS requires TLS (`rds.force_ssl = 1`); through `localhost` the certificate host name does not match, so connect with `sslmode=require` instead of `verify-full`. The session ends when the task is replaced.
+
 ## RDS, Redis Debugging (OpenVPN)
 
 To debug the RDS database and Redis, we need to get into the private network.
@@ -127,7 +144,7 @@ Expected output:
 DNS:vpn.internal.local
 ```
 
-The VPN is optional (`enable_client_vpn`, off in dev). Be aware that the server and CA private keys are Terraform inputs, so they are stored in the environment's state file in plain text. Mitigation: keep the state bucket private, encrypted and limited to the deploy roles (as bootstrap sets it up), use a CA created only for this VPN, rotate the certificates when someone leaves the team, and set `enable_client_vpn = false` when the VPN is not needed.
+The VPN is optional (`enable_client_vpn`, off in dev). Be aware that the server and CA private keys are Terraform inputs, so they are stored in the environment's state file in plain text. Mitigation: keep the state bucket private and encrypted (bootstrap blocks public access, encrypts with its KMS key and denies non-TLS requests), and grant state access only to the people who run Terraform (the `TerraformOperator` permission set in [Development Setup](development-setup.md)). The bucket policy does not restrict principals itself, and the GitHub deploy roles have no state access. Use a CA created only for this VPN, rotate the certificates when someone leaves the team, and set `enable_client_vpn = false` when the VPN is not needed.
 
 ### Generate Client Certificate
 
