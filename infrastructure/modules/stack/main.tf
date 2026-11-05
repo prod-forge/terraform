@@ -345,6 +345,7 @@ module "vpn_endpoint" {
   server_vpn_certificate_arn = module.server_vpn_certificate[0].arn
   client_vpn_certificate_arn = module.client_vpn_certificate[0].arn
   vpc_main_id                = module.vpc.vpc_id
+  vpc_cidr                   = module.vpc.vpc_cidr
   sg_vpn_id                  = module.security_groups.sg_vpn_id
 }
 

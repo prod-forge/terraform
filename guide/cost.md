@@ -13,7 +13,7 @@ Approximate monthly cost of each environment in `eu-central-1`, at on-demand lis
 | RDS PostgreSQL | 17 | 120 | `db.t4g.micro` single AZ vs `db.t4g.medium` Multi-AZ, 20 GiB storage |
 | ElastiCache Redis | 13 | 53 | 1 `cache.t4g.micro` vs 2 `cache.t4g.small` |
 | Monitoring host | 20 | 20 | `t3.small` plus 30 GiB gp3 |
-| Client VPN | 0 | 73 | one subnet association, plus 0.05 USD per connection hour |
+| Client VPN | 0 | 73 | one subnet association, plus 0.05 USD per connection hour; the connection log is a few KB a day |
 | WAF | 0 | 18 | 2 web ACLs with 4 rules each, plus requests |
 | Public IPv4 addresses | 15 | 18 | NAT, ALB and monitoring host addresses at 0.005 USD per hour |
 | CloudWatch (logs, alarms, Container Insights) | 8 | 25 | grows with VPC flow log and application log volume |

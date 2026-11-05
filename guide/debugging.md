@@ -188,6 +188,8 @@ Add the client certificate to the configuration file (after </ca> block):
 </key>
 ```
 
+The endpoint runs in split-tunnel mode: only traffic to the VPC CIDR goes through the VPN, the rest of the client's traffic keeps its normal route. Clients get addresses from `10.200.0.0/22` and use the VPC DNS server (the VPC base address plus two). Connection attempts are logged to the CloudWatch log group `/vpn/<project>-<environment>-client-vpn` (30 days).
+
 #### Verify VPN Connection
 
 1. Connect to VPN

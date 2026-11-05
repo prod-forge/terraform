@@ -34,7 +34,7 @@ What each module provisions and how the domain switches HTTPS on. Roots, state a
 | `alarms`                       | SNS topic (KMS-encrypted) with optional email subscription, CloudWatch alarms for ECS, ALB, RDS, Redis and NAT, optional monthly budget                 |
 | `security-baseline`            | CloudTrail (bucket, KMS key, SNS topic), GuardDuty detector, IAM Access Analyzer, each behind its own flag                                             |
 | `vpn/certificates/{server,client}` | imported ACM certificates for the Client VPN                                                                                                      |
-| `vpn/vpn-endpoint`             | Client VPN endpoint                                                                                                                                    |
+| `vpn/vpn-endpoint`             | Client VPN endpoint (split tunnel, DNS at the VPC base address plus two, client CIDR `10.200.0.0/22` by default) and its connection log group (30 days) |
 | `vpn/associations`             | Client VPN association with the first private subnet                                                                                                   |
 | `vpn/rules`                    | Client VPN authorization rule for the VPC CIDR                                                                                                         |
 

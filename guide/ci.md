@@ -87,6 +87,8 @@ All test files live in `infrastructure/environments/prod/tests/` and run with `t
 
 `data-protection.tftest.hcl` covers the Checkov findings fixed in code: the VPC default security group has no ingress or egress rules, the secrets KMS key rotates and its policy has exactly the account root statement, and the RDS parameter group sets `rds.force_ssl = 1`.
 
+`vpn.tftest.hcl` targets the `vpn/vpn-endpoint` module: the endpoint pushes the VPC DNS server derived from the VPC CIDR, uses split tunnel and logs connections for 30 days.
+
 `github-oidc.tftest.hcl` checks that each GitHub role trusts only its own repository and environment; `observability.tftest.hcl` checks the observability config upload and the Cloud Map namespace.
 
 The environment roots read the VPN key files with `fileexists()`, so `terraform validate` and `terraform test` work in a fresh clone without them; the root wiring is covered by `validate` in CI for both environments and by `stack.tftest.hcl`. The module-level tests keep targeting modules directly because `module.stack` declares `configuration_aliases` for the us-east-1 provider and cannot be the `module` of a run block.

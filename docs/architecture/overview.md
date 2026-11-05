@@ -64,7 +64,7 @@ passes every variable through to `module "stack"`.
 `guide/migration-to-environments.md`.
 
 `prod/tests/*.tftest.hcl` are offline `terraform test` runs with `mock_provider` (alarms, data-protection, edge,
-github-oidc, observability, security-baseline, stack, task-definition).
+github-oidc, observability, security-baseline, stack, task-definition, vpn).
 
 ---
 
