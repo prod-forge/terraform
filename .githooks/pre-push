@@ -1,0 +1,14 @@
+#!/bin/sh
+# Slower checks before code leaves the machine.
+set -e
+
+# Offline: mock providers with command = plan, no AWS credentials needed.
+terraform -chdir=infrastructure/environments/prod init -backend=false -input=false -lockfile=readonly >/dev/null
+terraform -chdir=infrastructure/environments/prod test
+
+if command -v tflint >/dev/null 2>&1; then
+  tflint --init >/dev/null
+  tflint --recursive
+else
+  echo 'tflint is not installed, skipping (CI runs it). Install: brew install tflint'
+fi

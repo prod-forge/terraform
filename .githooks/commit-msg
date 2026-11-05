@@ -1,0 +1,17 @@
+#!/bin/sh
+# Commit messages must not carry AI attribution trailers.
+if grep -Eiq '^[[:space:]]*(co-authored-by|generated-by|assisted-by):.*(claude|anthropic)' "$1"; then
+  echo 'Claude/AI attribution is not allowed in commit messages.'
+  exit 1
+fi
+
+# Conventional commit subject, same types as the other prod-forge repositories.
+subject=$(head -n 1 "$1")
+case "$subject" in
+  Merge\ * | Revert\ *) exit 0 ;;
+esac
+if ! printf '%s\n' "$subject" | grep -Eq '^(ci|chore|docs|feat|fix|perf|refactor|revert|style)(\([a-z0-9-]+\))?!?: .+'; then
+  echo "Commit subject must follow conventional commits: <type>(<scope>)?: <subject>"
+  echo "Allowed types: ci, chore, docs, feat, fix, perf, refactor, revert, style"
+  exit 1
+fi

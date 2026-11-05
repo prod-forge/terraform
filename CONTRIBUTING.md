@@ -57,7 +57,11 @@ For small fixes (typos, broken links), you can submit a pull request directly.
 ```shell
 git clone https://github.com/prod-forge/terraform.git
 cd terraform
+git config core.hooksPath .githooks
 ```
+
+The last line enables the repository's git hooks: formatting and validation on commit, the commit message format, and
+`terraform test` on push. See [Git hooks](guide/ci.md#git-hooks).
 
 ### 3. Create a branch
 

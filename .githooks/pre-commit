@@ -1,0 +1,14 @@
+#!/bin/sh
+# Fast checks on every commit. Enable once per clone: git config core.hooksPath .githooks
+set -e
+
+terraform fmt -check -recursive
+
+# Validate only when Terraform files are staged; the same three roots as CI.
+if git diff --cached --name-only --diff-filter=ACMR | grep -Eq '\.(tf|tfvars|hcl)$'; then
+  for root in bootstrap infrastructure/environments/dev infrastructure/environments/prod; do
+    echo "terraform validate: $root"
+    terraform -chdir="$root" init -backend=false -input=false -lockfile=readonly >/dev/null
+    terraform -chdir="$root" validate
+  done
+fi

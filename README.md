@@ -10,11 +10,11 @@ Part of Prod Forge — start with the organization overview: https://github.com/
 
 ## Stack
 
-| Layer          | Tools                                            |
-| -------------- | ------------------------------------------------ |
-| Deploy         | AWS S3 · CloudFront · ECR · ECS                  |
-| Infrastructure | Terraform · AWS · RDS · ElastiCache              |
-| Observability  | Prometheus · Grafana · Loki · Promtail · Tempo   |
+| Layer          | Tools                                          |
+| -------------- | ---------------------------------------------- |
+| Deploy         | AWS S3 · CloudFront · ECR · ECS                |
+| Infrastructure | Terraform · AWS · RDS · ElastiCache            |
+| Observability  | Prometheus · Grafana · Loki · Promtail · Tempo |
 
 The full stack table is on the organization page: https://github.com/prod-forge
 
@@ -146,6 +146,7 @@ Start with the [Development Setup](guide/development-setup.md).
   - [Jobs](guide/ci.md#jobs)
   - [Reproducibility](guide/ci.md#reproducibility)
   - [Running locally](guide/ci.md#running-locally)
+  - [Git hooks](guide/ci.md#git-hooks)
   - [Tests](guide/ci.md#tests)
   - [Why there is no terraform plan in CI yet](guide/ci.md#why-there-is-no-terraform-plan-in-ci-yet)
   - [Baseline](guide/ci.md#baseline)

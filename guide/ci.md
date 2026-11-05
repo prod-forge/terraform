@@ -4,13 +4,13 @@ Workflow: `.github/workflows/terraform-ci.yml`, runs on every pull request and o
 
 ## Jobs
 
-| Job | What it checks |
-| --- | --- |
-| `fmt` | `terraform fmt -check -recursive` over the whole repository |
-| `validate` | `terraform init -backend=false -lockfile=readonly` and `terraform validate` in `bootstrap`, `infrastructure/environments/dev` and `infrastructure/environments/prod`; in `infrastructure/environments/prod` also `terraform test` (runs even when `validate` fails, as long as `init` succeeded) |
-| `tflint` | `tflint --init && tflint --recursive` with `.tflint.hcl` (AWS ruleset, required version, naming convention, unused declarations) |
-| `checkov` | Static security scan of `infrastructure` with `.checkov.yaml`, `soft_fail: false` |
-| `terraform-docs` | Regenerates each module `README.md` between `BEGIN_TF_DOCS`/`END_TF_DOCS` and fails on any diff |
+| Job              | What it checks                                                                                                                                                                                                                                                                                   |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `fmt`            | `terraform fmt -check -recursive` over the whole repository                                                                                                                                                                                                                                      |
+| `validate`       | `terraform init -backend=false -lockfile=readonly` and `terraform validate` in `bootstrap`, `infrastructure/environments/dev` and `infrastructure/environments/prod`; in `infrastructure/environments/prod` also `terraform test` (runs even when `validate` fails, as long as `init` succeeded) |
+| `tflint`         | `tflint --init && tflint --recursive` with `.tflint.hcl` (AWS ruleset, required version, naming convention, unused declarations)                                                                                                                                                                 |
+| `checkov`        | Static security scan of `infrastructure` with `.checkov.yaml`, `soft_fail: false`                                                                                                                                                                                                                |
+| `terraform-docs` | Regenerates each module `README.md` between `BEGIN_TF_DOCS`/`END_TF_DOCS` and fails on any diff                                                                                                                                                                                                  |
 
 ## Reproducibility
 
@@ -40,6 +40,25 @@ actionlint
 `terraform test` uses `override_during` in `override_data`/`override_resource` blocks, which needs Terraform 1.11 or newer, while `required_version` stays `>= 1.10` for plain `plan`/`apply`. CI pins 1.11.2, so run the tests with 1.11 or newer locally.
 
 Local tool versions: Terraform 1.11.2, TFLint 0.65.0 (AWS ruleset 0.38.0), terraform-docs 0.24.0, Checkov 3.4.3. CI pins the same Terraform, TFLint and terraform-docs versions. The baseline below was recorded with them.
+
+## Git hooks
+
+CI is the last line, not the first. The repository ships plain shell hooks in `.githooks/`, so the cheap checks fail on
+the developer's machine, or on an agent's, before anything reaches GitHub. They need no extra tooling; enable them once
+per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+| Hook         | What it runs                                                                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pre-commit` | `terraform fmt -check -recursive`; `init -backend=false` and `validate` in the three roots when `.tf`, `.tfvars` or `.hcl` files are staged |
+| `commit-msg` | rejects AI attribution trailers and checks the conventional commit subject                                                                  |
+| `pre-push`   | `terraform test` in the prod root (offline, mock providers) and `tflint --recursive` when TFLint is installed                               |
+
+Checkov, terraform-docs and actionlint stay in CI only: they are slower or need tools most machines do not have.
+`init -backend=false` never touches the remote state, so the hooks need no AWS credentials.
 
 ## Tests
 
@@ -79,23 +98,23 @@ Both scanners are at zero: `tflint --recursive` reports no issues (every module 
 
 ### Inline skips
 
-| ID | Resources | Reason |
-| --- | --- | --- |
-| CKV_AWS_130 | module.vpc.aws_subnet.public[*] | Public subnets host only the ALB, the NAT gateways and the monitoring EC2, which needs a public IP; ECS tasks run in private subnets |
-| CKV_AWS_158 | module.vpc.aws_cloudwatch_log_group.flow_logs, module.task_definition.aws_cloudwatch_log_group.ecs, module.task_definition.aws_cloudwatch_log_group.ecs_migration | Encrypted with the CloudWatch Logs service key; no logs CMK yet |
-| CKV_AWS_338 | same log groups | Operational logs, retention set by a variable (30 days in prod) to bound cost |
-| CKV_AWS_394 | module.vpc.data.aws_availability_zones.available | Pinning zone names would hard-code AZs; the sorted list is sliced to `az_count` |
-| CKV_AWS_150 | module.load_balancer.aws_lb.app | Deletion protection is on when `environment = "prod"`; dev stays off so it can be destroyed |
-| CKV_AWS_157 | module.rds.aws_db_instance.postgres | Multi-AZ comes from `rds_multi_az`: true in prod, false in dev to halve the cost |
-| CKV_AWS_293 | module.rds.aws_db_instance.postgres | Deletion protection comes from `rds_deletion_protection`: true in prod, false in dev so it can be destroyed |
-| CKV_AWS_2 | module.load_balancer.aws_lb_listener.app | Port 80 redirects to HTTPS when `domain_name` is set; plain forward is the documented no-domain fallback |
-| CKV_AWS_260 | module.security_groups.aws_security_group.alb_sg | The ALB is the public entry point; port 80 only redirects when a domain is set |
-| CKV_AWS_174 | module.frontend.aws_cloudfront_distribution.web_client | `TLSv1.2_2021` is enforced with a custom domain; the default `*.cloudfront.net` certificate only allows `TLSv1` |
-| CKV_AWS_310 | module.frontend.aws_cloudfront_distribution.web_client | Both origins are single-region buckets; failover needs a replicated bucket that is not provisioned |
-| CKV_AWS_374 | module.frontend.aws_cloudfront_distribution.web_client | The web client is public worldwide; no geo-blocking requirement |
-| CKV_AWS_88 | module.monitoring_ec2.aws_instance.monitoring | The public IP exists only for egress (SSM, package and image downloads); there is no SSH and no inbound path except Grafana from the optional `admin_cidr_blocks` |
-| CKV_AWS_336 | module.task_definition.aws_ecs_task_definition.app | The Node image writes to its filesystem at runtime; a read-only root with tmpfs mounts is a separate hardening task |
-| CKV_AWS_259 | module.frontend.aws_cloudfront_response_headers_policy.security | HSTS `preload` is a hard-to-revert commitment; off until the owner opts in |
+| ID          | Resources                                                                                                                                                         | Reason                                                                                                                                                            |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CKV_AWS_130 | module.vpc.aws_subnet.public[*]                                                                                                                                   | Public subnets host only the ALB, the NAT gateways and the monitoring EC2, which needs a public IP; ECS tasks run in private subnets                              |
+| CKV_AWS_158 | module.vpc.aws_cloudwatch_log_group.flow_logs, module.task_definition.aws_cloudwatch_log_group.ecs, module.task_definition.aws_cloudwatch_log_group.ecs_migration | Encrypted with the CloudWatch Logs service key; no logs CMK yet                                                                                                   |
+| CKV_AWS_338 | same log groups                                                                                                                                                   | Operational logs, retention set by a variable (30 days in prod) to bound cost                                                                                     |
+| CKV_AWS_394 | module.vpc.data.aws_availability_zones.available                                                                                                                  | Pinning zone names would hard-code AZs; the sorted list is sliced to `az_count`                                                                                   |
+| CKV_AWS_150 | module.load_balancer.aws_lb.app                                                                                                                                   | Deletion protection is on when `environment = "prod"`; dev stays off so it can be destroyed                                                                       |
+| CKV_AWS_157 | module.rds.aws_db_instance.postgres                                                                                                                               | Multi-AZ comes from `rds_multi_az`: true in prod, false in dev to halve the cost                                                                                  |
+| CKV_AWS_293 | module.rds.aws_db_instance.postgres                                                                                                                               | Deletion protection comes from `rds_deletion_protection`: true in prod, false in dev so it can be destroyed                                                       |
+| CKV_AWS_2   | module.load_balancer.aws_lb_listener.app                                                                                                                          | Port 80 redirects to HTTPS when `domain_name` is set; plain forward is the documented no-domain fallback                                                          |
+| CKV_AWS_260 | module.security_groups.aws_security_group.alb_sg                                                                                                                  | The ALB is the public entry point; port 80 only redirects when a domain is set                                                                                    |
+| CKV_AWS_174 | module.frontend.aws_cloudfront_distribution.web_client                                                                                                            | `TLSv1.2_2021` is enforced with a custom domain; the default `*.cloudfront.net` certificate only allows `TLSv1`                                                   |
+| CKV_AWS_310 | module.frontend.aws_cloudfront_distribution.web_client                                                                                                            | Both origins are single-region buckets; failover needs a replicated bucket that is not provisioned                                                                |
+| CKV_AWS_374 | module.frontend.aws_cloudfront_distribution.web_client                                                                                                            | The web client is public worldwide; no geo-blocking requirement                                                                                                   |
+| CKV_AWS_88  | module.monitoring_ec2.aws_instance.monitoring                                                                                                                     | The public IP exists only for egress (SSM, package and image downloads); there is no SSH and no inbound path except Grafana from the optional `admin_cidr_blocks` |
+| CKV_AWS_336 | module.task_definition.aws_ecs_task_definition.app                                                                                                                | The Node image writes to its filesystem at runtime; a read-only root with tmpfs mounts is a separate hardening task                                               |
+| CKV_AWS_259 | module.frontend.aws_cloudfront_response_headers_policy.security                                                                                                   | HSTS `preload` is a hard-to-revert commitment; off until the owner opts in                                                                                        |
 
 The CloudTrail checks CKV_AWS_35 (KMS), CKV_AWS_36 (log file validation), CKV_AWS_67 (all regions) and CKV_AWS_252 (SNS topic) pass on `module.security_baseline`. CKV2_AWS_3 (GuardDuty) does not exist in Checkov 3.4.3; its GuardDuty check is CKV_AWS_238 (detector enabled), which passes.
 
