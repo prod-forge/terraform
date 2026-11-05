@@ -63,8 +63,8 @@ passes every variable through to `module "stack"`.
 `prod/moved.tf` holds 31 `moved` blocks from the former single `infrastructure/` root to `module.stack.*`; see
 `guide/migration-to-environments.md`.
 
-`prod/tests/*.tftest.hcl` are offline `terraform test` runs with `mock_provider` (alarms, edge, github-oidc,
-observability, security-baseline, stack, task-definition).
+`prod/tests/*.tftest.hcl` are offline `terraform test` runs with `mock_provider` (alarms, data-protection, edge,
+github-oidc, observability, security-baseline, stack, task-definition).
 
 ---
 

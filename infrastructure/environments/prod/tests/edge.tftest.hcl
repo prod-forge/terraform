@@ -262,6 +262,20 @@ run "frontend_without_domain_uses_default_certificate" {
     error_message = "Previous web client builds must expire after 30 days."
   }
 
+  assert {
+    condition     = aws_s3_bucket_versioning.assets.versioning_configuration[0].status == "Enabled"
+    error_message = "The assets bucket must be versioned."
+  }
+
+  assert {
+    condition = (
+      aws_s3_bucket_lifecycle_configuration.assets.rule[0].status == "Enabled" &&
+      one(aws_s3_bucket_lifecycle_configuration.assets.rule[0].noncurrent_version_expiration).noncurrent_days == 30 &&
+      one(aws_s3_bucket_lifecycle_configuration.assets.rule[0].abort_incomplete_multipart_upload).days_after_initiation == 7
+    )
+    error_message = "Previous assets versions must expire after 30 days and incomplete uploads after 7."
+  }
+
   # Frontend CD syncs the assets to the bucket root; the web client requests /assets/<file>.
   assert {
     condition = (
