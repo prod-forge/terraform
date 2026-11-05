@@ -294,7 +294,7 @@ resource "aws_cloudfront_distribution" "web_client" {
 }
 
 ############################################################
-# S3 Bucket Policies (allow CloudFront OAC)
+# S3 Bucket Policies (allow CloudFront OAC, deny non-TLS)
 ############################################################
 
 resource "aws_s3_bucket_policy" "web_client" {
@@ -312,6 +312,19 @@ resource "aws_s3_bucket_policy" "web_client" {
           StringEquals = {
             "AWS:SourceArn" = aws_cloudfront_distribution.web_client.arn
           }
+        }
+      },
+      {
+        Sid       = "DenyInsecureTransport"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource = [
+          aws_s3_bucket.web_client.arn,
+          "${aws_s3_bucket.web_client.arn}/*",
+        ]
+        Condition = {
+          Bool = { "aws:SecureTransport" = "false" }
         }
       }
     ]
@@ -333,6 +346,19 @@ resource "aws_s3_bucket_policy" "assets" {
           StringEquals = {
             "AWS:SourceArn" = aws_cloudfront_distribution.web_client.arn
           }
+        }
+      },
+      {
+        Sid       = "DenyInsecureTransport"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource = [
+          aws_s3_bucket.assets.arn,
+          "${aws_s3_bucket.assets.arn}/*",
+        ]
+        Condition = {
+          Bool = { "aws:SecureTransport" = "false" }
         }
       }
     ]

@@ -20,7 +20,7 @@ Two S3 buckets are used:
 - **web-client** — SPA build output (index.html, JS, CSS bundles)
 - **assets** — shared static files (images, fonts, and other media)
 
-Both buckets are fully private. Content is only accessible through CloudFront using Origin Access Control (OAC) with SigV4 request signing.
+Both buckets are fully private. Content is only accessible through CloudFront using Origin Access Control (OAC) with SigV4 request signing, and the bucket policies deny any request that does not use TLS.
 
 ```text
 Browser → CloudFront → [SigV4 signed] → S3
