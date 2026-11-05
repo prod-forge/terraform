@@ -3,12 +3,16 @@ const { version } = require('./package.json');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.get('/health', (req, res) => {
+const health = (req, res) => {
     res.status(200).json({
         status: 'ok',
         uptime: process.uptime()
     });
-});
+};
+
+// /health is the ALB target group check, /health/live the ECS container check.
+app.get('/health', health);
+app.get('/health/live', health);
 
 app.get('/version', (req, res) => {
     res.send({ version });

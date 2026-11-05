@@ -77,16 +77,19 @@ aws ecr get-login-password --region eu-central-1 \
 ```shell
 docker buildx build \
 --platform linux/amd64 \
--t <ECR_URL>:<version> \
+-t <ECR_URL>:initial \
 --push .
 ```
+
+The tag must be `initial`: it is the default of `image_tag` in the environment roots, so the first task definition points at it. ECR tags are immutable, so to replace a pushed `initial` image, delete it first (`aws ecr batch-delete-image --repository-name <repository> --image-ids imageTag=initial`).
 
 #### Required Endpoints
 
 The bootstrap service exposes a small set of endpoints.
 
-- **/health** - This endpoint is required. When deploying services to AWS ECS, a health check must be configured. ECS
-  periodically calls this endpoint to verify that the container is running correctly. The endpoint simply returns:
+- **/health** and **/health/live** - Both are required. The ALB target group checks `/health`, and the ECS container
+  health check in the task definition calls `/health/live`. Without either, the task is marked unhealthy and replaced
+  in a loop. Both simply return:
 
 ```shell
 200 OK
