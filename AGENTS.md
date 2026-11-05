@@ -180,7 +180,7 @@ infrastructure/modules/
 * Fail fast on validation errors
 * Use separate AWS accounts/environments when possible
 
-Implemented in `.github/workflows/terraform-ci.yml` (see `guide/ci.md`): `terraform fmt -check -recursive`, `terraform validate` per root, `tflint`, `checkov` and `terraform-docs` (fails on README drift). Provider lock files are committed and CI uses `-lockfile=readonly`.
+Implemented in `.github/workflows/terraform-ci.yml` (see `guide/ci.md`): `terraform fmt -check -recursive`, `terraform validate` per root, `terraform test` in the prod root, `tflint`, `checkov` and `terraform-docs` (fails on README drift). Provider lock files are committed and CI uses `-lockfile=readonly`.
 
 Target CI steps once a read-only OIDC role exists:
 
@@ -257,7 +257,7 @@ Target CI steps once a read-only OIDC role exists:
 
 ```bash
 terraform fmt -check -recursive
-terraform -chdir=infrastructure/environments/prod init -backend=false
+terraform -chdir=infrastructure/environments/prod init -backend=false -lockfile=readonly
 terraform -chdir=infrastructure/environments/prod validate
 terraform -chdir=infrastructure/environments/prod test
 ```
@@ -288,7 +288,7 @@ terraform/
     modules/
       stack/                      composition shared by both roots
       vpc/ rds/ redis/ ...        single-purpose modules
-    observability/                Prometheus, Grafana and Loki templates
+    observability/                Prometheus, Grafana, Loki, Promtail and Tempo configuration
   docs/                           agent reference (goal, architecture, commands, restrictions, plans)
   guide/                          human guide chapters and assets
 ```
@@ -309,10 +309,10 @@ Ignore:
 * infrastructure/vpn-key, infrastructure/openvpn, infrastructure/ssh (git-ignored key material)
 * terraform.tfstate.backup
 * crash.log
-* *.tfvars
 * override.tf
 * override.tf.json
-* *.auto.tfvars
+
+The committed `infrastructure/environments/*/terraform.tfvars` and `bootstrap/prod.auto.tfvars` are configuration, not generated files: read and edit them like code.
 
 Never commit secrets or state files.
 
