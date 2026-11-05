@@ -1,7 +1,8 @@
-# Developer's Guide
+# Commands
 
-Human setup (AWS access, IAM Identity Center, bootstrap) is in `guide/development-setup.md`. This file is the
-command and change reference.
+Commands for working with the infrastructure code. Human setup (AWS access, IAM Identity Center, bootstrap) is in
+`guide/development-setup.md`. How to add a module, variable or output is in
+[architecture/patterns.md](architecture/patterns.md).
 
 ## Tool versions
 
@@ -16,7 +17,7 @@ command and change reference.
 
 ---
 
-## Commands
+## Local checks
 
 None of these needs AWS credentials. Run from the repository root.
 
@@ -50,8 +51,19 @@ for d in $(find infrastructure/modules -name '*.tf' -exec dirname {} \; | sort -
 done
 ```
 
+## Plan (owner only)
+
 `terraform plan` needs AWS credentials for the target account and is run by hand from an environment root, never in
-CI.
+CI and never by an agent:
+
+```bash
+export AWS_PROFILE=prod-forge   # guide/development-setup.md, "Configure Local AWS Profile"
+terraform -chdir=infrastructure/environments/dev init
+terraform -chdir=infrastructure/environments/dev plan
+```
+
+The same for `infrastructure/environments/prod`. Stop at any replacement the change did not intend
+([hacks/lifecycle.md](hacks/lifecycle.md) lists the attributes that force one).
 
 ---
 
@@ -71,53 +83,22 @@ CI has no AWS credentials: no `plan`, no `apply` (`guide/ci.md`).
 
 ---
 
-## Conventions
+## Git hooks
 
-- Every root and module has `versions.tf` and `variables.tf`; `main.tf` and `outputs.tf` where there are resources or
-  outputs. Larger modules split resources into extra files (`vpc/endpoints.tf`, `vpc/flow_logs.tf`,
-  `ecs-service/autoscaling.tf`, `rds/parameter-group.tf`).
-- Modules declare `required_version` and `required_providers` only; providers, backend and `default_tags` live in the
-  environment root's `versions.tf`. A module that needs `us-east-1` receives `aws.us_east_1` from the `stack` module
-  (`providers = { aws = aws.us_east_1 }`).
-- Module READMEs are generated: everything between `<!-- BEGIN_TF_DOCS -->` and `<!-- END_TF_DOCS -->` comes from
-  `.terraform-docs.yml` (inject mode, sorted by name). Never hand-edit it; regenerate.
-- `.terraform.lock.hcl` is committed for every root. CI inits with `-lockfile=readonly`, so a provider change needs
-  the lock file updated in the same change.
-- Resource names use the `${project}-${environment}` prefix (`local.name` in `modules/stack/main.tf`).
+The hooks live in `.githooks/` and are enabled once per clone:
 
----
+```bash
+git config core.hooksPath .githooks
+```
 
-## How to add a variable
+| Hook         | What it runs                                                                                                                     |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `pre-commit` | `terraform fmt -check -recursive`, then `terraform validate` in `bootstrap`, `infrastructure/environments/dev` and `infrastructure/environments/prod` |
+| `commit-msg` | rejects `Co-Authored-By`, `Generated-by` or `Assisted-by` trailers that mention Claude or Anthropic; checks a Conventional Commits subject |
+| `pre-push`   | `terraform test` in `infrastructure/environments/prod`; `tflint --recursive` when `tflint` is installed                           |
 
-A setting that differs per environment flows root → stack → module:
-
-1. `infrastructure/modules/<module>/variables.tf`: add the variable with `type` and `description` (and `validation`
-   where the value has constraints); use it in the module.
-2. `infrastructure/modules/stack/variables.tf`: add the stack-level variable (prefixed by the module, e.g.
-   `rds_instance_class`).
-3. `infrastructure/modules/stack/main.tf`: pass it to the module call.
-4. `infrastructure/environments/dev/variables.tf` and `prod/variables.tf`: add the same variable (the two files are
-   identical).
-5. `infrastructure/environments/dev/main.tf` and `prod/main.tf`: pass it to `module "stack"`.
-6. `infrastructure/environments/dev/terraform.tfvars` and `prod/terraform.tfvars`: set the value.
-7. Regenerate the READMEs of the changed modules (including `stack`) with `terraform-docs`.
-
-A value that is the same everywhere stays a module default or a local; it does not need the root plumbing.
-
-## How to add a module
-
-1. Create `infrastructure/modules/<name>/` with `versions.tf` (copy from a sibling module), `variables.tf`, `main.tf`
-   and, if needed, `outputs.tf`. Single responsibility, no provider blocks.
-2. Call it from `infrastructure/modules/stack/main.tf`; if a CD workflow needs a value, add an output to
-   `modules/stack/outputs.tf` and re-export it in both `infrastructure/environments/<env>/outputs.tf`.
-3. If the module creates optional resources, gate them with `count` on a boolean or on `var.domain_name != ""`, as
-   `acm-certificate`, `dns` and `security-baseline` do.
-4. Generate its README with `terraform-docs`, then run the commands above. Add a `tests/*.tftest.hcl` run in the prod
-   root when the module has logic worth asserting offline.
-5. Update `docs/architecture.md` (module table) and the relevant `guide/` chapter.
-
-Renaming or moving a resource address of a live environment needs a `moved` block (see
-`infrastructure/environments/prod/moved.tf`), otherwise the resource is destroyed and recreated.
+`terraform validate` needs an initialised root: run the `init -backend=false` commands above once. Checkov and the
+terraform-docs drift check run only in CI. A failing hook is fixed, not skipped with `--no-verify`.
 
 ---
 
