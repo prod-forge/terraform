@@ -1,6 +1,7 @@
 # Offline plan-only tests for the conditional edge logic (certificates, HTTPS,
-# DNS, WAF, CloudFront). Each run targets a module directly because the root
-# reads git-ignored VPN key files with file(), which do not exist in CI.
+# DNS, WAF, CloudFront). Each run targets a module directly because
+# module.stack declares configuration_aliases and cannot be the module of a run
+# block (guide/ci.md).
 
 mock_provider "aws" {
   mock_data "aws_route53_zone" {

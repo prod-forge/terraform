@@ -1,5 +1,6 @@
 # Offline plan-only tests for the alarms module. The run targets the module
-# directly because the root reads git-ignored VPN key files with file().
+# directly because module.stack declares configuration_aliases and cannot be
+# the module of a run block (guide/ci.md).
 
 mock_provider "aws" {}
 

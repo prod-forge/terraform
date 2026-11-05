@@ -1,6 +1,6 @@
 # Offline plan-only tests for the observability config bucket and Cloud Map
-# namespace. Each run targets a module directly because the root reads
-# git-ignored VPN key files with file(), which do not exist in CI.
+# namespace. Each run targets a module directly because module.stack declares
+# configuration_aliases and cannot be the module of a run block (guide/ci.md).
 
 mock_provider "aws" {}
 

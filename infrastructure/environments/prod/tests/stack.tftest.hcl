@@ -122,7 +122,7 @@ run "prod_outputs_the_names_backend_cd_uses" {
   }
 }
 
-run "dev_switches_disable_waf_vpn_and_oidc_provider" {
+run "dev_switches_plan_end_to_end" {
   command = plan
 
   variables {

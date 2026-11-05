@@ -3,8 +3,8 @@
 ############################
 
 # The key files are git-ignored. Missing files resolve to "" so validate and
-# offline tests work in a fresh clone; the stack rejects a plan that enables
-# the VPN without them.
+# offline tests work in a fresh clone; the enable_client_vpn validation in
+# variables.tf rejects a plan that enables the VPN without them.
 locals {
   vpn_key_dir = "${path.root}/${var.vpn_key_dir}"
   vpn_pem = {
