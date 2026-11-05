@@ -39,10 +39,9 @@ locals {
 
     HEALTH_CHECK_TRIGGER_MS = tostring(local.cfg.health_check_trigger_ms)
 
-    REDIS_ENABLED = "true"
-    REDIS_HOST    = var.redis_host
-    REDIS_PORT    = var.redis_port
-    REDIS_TLS     = "true"
+    REDIS_HOST = var.redis_host
+    REDIS_PORT = var.redis_port
+    REDIS_TLS  = "true"
 
     # Sentry also needs SENTRY_DSN, injected from the app secret when enabled.
     SENTRY_ENABLED        = tostring(local.cfg.sentry_enabled)

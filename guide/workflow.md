@@ -100,9 +100,9 @@ This indicates that the service is alive and healthy.
 - **/version** - This endpoint is optional but highly recommended. It returns the version of the currently running
   container. This makes it easy to:
 
-    - verify which version is deployed
-    - confirm that a deployment succeeded
-    - detect situations where old containers are still running during rolling updates
+  - verify which version is deployed
+  - confirm that a deployment succeeded
+  - detect situations where old containers are still running during rolling updates
 
 ## AWS Secrets Manager
 
@@ -221,10 +221,10 @@ This step ensures that:
 
 The `github-oidc` module creates one role per repository, so a compromised repository cannot use the other one's permissions:
 
-| Role | Trusted subjects (`sub`) | Permissions |
-| --- | --- | --- |
-| `<project>-<environment>-github-backend-role` | `repo:prod-forge/backend:environment:<environment>` | ECR push to the application repository, ECS deploy, migration task, rollback |
-| `<project>-<environment>-github-frontend-role` | `repo:prod-forge/frontend:environment:<environment>` | S3 sync on the web client and assets buckets, CloudFront invalidation |
+| Role                                           | Trusted subjects (`sub`)                             | Permissions                                                                  |
+| ---------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `<project>-<environment>-github-backend-role`  | `repo:prod-forge/backend:environment:<environment>`  | ECR push to the application repository, ECS deploy, migration task, rollback |
+| `<project>-<environment>-github-frontend-role` | `repo:prod-forge/frontend:environment:<environment>` | S3 sync on the web client and assets buckets, CloudFront invalidation        |
 
 Both roles also require `aud = sts.amazonaws.com`. The subject is matched exactly (`StringEquals`), with no wildcard.
 
@@ -242,28 +242,28 @@ The backend and frontend workflows hard-code no AWS names: every name and networ
 
 Backend repository (`cd.yml`, `rollback.yml`, `show-ecs-revisions.yml`):
 
-| Variable | Terraform output | prod value |
-| --- | --- | --- |
-| `AWS_DEPLOY_ROLE_ARN` | `github_backend_role_arn` | `arn:aws:iam::<account>:role/prod-forge-todolist-prod-github-backend-role` |
-| `ECR_REPOSITORY` | `ecr_repository_name` | `prod-forge-todolist-prod` |
-| `ECS_CLUSTER` | `ecs_cluster_name` | `prod-forge-todolist-prod-cluster` |
-| `ECS_SERVICE` | `ecs_service_name` | `prod-forge-todolist-prod-service` |
-| `ECS_TASK_FAMILY` | `ecs_task_definition_family` | `prod-forge-todolist-prod-task` |
-| `ECS_MIGRATION_TASK_FAMILY` | `ecs_migration_task_definition_family` | `prod-forge-todolist-prod-migration-task` |
-| `ECS_MIGRATION_LOG_GROUP` | `ecs_migration_log_group_name` | `/ecs/prod-forge-todolist-prod-task-migration` |
-| `PRIVATE_SUBNET_IDS` | `private_subnet_ids` (comma-joined) | `subnet-0aaa,subnet-0bbb` |
-| `ECS_SECURITY_GROUP_ID` | `ecs_security_group_id` | `sg-0123456789abcdef0` |
+| Variable                    | Terraform output                       | prod value                                                                 |
+| --------------------------- | -------------------------------------- | -------------------------------------------------------------------------- |
+| `AWS_DEPLOY_ROLE_ARN`       | `github_backend_role_arn`              | `arn:aws:iam::<account>:role/prod-forge-todolist-prod-github-backend-role` |
+| `ECR_REPOSITORY`            | `ecr_repository_name`                  | `prod-forge-todolist-prod`                                                 |
+| `ECS_CLUSTER`               | `ecs_cluster_name`                     | `prod-forge-todolist-prod-cluster`                                         |
+| `ECS_SERVICE`               | `ecs_service_name`                     | `prod-forge-todolist-prod-service`                                         |
+| `ECS_TASK_FAMILY`           | `ecs_task_definition_family`           | `prod-forge-todolist-prod-task`                                            |
+| `ECS_MIGRATION_TASK_FAMILY` | `ecs_migration_task_definition_family` | `prod-forge-todolist-prod-migration-task`                                  |
+| `ECS_MIGRATION_LOG_GROUP`   | `ecs_migration_log_group_name`         | `/ecs/prod-forge-todolist-prod-task-migration`                             |
+| `PRIVATE_SUBNET_IDS`        | `private_subnet_ids` (comma-joined)    | `subnet-0aaa,subnet-0bbb`                                                  |
+| `ECS_SECURITY_GROUP_ID`     | `ecs_security_group_id`                | `sg-0123456789abcdef0`                                                     |
 
 Frontend repository (`cd.yml`, `rollback.yml`, `show-web-client-versions.yml`):
 
-| Variable | Terraform output | prod value |
-| --- | --- | --- |
-| `AWS_DEPLOY_ROLE_ARN` | `github_frontend_role_arn` | `arn:aws:iam::<account>:role/prod-forge-todolist-prod-github-frontend-role` |
-| `S3_WEB_CLIENT_BUCKET` | `web_client_bucket_name` | `prod-forge-todolist-prod-web-client` |
-| `S3_ASSETS_BUCKET` | `assets_bucket_name` | `prod-forge-todolist-prod-assets` |
-| `CLOUDFRONT_DISTRIBUTION_ID` | `cloudfront_distribution_id` | `E1ABCDEFGHIJKL` |
-| `CLOUDFRONT_URL` | `cloudfront_url` | `https://<domain_name>` or `https://<id>.cloudfront.net` |
-| `VITE_API_BASE_URL` | `api_url` + `/api/v1/` | `https://api.<domain_name>/api/v1/` |
+| Variable                     | Terraform output             | prod value                                                                  |
+| ---------------------------- | ---------------------------- | --------------------------------------------------------------------------- |
+| `AWS_DEPLOY_ROLE_ARN`        | `github_frontend_role_arn`   | `arn:aws:iam::<account>:role/prod-forge-todolist-prod-github-frontend-role` |
+| `S3_WEB_CLIENT_BUCKET`       | `web_client_bucket_name`     | `prod-forge-todolist-prod-web-client`                                       |
+| `S3_ASSETS_BUCKET`           | `assets_bucket_name`         | `prod-forge-todolist-prod-assets`                                           |
+| `CLOUDFRONT_DISTRIBUTION_ID` | `cloudfront_distribution_id` | `E1ABCDEFGHIJKL`                                                            |
+| `CLOUDFRONT_URL`             | `cloudfront_url`             | `https://<domain_name>` or `https://<id>.cloudfront.net`                    |
+| `VITE_API_BASE_URL`          | `api_url` + `/api/v1/`       | `https://api.<domain_name>/api/v1/`                                         |
 
 With the GitHub CLI, from the repository root of this project (`<repo>` is `prod-forge/backend` or `prod-forge/frontend`):
 
@@ -407,41 +407,41 @@ The backend validates its configuration at startup (`src/config/*.config.ts` in 
 
 Fixed by the infrastructure (module constants):
 
-| Variable | Value | Why |
-| --- | --- | --- |
-| `NODE_ENV` | `production` | |
-| `APP_HOST`, `APP_PORT` | `0.0.0.0`, `3000` | container port, target group and Prometheus scrape port |
-| `API_PREFIX` | `api` | the web and mobile clients call `/api/v1` |
-| `API_ALLOWED_ORIGINS` | `["https://<domain_name>", "https://<cloudfront domain>"]` | CORS for the web client; the custom domain only when `domain_name` is set |
-| `TRUST_PROXY` | `1` | one hop (the ALB), so throttling and logs use the client address |
-| `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER` | RDS outputs | |
-| `DATABASE_SSL` | `true` | RDS enforces TLS; the backend image trusts the RDS CA bundle (`NODE_EXTRA_CA_CERTS`) |
-| `REDIS_ENABLED`, `REDIS_HOST`, `REDIS_PORT`, `REDIS_TLS` | `true`, replication group endpoint, `6379`, `true` | |
-| `LOG_PRETTY` | `false` | JSON lines for CloudWatch Logs |
-| `SWAGGER_ENABLED` | `false` | the backend never serves API docs with `NODE_ENV=production` |
+| Variable                                                           | Value                                                      | Why                                                                                  |
+| ------------------------------------------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `NODE_ENV`                                                         | `production`                                               |                                                                                      |
+| `APP_HOST`, `APP_PORT`                                             | `0.0.0.0`, `3000`                                          | container port, target group and Prometheus scrape port                              |
+| `API_PREFIX`                                                       | `api`                                                      | the web and mobile clients call `/api/v1`                                            |
+| `API_ALLOWED_ORIGINS`                                              | `["https://<domain_name>", "https://<cloudfront domain>"]` | CORS for the web client; the custom domain only when `domain_name` is set            |
+| `TRUST_PROXY`                                                      | `1`                                                        | one hop (the ALB), so throttling and logs use the client address                     |
+| `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER` | RDS outputs                                                |                                                                                      |
+| `DATABASE_SSL`                                                     | `true`                                                     | RDS enforces TLS; the backend image trusts the RDS CA bundle (`NODE_EXTRA_CA_CERTS`) |
+| `REDIS_HOST`, `REDIS_PORT`, `REDIS_TLS`                            | replication group endpoint, `6379`, `true`                 |                                                                                      |
+| `LOG_PRETTY`                                                       | `false`                                                    | JSON lines for CloudWatch Logs                                                       |
+| `SWAGGER_ENABLED`                                                  | `false`                                                    | the backend never serves API docs with `NODE_ENV=production`                         |
 
 Tunables, set per environment in `backend_config` (`terraform.tfvars`); an omitted attribute uses the backend default:
 
-| `backend_config` attribute | Variable | Default | prod | dev |
-| --- | --- | --- | --- | --- |
-| `log_level` | `LOG_LEVEL` | `info` | `info` | `trace` |
-| `log_exclude_endpoints` | `LOG_EXCLUDE_ENDPOINTS` | `[]` | default | default |
-| `database_log_levels` | `DATABASE_LOG_LEVELS` | `[]` | `["warn","error"]` | `["warn","error"]` |
-| `database_pool_max` | `DATABASE_POOL_MAX` | `10` | `10` | `5` |
-| `database_connect_timeout_ms` | `DATABASE_CONNECT_TIMEOUT_MS` | `5000` | default | default |
-| `database_statement_timeout_ms` | `DATABASE_STATEMENT_TIMEOUT_MS` | `5000` | default | default |
-| `database_fail_fast` | `DATABASE_FAIL_FAST` | `true` | default | default |
-| `jwt_ttl` | `JWT_TTL` (seconds) | `3600` | `3600` | `3600` |
-| `throttle_enabled` | `THROTTLE_ENABLED` | `true` | `true` | `true` |
-| `throttle_limit` | `THROTTLE_LIMIT` | `60` | `60` | `60` |
-| `throttle_ttl` | `THROTTLE_TTL` (ms) | `60000` | `60000` | `60000` |
-| `shutdown_drain_ms` | `SHUTDOWN_DRAIN_MS` | `10000` | `10000` | `10000` |
-| `shutdown_inflight_timeout_ms` | `SHUTDOWN_INFLIGHT_TIMEOUT_MS` | `20000` | `20000` | `20000` |
-| `health_check_trigger_ms` | `HEALTH_CHECK_TRIGGER_MS` | `15000` | default | default |
-| `api_allowed_non_browser_origins` | `API_ALLOWED_NON_BROWSER_ORIGINS` | `true` | default | default |
-| `sentry_enabled` | `SENTRY_ENABLED` (and the `SENTRY_DSN` secret) | `false` | `false` | `false` |
-| `sentry_ignored_errors` | `SENTRY_IGNORED_ERRORS` | `[]` | default | default |
-| `otel_exporter_otlp_endpoint` | `OTEL_EXPORTER_OTLP_ENDPOINT` (omitted when empty) | `""` | default | default |
+| `backend_config` attribute        | Variable                                           | Default | prod               | dev                |
+| --------------------------------- | -------------------------------------------------- | ------- | ------------------ | ------------------ |
+| `log_level`                       | `LOG_LEVEL`                                        | `info`  | `info`             | `trace`            |
+| `log_exclude_endpoints`           | `LOG_EXCLUDE_ENDPOINTS`                            | `[]`    | default            | default            |
+| `database_log_levels`             | `DATABASE_LOG_LEVELS`                              | `[]`    | `["warn","error"]` | `["warn","error"]` |
+| `database_pool_max`               | `DATABASE_POOL_MAX`                                | `10`    | `10`               | `5`                |
+| `database_connect_timeout_ms`     | `DATABASE_CONNECT_TIMEOUT_MS`                      | `5000`  | default            | default            |
+| `database_statement_timeout_ms`   | `DATABASE_STATEMENT_TIMEOUT_MS`                    | `5000`  | default            | default            |
+| `database_fail_fast`              | `DATABASE_FAIL_FAST`                               | `true`  | default            | default            |
+| `jwt_ttl`                         | `JWT_TTL` (seconds)                                | `3600`  | `3600`             | `3600`             |
+| `throttle_enabled`                | `THROTTLE_ENABLED`                                 | `true`  | `true`             | `true`             |
+| `throttle_limit`                  | `THROTTLE_LIMIT`                                   | `60`    | `60`               | `60`               |
+| `throttle_ttl`                    | `THROTTLE_TTL` (ms)                                | `60000` | `60000`            | `60000`            |
+| `shutdown_drain_ms`               | `SHUTDOWN_DRAIN_MS`                                | `10000` | `10000`            | `10000`            |
+| `shutdown_inflight_timeout_ms`    | `SHUTDOWN_INFLIGHT_TIMEOUT_MS`                     | `20000` | `20000`            | `20000`            |
+| `health_check_trigger_ms`         | `HEALTH_CHECK_TRIGGER_MS`                          | `15000` | default            | default            |
+| `api_allowed_non_browser_origins` | `API_ALLOWED_NON_BROWSER_ORIGINS`                  | `true`  | default            | default            |
+| `sentry_enabled`                  | `SENTRY_ENABLED` (and the `SENTRY_DSN` secret)     | `false` | `false`            | `false`            |
+| `sentry_ignored_errors`           | `SENTRY_IGNORED_ERRORS`                            | `[]`    | default            | default            |
+| `otel_exporter_otlp_endpoint`     | `OTEL_EXPORTER_OTLP_ENDPOINT` (omitted when empty) | `""`    | default            | default            |
 
 The two shutdown values must stay below the 60 s `stopTimeout` (validated). Secrets (`secrets`, never `environment`): `DATABASE_PASSWORD` from the RDS-managed master secret (`password` key), `REDIS_PASSWORD` from `redis-auth`, `JWT_SECRET` from `jwt-secret`, and `SENTRY_DSN` from the app config secret when Sentry is enabled.
 
@@ -453,7 +453,7 @@ You can see logs from the container:
 aws logs describe-log-groups
 ```
 
-Find your log group (for example, */ecs/prod-forge-todolist-prod*):
+Find your log group (for example, _/ecs/prod-forge-todolist-prod_):
 
 ```shell
 aws logs tail <LOG_GROUP> --since 10h
