@@ -44,7 +44,7 @@ With `domain_name = ""` the distribution keeps the default `*.cloudfront.net` ce
 
 ## WAF and Access Logs
 
-The distribution is protected by a `CLOUDFRONT`-scope WAF web ACL (managed IP reputation, common and known-bad-inputs rules, 2000 requests per IP per 5 minutes); see [Security](security.md#waf). Standard access logs are written to the shared access-logs bucket under `cloudfront/` and expire after 90 days.
+With `enable_waf` (prod) the distribution is protected by a `CLOUDFRONT`-scope WAF web ACL (managed IP reputation, common and known-bad-inputs rules, 2000 requests per IP per 5 minutes); dev has none. See [Security](security.md#waf). Standard access logs are written to the shared access-logs bucket under `cloudfront/` and expire after 90 days.
 
 ## Security Headers
 

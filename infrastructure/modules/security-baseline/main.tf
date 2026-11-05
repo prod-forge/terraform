@@ -238,7 +238,7 @@ resource "aws_cloudtrail" "this" {
 
 # One detector per account and region; findings appear in the GuardDuty console.
 resource "aws_guardduty_detector" "this" {
-  #checkov:skip=CKV2_AWS_3: a single account without AWS Organizations; the detector is enabled in the region the stack runs in, there is no delegated administrator to configure
+  #checkov:skip=CKV2_AWS_3: a standalone detector for this account in the deployment region; the stack manages one account, so no GuardDuty delegated administrator or organization auto-enable is configured, even when the account belongs to an organization for IAM Identity Center
   count = var.enable_guardduty ? 1 : 0
 
   enable                       = true

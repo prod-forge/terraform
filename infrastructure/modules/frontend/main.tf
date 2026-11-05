@@ -205,7 +205,7 @@ resource "aws_cloudfront_function" "assets_path" {
 ############################################################
 
 resource "aws_cloudfront_distribution" "web_client" {
-  #checkov:skip=CKV2_AWS_47: the CloudFront ACL passed in var.web_acl_arn includes AWSManagedRulesKnownBadInputsRuleSet, which carries the Log4j rules; Checkov cannot resolve an ACL passed as a variable
+  #checkov:skip=CKV2_AWS_47: with enable_waf (prod) the CloudFront ACL passed in var.web_acl_arn includes AWSManagedRulesKnownBadInputsRuleSet, which carries the Log4j rules; dev passes null and has no WAF to save cost; Checkov cannot resolve an ACL passed as a variable
   #checkov:skip=CKV_AWS_310: both origins are single-region S3 buckets; a failover origin needs a replicated bucket that is not provisioned
   #checkov:skip=CKV_AWS_374: the web client is public for every country; geo blocking has no business requirement
   #checkov:skip=CKV_AWS_174: TLS 1.2 is enforced whenever a custom domain is set; the default *.cloudfront.net certificate only allows TLSv1
