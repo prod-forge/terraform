@@ -19,6 +19,8 @@ resource "aws_db_instance" "postgres" {
   username = var.username
   db_name  = var.db_name
 
+  # No database user is granted rds_iam yet, so nothing signs in with IAM today; the switch
+  # stays on (Checkov CKV_AWS_161) so IAM database users can be added without an RDS change.
   iam_database_authentication_enabled = true
 
   db_subnet_group_name   = var.db_subnet_group_name
