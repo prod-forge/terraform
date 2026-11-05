@@ -179,6 +179,28 @@ resource "aws_cloudfront_response_headers_policy" "security" {
 }
 
 ############################################################
+# CloudFront Function: /assets prefix
+############################################################
+
+# Frontend CD syncs the assets folder to the bucket root, while the web client
+# requests them under /assets/. The function strips the prefix so /assets/todo.svg
+# reads the key todo.svg.
+resource "aws_cloudfront_function" "assets_path" {
+  name    = "${var.project}-${var.environment}-assets-path"
+  runtime = "cloudfront-js-2.0"
+  comment = "Strip the /assets prefix before the request reaches the assets bucket"
+  publish = true
+  code    = <<-EOT
+    function handler(event) {
+      var request = event.request;
+      // The /assets/* behavior only sends URIs that start with "/assets/".
+      request.uri = request.uri.substring("/assets".length);
+      return request;
+    }
+  EOT
+}
+
+############################################################
 # CloudFront Distribution
 ############################################################
 
@@ -237,6 +259,11 @@ resource "aws_cloudfront_distribution" "web_client" {
 
     # AWS managed CachingOptimized policy
     cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.assets_path.arn
+    }
   }
 
   # SPA routing: unknown paths return index.html

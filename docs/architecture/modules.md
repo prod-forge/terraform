@@ -26,7 +26,7 @@ What each module provisions and how the domain switches HTTPS on. Roots, state a
 | `service-discovery`            | Cloud Map private DNS namespace and the backend service                                                                                                |
 | `rds`                          | PostgreSQL `aws_db_instance`, parameter group, enhanced monitoring role                                                                                 |
 | `redis`                        | ElastiCache subnet group and replication group                                                                                                         |
-| `frontend`                     | web client and assets S3 buckets, CloudFront distribution with OAC and a security headers policy, deploy policy for the frontend role                  |
+| `frontend`                     | web client and assets S3 buckets, CloudFront distribution with OAC, a security headers policy and the `/assets` prefix function, deploy policy for the frontend role |
 | `observability-config`         | S3 bucket with the files of `infrastructure/observability/` (`*.tftpl` rendered with the Cloud Map namespace)                                         |
 | `monitoring/iam`               | instance role and profile of the monitoring host (SSM, Grafana secret, config bucket)                                                                  |
 | `monitoring/security_group`    | security group of the monitoring host                                                                                                                  |

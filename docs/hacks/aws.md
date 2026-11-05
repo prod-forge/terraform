@@ -41,3 +41,10 @@
 - **Where:** `infrastructure/environments/<env>/main.tf` (comment in the file), `infrastructure/environments/<env>/variables.tf`.
 - **Why:** the key files are git-ignored, and `validate`, CI and `terraform test` must work in a fresh clone.
 - **If cleaned up:** a plain `file()` breaks `validate` and CI; dropping the validation lets an apply try to import empty certificates.
+
+## CloudFront Function strips the /assets prefix
+
+- **What:** a viewer-request CloudFront Function on the `/assets/*` behavior removes `/assets` from the URI before the request reaches the assets bucket.
+- **Where:** `infrastructure/modules/frontend/main.tf` (`aws_cloudfront_function.assets_path`); asserted in `infrastructure/environments/prod/tests/edge.tftest.hcl`.
+- **Why:** frontend CD (`frontend/.github/workflows/cd.yml`) syncs `assets/` to the bucket root, while the web client requests `<cloudfront_url>/assets/<file>`. Without the function every asset request misses, S3 answers 403, and the SPA error response turns it into `index.html` with status 200.
+- **If cleaned up:** every asset URL returns HTML with 200 again. If frontend CD is changed to upload under an `assets/` prefix, the function must go in the same change, or requests reach `<file>` at the root and miss.

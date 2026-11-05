@@ -262,6 +262,24 @@ run "frontend_without_domain_uses_default_certificate" {
     error_message = "Previous web client builds must expire after 30 days."
   }
 
+  # Frontend CD syncs the assets to the bucket root; the web client requests /assets/<file>.
+  assert {
+    condition = (
+      aws_cloudfront_distribution.web_client.ordered_cache_behavior[0].path_pattern == "/assets/*" &&
+      aws_cloudfront_distribution.web_client.ordered_cache_behavior[0].target_origin_id == "assets" &&
+      [for f in aws_cloudfront_distribution.web_client.ordered_cache_behavior[0].function_association : f.event_type] == ["viewer-request"]
+    )
+    error_message = "The /assets/* behavior must run a viewer-request function before the assets origin."
+  }
+
+  assert {
+    condition = (
+      aws_cloudfront_function.assets_path.runtime == "cloudfront-js-2.0" &&
+      strcontains(aws_cloudfront_function.assets_path.code, "request.uri.substring(\"/assets\".length)")
+    )
+    error_message = "The assets function must strip the /assets prefix from the URI."
+  }
+
   # Keep in sync with the CSP test in the frontend repo (apps/web-client/index-csp.test.ts).
   assert {
     condition     = aws_cloudfront_response_headers_policy.security.security_headers_config[0].content_security_policy[0].content_security_policy == "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' http://test-alb-123456789.eu-central-1.elb.amazonaws.com https://*.sentry.io; font-src 'self' data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
