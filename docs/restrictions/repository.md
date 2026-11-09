@@ -11,10 +11,10 @@
 - **Reason:** one commit format across the Prod Forge repositories (`CONTRIBUTING.md`, "Commit your changes"); the attribution policy is the same as in the backend and frontend repositories.
 - **Where:** `.githooks/commit-msg` checks the subject and rejects `Co-Authored-By`, `Generated-by` or `Assisted-by` trailers that mention Claude or Anthropic ([commands.md](../commands.md#git-hooks)).
 
-## CHANGELOG.md is written by the owner
+## CHANGELOG.md is written by hand at release time
 
-- **Rule:** never edit `CHANGELOG.md`.
-- **Reason:** it records released versions; the owner writes it at release time (inference: there is no release tooling in this repository).
+- **Rule:** edit `CHANGELOG.md` only for a release, when the owner asks: add one section for the new version above the previous one and never rewrite released sections.
+- **Reason:** there is no release tooling in this repository, so the entry is written by hand from the commits since the last tag; released sections record what shipped.
 
 ## Generated files
 
@@ -24,7 +24,7 @@
 
 ## Protected files
 
-- **Rule:** do not edit `*.tfstate`, `.terraform/`, `.terraform.lock.hcl`, `.env*` files or `CHANGELOG.md`.
+- **Rule:** do not edit `*.tfstate`, `.terraform/`, `.terraform.lock.hcl` or `.env*` files.
 - **Reason:** state, provider caches and lock files are managed by Terraform; `.env*` files may hold secrets.
 - **Where:** `AGENTS.md` ("Ignore Rules"), [commands.md](../commands.md#what-agents-must-never-run). Not enforced by tooling.
 
