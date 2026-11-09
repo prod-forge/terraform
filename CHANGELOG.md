@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.0.1 (2026-11-09)
+
+### Fixes
+
+- Security: clear the 48 Checkov findings CI failed on, covered by new `terraform test` cases (default security group,
+  KMS key policy, `force_ssl`, assets bucket versioning).
+- S3: deny non-TLS requests to the web client and assets buckets.
+- Client VPN: derive the DNS server from the VPC CIDR, use split tunnel and log connections for 30 days.
+- ECS: stop passing the unused `REDIS_ENABLED` variable to the backend task.
+- The initial image serves `/health/live`, so a fresh environment passes the ECS container health check.
+- The app port, VPC CIDR and GitHub owner are variables instead of hard-coded values.
+
+### Tooling
+
+- AWS provider locked to 6.72.0, Terraform 1.17.1 in CI, workflow actions bumped.
+- Git hooks for fmt, validate, commit messages and tests (`git config core.hooksPath .githooks`).
+- Agent reference docs in `docs/`, the human guide in `guide/`.
+
+### Apply notes
+
+The next `terraform apply` updates the Client VPN endpoint in place (clients reconnect), adds the
+`DenyInsecureTransport` bucket policies and registers a new backend task definition revision.
+
 ## 1.0.0 (2026-11-04)
 
 First published version of the Prod Forge infrastructure: Terraform for the backend, the frontend and the observability
