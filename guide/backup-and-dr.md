@@ -95,7 +95,7 @@ Run once per quarter in a non-production account or with a throwaway identifier,
 - [ ] Restore both into new instances with the commands above.
 - [ ] Record the elapsed time from the restore call to `available`; compare with the RTO.
 - [ ] Connect through the VPN and check row counts against production.
-- [ ] Run the application migrations against the restored copy in dry-run mode.
+- [ ] Run `prisma migrate status` from the backend image against the restored copy: every migration applied, none failed (Prisma has no dry-run mode).
 - [ ] Trigger a Multi-AZ failover with `aws rds reboot-db-instance --force-failover` on a non-production instance and measure the downtime.
 - [ ] Delete the drill instances and confirm no orphan snapshots or costs remain.
 - [ ] File follow-ups for anything that took longer than expected or was unclear.
