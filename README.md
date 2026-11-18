@@ -1,12 +1,43 @@
 <p align="center">
-  <img alt="Prod Forge" src="https://raw.githubusercontent.com/prod-forge/.github/main/assets/prod-forge-logo.png" width="264px" height="243px">
+  <img alt="Prod Forge" src="https://raw.githubusercontent.com/prod-forge/.github/main/assets/prod-forge-logo.png" width="120px" height="110px">
 </p>
 
-_AI made writing the code easy. Running it in production is still hard._
+<p align="center">
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/github/license/prod-forge/terraform?style=flat-square"></a>
+  <a href="https://github.com/prod-forge/terraform/releases"><img alt="Release" src="https://img.shields.io/github/v/release/prod-forge/terraform?style=flat-square"></a>
+  <a href="https://github.com/prod-forge/terraform/actions/workflows/terraform-ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/prod-forge/terraform/terraform-ci.yml?branch=main&style=flat-square&label=CI"></a>
+</p>
 
-This repository describes the AWS infrastructure for Prod Forge as Terraform code: environments, networking, ECS, RDS, ElastiCache, the frontend hosting and the observability stack. It answers: how do I run all of it on AWS with code, not clicks?
+The AWS infrastructure for a NestJS API and its web client as Terraform code, with a 15-chapter guide that explains
+every decision: environments, networking, ECS, RDS, ElastiCache, frontend hosting, observability, security, backups and
+cost.
 
-Part of Prod Forge — start with the organization overview: https://github.com/prod-forge
+## What's inside
+
+- **Two environments from one module:** dev and prod call the same `stack` module and differ only in variable values.
+  [Environments](guide/environments.md)
+- **No static AWS keys in CI:** GitHub Actions assume one IAM role per repository through OIDC, trusted only for that
+  repository and its GitHub environment. [Security](guide/security.md)
+- **Offline CI on every pull request:** `fmt`, `validate`, `tflint` and a `checkov` security scan, none of them needs
+  AWS credentials. [CI for Infrastructure](guide/ci.md)
+- **Stated recovery targets:** RPO about 5 minutes with point-in-time recovery, RTO 60 to 120 seconds for a Multi-AZ
+  failover, and a written restore procedure. [Backup and Disaster Recovery](guide/backup-and-dr.md)
+- **Autoscaling on two signals:** target tracking on CPU and on ALB requests per task.
+  [Scaling](guide/scaling.md)
+- **Private by default:** the ALB is the only public entry point; engineers reach RDS and Redis through Client VPN
+  and the monitoring host through SSM Session Manager, with no SSH. [Debugging](guide/debugging.md)
+- **Self-hosted observability:** Prometheus, Grafana, Loki and Tempo on one EC2 host next to the ECS service.
+  [Observability](guide/observability.md)
+- **A cost estimate per line item:** about 150 USD a month for dev and 580 USD for prod, with the levers that change
+  it. [Cost](guide/cost.md)
+
+<p align="center">
+  <img alt="Architecture" src="https://raw.githubusercontent.com/prod-forge/.github/main/assets/architecture_diagram.png">
+</p>
+
+This repository holds the infrastructure. The API it runs is in [prod-forge/backend](https://github.com/prod-forge/backend),
+the web and mobile clients in [prod-forge/frontend](https://github.com/prod-forge/frontend); the
+[organization page](https://github.com/prod-forge) has the reading order.
 
 ## Stack
 
@@ -16,13 +47,30 @@ Part of Prod Forge — start with the organization overview: https://github.com/
 | Infrastructure | Terraform · AWS · RDS · ElastiCache            |
 | Observability  | Prometheus · Grafana · Loki · Promtail · Tempo |
 
-The full stack table is on the organization page: https://github.com/prod-forge
-
 ## Getting started
 
 Start with the [Development Setup](guide/development-setup.md).
 
 # Table of contents
+
+- [1. Development Setup](guide/development-setup.md)
+- [2. Environments](guide/environments.md)
+- [3. Workflow](guide/workflow.md)
+- [4. Frontend Deployment](guide/frontend.md)
+- [5. Observability](guide/observability.md)
+- [6. Debugging](guide/debugging.md)
+- [7. Troubleshooting](guide/troubleshooting.md)
+- [8. Destroying the Infrastructure](guide/destroy.md)
+- [9. CI for Infrastructure](guide/ci.md)
+- [10. Backup and Disaster Recovery](guide/backup-and-dr.md)
+- [11. Scaling](guide/scaling.md)
+- [12. Security](guide/security.md)
+- [13. Cost](guide/cost.md)
+- [14. Migration to the Environments Layout](guide/migration-to-environments.md)
+- [15. Blue/Green Deployment (design note, not implemented)](guide/blue-green.md)
+
+<details>
+<summary>Full table of contents</summary>
 
 - [1. Development Setup](guide/development-setup.md)
   - [IDE Setup (WebStorm)](guide/development-setup.md#ide-setup-webstorm)
@@ -211,6 +259,8 @@ Start with the [Development Setup](guide/development-setup.md).
   - [What changes in the service](guide/blue-green.md#what-changes-in-the-service)
   - [What changes in the CD workflow](guide/blue-green.md#what-changes-in-the-cd-workflow)
   - [Trade-offs](guide/blue-green.md#trade-offs)
+
+</details>
 
 # Contributing
 
