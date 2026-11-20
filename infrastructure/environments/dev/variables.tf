@@ -113,7 +113,7 @@ variable "rds_snapshot_identifier" {
 }
 
 variable "rds_max_connections_alarm" {
-  description = "DatabaseConnections alarm threshold; about 80% of max_connections for the instance class"
+  description = "DatabaseConnections alarm threshold; about 70-80% of max_connections, depending on the instance class"
   type        = number
 }
 

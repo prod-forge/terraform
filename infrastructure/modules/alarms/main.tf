@@ -216,7 +216,7 @@ resource "aws_cloudwatch_metric_alarm" "rds_free_storage" {
 
 resource "aws_cloudwatch_metric_alarm" "rds_connections" {
   alarm_name          = "${local.prefix}-rds-connections-high"
-  alarm_description   = "RDS connections above ${var.rds_max_connections_alarm} (about 80% of max_connections)"
+  alarm_description   = "RDS connections above ${var.rds_max_connections_alarm} (about 70-80% of max_connections, depending on the instance class)"
   namespace           = "AWS/RDS"
   metric_name         = "DatabaseConnections"
   dimensions          = { DBInstanceIdentifier = var.rds_identifier }

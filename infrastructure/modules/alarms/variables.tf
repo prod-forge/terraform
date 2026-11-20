@@ -51,7 +51,7 @@ variable "rds_identifier" {
 }
 
 variable "rds_max_connections_alarm" {
-  description = "DatabaseConnections threshold; about 80% of max_connections for the instance class (320 for db.t4g.medium)"
+  description = "DatabaseConnections threshold; about 70-80% of max_connections, depending on the instance class (320 for db.t4g.medium)"
   type        = number
   default     = 320
 }

@@ -86,7 +86,7 @@
 | <a name="input_rds_db_name"></a> [rds\_db\_name](#input\_rds\_db\_name) | n/a | `string` | n/a | yes |
 | <a name="input_rds_deletion_protection"></a> [rds\_deletion\_protection](#input\_rds\_deletion\_protection) | n/a | `bool` | n/a | yes |
 | <a name="input_rds_instance_class"></a> [rds\_instance\_class](#input\_rds\_instance\_class) | n/a | `string` | n/a | yes |
-| <a name="input_rds_max_connections_alarm"></a> [rds\_max\_connections\_alarm](#input\_rds\_max\_connections\_alarm) | DatabaseConnections alarm threshold; about 80% of max\_connections for the RDS instance class | `number` | `320` | no |
+| <a name="input_rds_max_connections_alarm"></a> [rds\_max\_connections\_alarm](#input\_rds\_max\_connections\_alarm) | DatabaseConnections alarm threshold; about 70-80% of max\_connections, depending on the RDS instance class | `number` | `320` | no |
 | <a name="input_rds_multi_az"></a> [rds\_multi\_az](#input\_rds\_multi\_az) | n/a | `bool` | n/a | yes |
 | <a name="input_rds_snapshot_identifier"></a> [rds\_snapshot\_identifier](#input\_rds\_snapshot\_identifier) | Encrypted DB snapshot the RDS instance is created from; null creates an empty database | `string` | `null` | no |
 | <a name="input_rds_username"></a> [rds\_username](#input\_rds\_username) | n/a | `string` | n/a | yes |

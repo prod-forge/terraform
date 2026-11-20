@@ -52,7 +52,7 @@ No modules.
 | <a name="input_nat_gateway_ids"></a> [nat\_gateway\_ids](#input\_nat\_gateway\_ids) | NAT gateway IDs; one alarm per gateway | `list(string)` | n/a | yes |
 | <a name="input_project"></a> [project](#input\_project) | Project Name | `string` | n/a | yes |
 | <a name="input_rds_identifier"></a> [rds\_identifier](#input\_rds\_identifier) | RDS instance identifier | `string` | n/a | yes |
-| <a name="input_rds_max_connections_alarm"></a> [rds\_max\_connections\_alarm](#input\_rds\_max\_connections\_alarm) | DatabaseConnections threshold; about 80% of max\_connections for the instance class (320 for db.t4g.medium) | `number` | `320` | no |
+| <a name="input_rds_max_connections_alarm"></a> [rds\_max\_connections\_alarm](#input\_rds\_max\_connections\_alarm) | DatabaseConnections threshold; about 70-80% of max\_connections, depending on the instance class (320 for db.t4g.medium) | `number` | `320` | no |
 | <a name="input_redis_num_cache_clusters"></a> [redis\_num\_cache\_clusters](#input\_redis\_num\_cache\_clusters) | Number of Redis nodes; one alarm per node and metric | `number` | n/a | yes |
 | <a name="input_redis_replication_group_id"></a> [redis\_replication\_group\_id](#input\_redis\_replication\_group\_id) | ElastiCache replication group ID | `string` | n/a | yes |
 
