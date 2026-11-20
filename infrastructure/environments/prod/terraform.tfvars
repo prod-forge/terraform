@@ -22,7 +22,7 @@ rds_instance_class          = "db.t4g.medium"
 rds_multi_az                = true
 rds_backup_retention_period = 7
 rds_deletion_protection     = true
-# About 80% of max_connections for db.t4g.medium.
+# About 70% of max_connections (about 450) for db.t4g.medium.
 rds_max_connections_alarm = 320
 
 redis_node_type                = "cache.t4g.small"
