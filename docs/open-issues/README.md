@@ -4,7 +4,6 @@ Deferred known problems, so they are not rediscovered (or silently "fixed") in e
 
 ## GitHub issues
 
-- [#1](https://github.com/prod-forge/terraform/issues/1) — Fix the RDS connections alarm wording: 80% is only right for dev. The threshold is 90 of about 112 connections in dev but 320 of about 450 in prod (about 71%); the alarm description, the variable descriptions and the prod `terraform.tfvars` comment claim 80% for both. Changing the alarm description changes a live alarm in place.
 - [#2](https://github.com/prod-forge/terraform/issues/2) — Run `terraform plan` on pull requests. Needs a read-only OIDC role first; see [restrictions/ci-cd.md](../restrictions/ci-cd.md) ("CI is offline; applies are manual").
 - [#3](https://github.com/prod-forge/terraform/issues/3) — Pin GitHub Actions to commit SHAs in `.github/workflows/terraform-ci.yml`.
 - [#4](https://github.com/prod-forge/terraform/issues/4) — Bootstrap: manage team access with Terraform. A design comment in the issue comes first.

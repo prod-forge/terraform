@@ -172,7 +172,7 @@ variable "monthly_budget_usd" {
 }
 
 variable "rds_max_connections_alarm" {
-  description = "DatabaseConnections alarm threshold; about 80% of max_connections for the RDS instance class"
+  description = "DatabaseConnections alarm threshold; about 70-80% of max_connections, depending on the RDS instance class"
   type        = number
   default     = 320
 }
